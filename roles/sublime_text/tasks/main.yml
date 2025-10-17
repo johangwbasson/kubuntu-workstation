@@ -1,0 +1,121 @@
+---
+# tasks file for sublime_text
+
+- name: Install dependencies for Sublime Text installation
+  ansible.builtin.apt:
+    name:
+      - wget
+      - gpg
+      - apt-transport-https
+    state: present
+    update_cache: yes
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - dependencies
+
+- name: Download Sublime HQ GPG key
+  ansible.builtin.get_url:
+    url: "{{ sublime_gpg_key_url }}"
+    dest: "{{ sublime_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - security
+
+- name: Add Sublime Text repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by={{ sublime_gpg_keyring_path }}] {{ sublime_repo_url }}apt/stable/"
+    state: present
+    filename: sublime-text
+    update_cache: yes
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+
+- name: Install Sublime Text
+  ansible.builtin.apt:
+    name: sublime-text
+    state: "{{ sublime_package_state }}"
+    update_cache: yes
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+
+- name: Display Sublime Text installation info
+  ansible.builtin.debug:
+    msg: |
+      Sublime Text has been installed successfully!
+
+      Installed components:
+      - Sublime Text (subl)
+      - Package Control (built-in)
+      - Command palette
+      - Multiple cursors
+      - Goto Anything
+
+      Useful commands:
+      - subl                     : Launch Sublime Text
+      - subl <file>              : Open file in Sublime Text
+      - subl <folder>            : Open folder in Sublime Text
+      - subl -n                  : Open new window
+      - subl -a <file>           : Add file to current window
+
+      Keyboard shortcuts:
+      - Ctrl+Shift+P            : Command palette
+      - Ctrl+P                  : Goto Anything (quick file open)
+      - Ctrl+R                  : Goto Symbol
+      - Ctrl+G                  : Goto Line
+      - Ctrl+D                  : Select next occurrence
+      - Ctrl+Shift+D            : Duplicate line
+      - Ctrl+Shift+K            : Delete line
+      - Ctrl+K, Ctrl+B          : Toggle sidebar
+      - Ctrl+`                  : Show console
+
+      Install Package Control packages:
+      1. Press Ctrl+Shift+P
+      2. Type "Install Package"
+      3. Search and install packages
+
+      Popular packages:
+      - LSP (Language Server Protocol support)
+      - Terminus (integrated terminal)
+      - GitGutter (Git diff markers)
+      - BracketHighlighter
+      - SideBarEnhancements
+      - SublimeLinter
+      - DocBlockr
+      - Emmet
+      - Color Highlighter
+
+      Configuration files location:
+      ~/.config/sublime-text/Packages/User/
+
+      Set as default editor:
+      xdg-mime default sublime_text.desktop text/plain
+
+      Sublime Text will receive automatic updates through APT!
+
+      Note: Sublime Text is free to use but requires a license for continued use.
+      You can evaluate it without time limit, but a license supports development.
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor

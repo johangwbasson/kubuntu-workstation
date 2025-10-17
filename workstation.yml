@@ -14,7 +14,11 @@
     - docker
     - kubectl
     - terraform
+    - awscli
+    - java
     - fish_shell
+    - vscode
+    - sublime_text
     - neovim
     - firefox
     - brave

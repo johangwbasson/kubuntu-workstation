@@ -1,0 +1,12 @@
+---
+# defaults file for java
+# Install default JDK (currently OpenJDK 21 on Ubuntu 24.04)
+java_packages:
+  - default-jdk
+  - default-jre
+  - openjdk-21-jdk
+  - openjdk-21-jre
+  - openjdk-21-doc
+  - openjdk-21-source
+
+java_package_state: present

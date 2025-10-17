@@ -1,0 +1,146 @@
+---
+# tasks file for docker
+
+- name: Install dependencies for Docker installation
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+  tags:
+    - docker
+    - packages
+    - containers
+    - dependencies
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: "{{ docker_gpg_key_url }}"
+    dest: /tmp/docker-gpg-key.asc
+    mode: '0644'
+  tags:
+    - docker
+    - packages
+    - containers
+    - security
+
+- name: Convert and install Docker GPG key to keyring
+  ansible.builtin.shell: |
+    cat /tmp/docker-gpg-key.asc | gpg --dearmor --output {{ docker_gpg_keyring_path }}
+  args:
+    creates: "{{ docker_gpg_keyring_path }}"
+  tags:
+    - docker
+    - packages
+    - containers
+    - security
+
+- name: Set proper permissions on Docker keyring
+  ansible.builtin.file:
+    path: "{{ docker_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - docker
+    - packages
+    - containers
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/docker-gpg-key.asc
+    state: absent
+  tags:
+    - docker
+    - packages
+    - containers
+    - cleanup
+
+- name: Get Ubuntu codename
+  ansible.builtin.command: lsb_release -cs
+  register: ubuntu_codename
+  changed_when: false
+  tags:
+    - docker
+    - packages
+    - containers
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by={{ docker_gpg_keyring_path }}] {{ docker_repo_url }} {{ ubuntu_codename.stdout }} stable"
+    state: present
+    filename: docker
+    update_cache: yes
+  tags:
+    - docker
+    - packages
+    - containers
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+    update_cache: yes
+  tags:
+    - docker
+    - packages
+    - containers
+
+- name: Ensure Docker service is started and enabled
+  ansible.builtin.systemd:
+    name: docker
+    state: "{{ docker_service_state }}"
+    enabled: "{{ docker_service_enabled }}"
+  tags:
+    - docker
+    - services
+    - containers
+
+- name: Get current user from environment
+  ansible.builtin.set_fact:
+    current_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+  when: docker_users | length == 0
+  tags:
+    - docker
+    - users
+    - containers
+
+- name: Set docker_users if not defined
+  ansible.builtin.set_fact:
+    docker_users: ["{{ current_user }}"]
+  when: docker_users | length == 0 and current_user is defined and current_user != 'root'
+  tags:
+    - docker
+    - users
+    - containers
+
+- name: Add users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  loop: "{{ docker_users }}"
+  when: docker_users | length > 0
+  tags:
+    - docker
+    - users
+    - containers
+
+- name: Display post-installation message
+  ansible.builtin.debug:
+    msg: |
+      Docker has been installed successfully!
+      Users added to docker group: {{ docker_users | join(', ') }}
+
+      IMPORTANT: Users need to log out and log back in (or reboot) for group changes to take effect.
+
+      After logging back in, test with: docker run hello-world
+  when: docker_users | length > 0
+  tags:
+    - docker
+    - users
+    - containers

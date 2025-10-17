@@ -1,0 +1,49 @@
+---
+# tasks file for zoom
+
+- name: Check if Zoom is already installed
+  ansible.builtin.command: dpkg-query -W -f='${Status}' zoom
+  register: zoom_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - zoom
+    - packages
+    - communication
+    - video-conferencing
+
+- name: Download Zoom .deb package
+  ansible.builtin.get_url:
+    url: "{{ zoom_download_url }}"
+    dest: "{{ zoom_deb_path }}"
+    mode: '0644'
+  when: zoom_installed.rc != 0 or 'install ok installed' not in zoom_installed.stdout
+  tags:
+    - zoom
+    - packages
+    - communication
+    - video-conferencing
+    - download
+
+- name: Install Zoom from .deb package
+  ansible.builtin.apt:
+    deb: "{{ zoom_deb_path }}"
+    state: "{{ zoom_package_state }}"
+  when: zoom_installed.rc != 0 or 'install ok installed' not in zoom_installed.stdout
+  tags:
+    - zoom
+    - packages
+    - communication
+    - video-conferencing
+
+- name: Remove downloaded .deb file
+  ansible.builtin.file:
+    path: "{{ zoom_deb_path }}"
+    state: absent
+  when: zoom_installed.rc != 0 or 'install ok installed' not in zoom_installed.stdout
+  tags:
+    - zoom
+    - packages
+    - communication
+    - video-conferencing
+    - cleanup

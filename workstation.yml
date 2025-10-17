@@ -8,16 +8,22 @@
     - ./vars.yml
   roles:
     - remove_snap
+    - ubuntu_drivers
     - cli_tools
+    - docker
     - neovim
     - firefox
     - brave
     - flatpak
     - chrome-browser
     - slack
+    - zoom
+    - spotify
     - onepassword
     - bitwarden
     - megasync
+    - obsidian
+    - onlyoffice
     - git
     - clamav
     - ufw

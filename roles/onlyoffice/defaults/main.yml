@@ -1,0 +1,8 @@
+---
+# defaults file for onlyoffice
+onlyoffice_gpg_key_url: https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE
+onlyoffice_gpg_keyring_path: /usr/share/keyrings/onlyoffice-archive-keyring.gpg
+onlyoffice_repo_url: https://download.onlyoffice.com/repo/debian
+onlyoffice_repo_distribution: squeeze
+onlyoffice_repo_component: main
+onlyoffice_package_state: present

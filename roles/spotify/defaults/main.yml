@@ -1,0 +1,8 @@
+---
+# defaults file for spotify
+spotify_gpg_key_url: https://download.spotify.com/debian/pubkey_6224F9941A8AA6D1.gpg
+spotify_gpg_keyring_path: /usr/share/keyrings/spotify-archive-keyring.gpg
+spotify_repo_url: http://repository.spotify.com
+spotify_repo_distribution: stable
+spotify_repo_component: non-free
+spotify_package_state: present

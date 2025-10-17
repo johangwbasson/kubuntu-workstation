@@ -1,0 +1,27 @@
+---
+# tasks file for obsidian
+
+- name: Ensure Flatpak is installed
+  ansible.builtin.apt:
+    name: flatpak
+    state: present
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+    - flatpak
+    - dependencies
+
+- name: Install Obsidian from Flathub
+  community.general.flatpak:
+    name: "{{ obsidian_flatpak_id }}"
+    state: present
+    remote: "{{ flatpak_remote }}"
+    method: "{{ flatpak_method }}"
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+    - flatpak

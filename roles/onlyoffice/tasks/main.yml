@@ -1,0 +1,88 @@
+---
+# tasks file for onlyoffice
+
+- name: Install dependencies for OnlyOffice installation
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+      - apt-transport-https
+    state: present
+    update_cache: yes
+  tags:
+    - onlyoffice
+    - packages
+    - productivity
+    - office
+    - dependencies
+
+- name: Download OnlyOffice GPG key
+  ansible.builtin.get_url:
+    url: "{{ onlyoffice_gpg_key_url }}"
+    dest: /tmp/onlyoffice-gpg-key.asc
+    mode: '0644'
+  tags:
+    - onlyoffice
+    - packages
+    - productivity
+    - office
+    - security
+
+- name: Convert and install OnlyOffice GPG key to keyring
+  ansible.builtin.shell: |
+    cat /tmp/onlyoffice-gpg-key.asc | gpg --dearmor --output {{ onlyoffice_gpg_keyring_path }}
+  args:
+    creates: "{{ onlyoffice_gpg_keyring_path }}"
+  tags:
+    - onlyoffice
+    - packages
+    - productivity
+    - office
+    - security
+
+- name: Set proper permissions on OnlyOffice keyring
+  ansible.builtin.file:
+    path: "{{ onlyoffice_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - onlyoffice
+    - packages
+    - productivity
+    - office
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/onlyoffice-gpg-key.asc
+    state: absent
+  tags:
+    - onlyoffice
+    - packages
+    - productivity
+    - office
+    - cleanup
+
+- name: Add OnlyOffice repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ onlyoffice_gpg_keyring_path }}] {{ onlyoffice_repo_url }} {{ onlyoffice_repo_distribution }} {{ onlyoffice_repo_component }}"
+    state: present
+    filename: onlyoffice
+    update_cache: yes
+  tags:
+    - onlyoffice
+    - packages
+    - productivity
+    - office
+
+- name: Install OnlyOffice Desktop Editors
+  ansible.builtin.apt:
+    name: onlyoffice-desktopeditors
+    state: "{{ onlyoffice_package_state }}"
+    update_cache: yes
+  tags:
+    - onlyoffice
+    - packages
+    - productivity
+    - office

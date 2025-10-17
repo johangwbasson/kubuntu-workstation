@@ -1,0 +1,71 @@
+---
+# tasks file for ubuntu_drivers
+
+- name: Install ubuntu-drivers-common package
+  ansible.builtin.apt:
+    name: ubuntu-drivers-common
+    state: "{{ ubuntu_drivers_package_state }}"
+    update_cache: yes
+  tags:
+    - ubuntu-drivers
+    - drivers
+    - hardware
+    - packages
+
+- name: Detect available drivers
+  ansible.builtin.command: ubuntu-drivers devices
+  register: ubuntu_drivers_devices
+  changed_when: false
+  failed_when: false
+  tags:
+    - ubuntu-drivers
+    - drivers
+    - hardware
+    - detection
+
+- name: Display detected devices requiring drivers
+  ansible.builtin.debug:
+    var: ubuntu_drivers_devices.stdout_lines
+  when: ubuntu_drivers_devices.stdout | length > 0
+  tags:
+    - ubuntu-drivers
+    - drivers
+    - hardware
+    - detection
+
+- name: Check if drivers are already installed
+  ansible.builtin.shell: |
+    ubuntu-drivers devices | grep -q "manual_install" && echo "drivers_needed" || echo "drivers_ok"
+  register: drivers_status
+  changed_when: false
+  failed_when: false
+  tags:
+    - ubuntu-drivers
+    - drivers
+    - hardware
+
+- name: Install recommended proprietary drivers
+  ansible.builtin.command: ubuntu-drivers autoinstall
+  when:
+    - ubuntu_drivers_mode == 'autoinstall'
+    - ubuntu_drivers_devices.stdout | length > 0
+  register: drivers_install
+  changed_when: "'installed' in drivers_install.stdout or drivers_install.rc == 0"
+  notify: Reboot required for driver installation
+  tags:
+    - ubuntu-drivers
+    - drivers
+    - hardware
+    - installation
+
+- name: Display installation result
+  ansible.builtin.debug:
+    msg: "Driver installation completed. A reboot may be required for changes to take effect."
+  when:
+    - ubuntu_drivers_mode == 'autoinstall'
+    - drivers_install is changed
+  tags:
+    - ubuntu-drivers
+    - drivers
+    - hardware
+    - installation

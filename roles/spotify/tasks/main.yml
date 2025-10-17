@@ -1,0 +1,53 @@
+---
+# tasks file for spotify
+
+- name: Install dependencies for Spotify installation
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - dependencies
+
+- name: Download Spotify GPG key
+  ansible.builtin.get_url:
+    url: "{{ spotify_gpg_key_url }}"
+    dest: "{{ spotify_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - security
+
+- name: Add Spotify repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ spotify_gpg_keyring_path }}] {{ spotify_repo_url }} {{ spotify_repo_distribution }} {{ spotify_repo_component }}"
+    state: present
+    filename: spotify
+    update_cache: yes
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+
+- name: Install Spotify client
+  ansible.builtin.apt:
+    name: spotify-client
+    state: "{{ spotify_package_state }}"
+    update_cache: yes
+  tags:
+    - spotify
+    - packages
+    - media
+    - music

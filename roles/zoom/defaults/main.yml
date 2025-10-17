@@ -1,0 +1,5 @@
+---
+# defaults file for zoom
+zoom_download_url: https://zoom.us/client/latest/zoom_amd64.deb
+zoom_deb_path: /tmp/zoom_amd64.deb
+zoom_package_state: present

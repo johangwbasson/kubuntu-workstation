@@ -11,6 +11,7 @@
     - ubuntu_drivers
     - cli_tools
     - docker
+    - kubectl
     - fish_shell
     - neovim
     - firefox

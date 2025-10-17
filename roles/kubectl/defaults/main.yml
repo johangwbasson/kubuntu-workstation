@@ -1,0 +1,8 @@
+---
+# defaults file for kubectl
+kubectl_gpg_key_url: https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key
+kubectl_gpg_keyring_path: /usr/share/keyrings/kubernetes-apt-keyring.gpg
+kubectl_repo_url: https://pkgs.k8s.io/core:/stable:/v1.31/deb/
+kubectl_package_state: present
+kubectl_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+kubectl_user_home: "{{ lookup('env', 'HOME') if kubectl_user == lookup('env', 'USER') else '/home/' + kubectl_user }}"

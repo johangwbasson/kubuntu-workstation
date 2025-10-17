@@ -1,0 +1,201 @@
+---
+# tasks file for kubectl
+
+- name: Install dependencies for kubectl installation
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+    - dependencies
+
+- name: Download Kubernetes GPG key
+  ansible.builtin.get_url:
+    url: "{{ kubectl_gpg_key_url }}"
+    dest: /tmp/kubernetes-release.key
+    mode: '0644'
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+    - security
+
+- name: Convert and install Kubernetes GPG key to keyring
+  ansible.builtin.shell: |
+    cat /tmp/kubernetes-release.key | gpg --dearmor --output {{ kubectl_gpg_keyring_path }}
+  args:
+    creates: "{{ kubectl_gpg_keyring_path }}"
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+    - security
+
+- name: Set proper permissions on Kubernetes keyring
+  ansible.builtin.file:
+    path: "{{ kubectl_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/kubernetes-release.key
+    state: absent
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+    - cleanup
+
+- name: Add Kubernetes repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ kubectl_gpg_keyring_path }}] {{ kubectl_repo_url }} /"
+    state: present
+    filename: kubernetes
+    update_cache: yes
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+
+- name: Install kubectl
+  ansible.builtin.apt:
+    name: kubectl
+    state: "{{ kubectl_package_state }}"
+    update_cache: yes
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+
+- name: Ensure bash completion directory exists
+  ansible.builtin.file:
+    path: /etc/bash_completion.d
+    state: directory
+    mode: '0755'
+  tags:
+    - kubectl
+    - kubernetes
+    - completion
+
+- name: Enable kubectl bash completion
+  ansible.builtin.shell: |
+    kubectl completion bash > /etc/bash_completion.d/kubectl
+  args:
+    creates: /etc/bash_completion.d/kubectl
+  tags:
+    - kubectl
+    - kubernetes
+    - completion
+
+- name: Check if Fish shell is installed
+  ansible.builtin.command: which fish
+  register: fish_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - kubectl
+    - kubernetes
+    - completion
+
+- name: Ensure Fish completions directory exists
+  ansible.builtin.file:
+    path: "{{ kubectl_user_home }}/.config/fish/completions"
+    state: directory
+    owner: "{{ kubectl_user }}"
+    group: "{{ kubectl_user }}"
+    mode: '0755'
+  when: fish_installed.rc == 0
+  tags:
+    - kubectl
+    - kubernetes
+    - completion
+
+- name: Enable kubectl Fish completion
+  ansible.builtin.shell: |
+    kubectl completion fish > {{ kubectl_user_home }}/.config/fish/completions/kubectl.fish
+    chown {{ kubectl_user }}:{{ kubectl_user }} {{ kubectl_user_home }}/.config/fish/completions/kubectl.fish
+  args:
+    creates: "{{ kubectl_user_home }}/.config/fish/completions/kubectl.fish"
+  when: fish_installed.rc == 0
+  tags:
+    - kubectl
+    - kubernetes
+    - completion
+
+- name: Create kubectl aliases for bash
+  ansible.builtin.lineinfile:
+    path: "{{ kubectl_user_home }}/.bashrc"
+    line: "{{ item }}"
+    create: yes
+    owner: "{{ kubectl_user }}"
+    group: "{{ kubectl_user }}"
+    mode: '0644'
+  loop:
+    - "# kubectl aliases"
+    - "alias k='kubectl'"
+    - "complete -o default -F __start_kubectl k"
+  tags:
+    - kubectl
+    - kubernetes
+    - aliases
+
+- name: Create kubectl abbreviations for Fish
+  become: true
+  become_user: "{{ kubectl_user }}"
+  ansible.builtin.shell: |
+    fish -c "abbr --add --global k kubectl"
+  args:
+    executable: /usr/bin/fish
+  when: fish_installed.rc == 0
+  register: fish_abbr
+  changed_when: fish_abbr.rc == 0
+  failed_when: false
+  tags:
+    - kubectl
+    - kubernetes
+    - aliases
+
+- name: Display kubectl installation info
+  ansible.builtin.debug:
+    msg: |
+      kubectl has been installed successfully!
+
+      Installed components:
+      - kubectl (Kubernetes CLI)
+      - Shell completions (bash and fish if available)
+      - kubectl alias: k
+
+      Useful commands:
+      - kubectl version              : Show client and server version
+      - kubectl cluster-info         : Display cluster information
+      - kubectl get nodes            : List cluster nodes
+      - kubectl get pods -A          : List all pods in all namespaces
+      - kubectl config view          : View kubeconfig
+      - kubectl config get-contexts  : List available contexts
+      - k                            : Shorthand for kubectl
+
+      To connect to a cluster, configure your kubeconfig:
+      - Set KUBECONFIG environment variable
+      - Or place config in ~/.kube/config
+
+      For learning Kubernetes:
+      - minikube: Local Kubernetes cluster
+      - kind: Kubernetes in Docker
+      - k3s/k3d: Lightweight Kubernetes
+  tags:
+    - kubectl
+    - kubernetes

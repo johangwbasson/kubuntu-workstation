@@ -1,0 +1,34 @@
+---
+# tasks file for flatpak
+
+- name: Install Flatpak
+  ansible.builtin.apt:
+    name: flatpak
+    state: "{{ flatpak_package_state }}"
+    update_cache: yes
+  tags:
+    - packages
+    - flatpak
+    - package-management
+
+- name: Install Flatpak backend for KDE Discover
+  ansible.builtin.apt:
+    name: plasma-discover-backend-flatpak
+    state: "{{ flatpak_package_state }}"
+    update_cache: yes
+  tags:
+    - packages
+    - flatpak
+    - package-management
+    - kde
+
+- name: Add Flathub remote repository
+  community.general.flatpak_remote:
+    name: "{{ flathub_remote_name }}"
+    state: present
+    flatpakrepo_url: "{{ flathub_remote_url }}"
+    method: "{{ flathub_remote_method }}"
+  tags:
+    - flatpak
+    - package-management
+    - flathub

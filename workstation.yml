@@ -8,3 +8,4 @@
     - ./vars.yml
   roles:
     - firefox
+    - flatpak

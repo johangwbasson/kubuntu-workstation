@@ -1,0 +1,8 @@
+---
+# defaults file for onepassword
+onepassword_gpg_key_url: https://downloads.1password.com/linux/keys/1password.asc
+onepassword_gpg_keyring_path: /usr/share/keyrings/1password-archive-keyring.gpg
+onepassword_repo_url: https://downloads.1password.com/linux/debian/amd64
+onepassword_repo_distribution: stable
+onepassword_repo_component: main
+onepassword_package_state: present

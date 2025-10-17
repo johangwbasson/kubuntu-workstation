@@ -1,0 +1,5 @@
+---
+# defaults file for neovim
+# Use 'stable' for stable releases or 'unstable' for latest/nightly builds
+neovim_ppa: ppa:neovim-ppa/unstable
+neovim_package_state: present

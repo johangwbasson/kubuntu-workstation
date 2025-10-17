@@ -1,0 +1,49 @@
+---
+# tasks file for brave
+
+- name: Install APT transport and dependencies
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - curl
+    state: present
+    update_cache: yes
+  tags:
+    - brave
+    - packages
+    - browser
+    - dependencies
+
+- name: Download Brave GPG key
+  ansible.builtin.get_url:
+    url: "{{ brave_gpg_key_url }}"
+    dest: "{{ brave_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - brave
+    - packages
+    - browser
+    - security
+
+- name: Add Brave browser repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ brave_gpg_keyring_path }}] {{ brave_repo_url }} stable {{ brave_repo_component }}"
+    state: present
+    filename: brave-browser-release
+    update_cache: yes
+  tags:
+    - brave
+    - packages
+    - browser
+
+- name: Install Brave browser
+  ansible.builtin.apt:
+    name: brave-browser
+    state: "{{ brave_package_state }}"
+    update_cache: yes
+  tags:
+    - brave
+    - packages
+    - browser

@@ -1,0 +1,27 @@
+---
+# tasks file for bitwarden
+
+- name: Ensure Flatpak is installed
+  ansible.builtin.apt:
+    name: flatpak
+    state: present
+  tags:
+    - bitwarden
+    - packages
+    - security
+    - password-manager
+    - flatpak
+    - dependencies
+
+- name: Install Bitwarden from Flathub
+  community.general.flatpak:
+    name: "{{ bitwarden_flatpak_id }}"
+    state: present
+    remote: "{{ flatpak_remote }}"
+    method: "{{ flatpak_method }}"
+  tags:
+    - bitwarden
+    - packages
+    - security
+    - password-manager
+    - flatpak

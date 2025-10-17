@@ -1,0 +1,39 @@
+---
+# tasks file for slack
+
+- name: Ensure Flatpak is installed
+  ansible.builtin.apt:
+    name: flatpak
+    state: present
+  tags:
+    - slack
+    - packages
+    - communication
+    - flatpak
+    - dependencies
+
+- name: Install Slack from Flathub
+  community.general.flatpak:
+    name: "{{ slack_flatpak_id }}"
+    state: present
+    remote: "{{ flatpak_remote }}"
+    method: "{{ flatpak_method }}"
+  tags:
+    - slack
+    - packages
+    - communication
+    - flatpak
+
+- name: Install Flatseal from Flathub
+  community.general.flatpak:
+    name: "{{ flatseal_flatpak_id }}"
+    state: present
+    remote: "{{ flatpak_remote }}"
+    method: "{{ flatpak_method }}"
+  tags:
+    - slack
+    - packages
+    - communication
+    - flatpak
+    - flatseal
+    - security

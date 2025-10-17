@@ -1,0 +1,5 @@
+---
+# defaults file for bitwarden
+bitwarden_flatpak_id: com.bitwarden.desktop
+flatpak_remote: flathub
+flatpak_method: system

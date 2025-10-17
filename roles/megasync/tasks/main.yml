@@ -1,0 +1,91 @@
+---
+# tasks file for megasync
+
+- name: Install dependencies for MEGAsync installation
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - dependencies
+
+- name: Download MEGA GPG key
+  ansible.builtin.get_url:
+    url: "{{ mega_gpg_key_url }}"
+    dest: /tmp/mega-release.key
+    mode: '0644'
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - security
+
+- name: Convert and install MEGA GPG key to keyring
+  ansible.builtin.shell: |
+    cat /tmp/mega-release.key | gpg --dearmor --output {{ mega_gpg_keyring_path }}
+  args:
+    creates: "{{ mega_gpg_keyring_path }}"
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - security
+
+- name: Set proper permissions on MEGA keyring
+  ansible.builtin.file:
+    path: "{{ mega_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/mega-release.key
+    state: absent
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - cleanup
+
+- name: Add MEGA repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ mega_gpg_keyring_path }}] {{ mega_repo_url }} ./"
+    state: present
+    filename: megasync
+    update_cache: yes
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+
+- name: Install MEGAsync
+  ansible.builtin.apt:
+    name: megasync
+    state: "{{ mega_package_state }}"
+    update_cache: yes
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+
+- name: Install MEGA CMD (optional CLI tools)
+  ansible.builtin.apt:
+    name: megacmd
+    state: "{{ mega_package_state }}"
+    update_cache: yes
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - cli

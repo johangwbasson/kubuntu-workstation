@@ -1,0 +1,76 @@
+---
+# tasks file for onepassword
+
+- name: Install dependencies for 1Password installation
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+  tags:
+    - onepassword
+    - packages
+    - security
+    - dependencies
+
+- name: Download 1Password GPG key
+  ansible.builtin.get_url:
+    url: "{{ onepassword_gpg_key_url }}"
+    dest: /tmp/1password.asc
+    mode: '0644'
+  tags:
+    - onepassword
+    - packages
+    - security
+
+- name: Convert and install 1Password GPG key to keyring
+  ansible.builtin.shell: |
+    cat /tmp/1password.asc | gpg --dearmor --output {{ onepassword_gpg_keyring_path }}
+  args:
+    creates: "{{ onepassword_gpg_keyring_path }}"
+  tags:
+    - onepassword
+    - packages
+    - security
+
+- name: Set proper permissions on 1Password keyring
+  ansible.builtin.file:
+    path: "{{ onepassword_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - onepassword
+    - packages
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/1password.asc
+    state: absent
+  tags:
+    - onepassword
+    - packages
+    - cleanup
+
+- name: Add 1Password repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by={{ onepassword_gpg_keyring_path }}] {{ onepassword_repo_url }} {{ onepassword_repo_distribution }} {{ onepassword_repo_component }}"
+    state: present
+    filename: 1password
+    update_cache: yes
+  tags:
+    - onepassword
+    - packages
+    - security
+
+- name: Install 1Password
+  ansible.builtin.apt:
+    name: 1password
+    state: "{{ onepassword_package_state }}"
+    update_cache: yes
+  tags:
+    - onepassword
+    - packages
+    - security

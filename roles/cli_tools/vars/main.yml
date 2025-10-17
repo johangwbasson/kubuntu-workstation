@@ -39,7 +39,6 @@ system_monitoring_tools:
   - inxi
 
 editors:
-  - neovim
   - nano
 
 compression_tools:

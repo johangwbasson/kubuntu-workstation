@@ -1,0 +1,34 @@
+---
+# tasks file for neovim
+
+- name: Add Neovim PPA
+  ansible.builtin.apt_repository:
+    repo: "{{ neovim_ppa }}"
+    state: present
+    update_cache: yes
+  tags:
+    - neovim
+    - packages
+    - editor
+    - development
+
+- name: Install Neovim from PPA
+  ansible.builtin.apt:
+    name: neovim
+    state: "{{ neovim_package_state }}"
+    update_cache: yes
+  tags:
+    - neovim
+    - packages
+    - editor
+    - development
+
+- name: Set Neovim as default editor alternative
+  community.general.alternatives:
+    name: editor
+    path: /usr/bin/nvim
+  failed_when: false
+  tags:
+    - neovim
+    - editor
+    - configuration

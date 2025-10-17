@@ -1,0 +1,6 @@
+---
+# defaults file for megasync
+mega_gpg_key_url: https://mega.nz/linux/repo/xUbuntu_24.04/Release.key
+mega_gpg_keyring_path: /usr/share/keyrings/megasync-archive-keyring.gpg
+mega_repo_url: https://mega.nz/linux/repo/xUbuntu_24.04
+mega_package_state: present

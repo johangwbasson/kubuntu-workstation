@@ -9,9 +9,15 @@
   roles:
     - remove_snap
     - cli_tools
+    - neovim
     - firefox
+    - brave
     - flatpak
     - chrome-browser
+    - slack
+    - onepassword
+    - bitwarden
+    - megasync
     - git
     - clamav
     - ufw

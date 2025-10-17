@@ -1,0 +1,7 @@
+---
+# defaults file for brave
+brave_gpg_key_url: https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+brave_gpg_keyring_path: /usr/share/keyrings/brave-browser-archive-keyring.gpg
+brave_repo_url: https://brave-browser-apt-release.s3.brave.com/
+brave_repo_component: main
+brave_package_state: present

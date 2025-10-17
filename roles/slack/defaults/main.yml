@@ -1,0 +1,6 @@
+---
+# defaults file for slack
+slack_flatpak_id: com.slack.Slack
+flatseal_flatpak_id: com.github.tchx84.Flatseal
+flatpak_remote: flathub
+flatpak_method: system

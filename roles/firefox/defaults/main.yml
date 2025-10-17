@@ -1,0 +1,3 @@
+---
+# defaults file for firefox
+firefox_package_state: present

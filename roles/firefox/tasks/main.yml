@@ -1,0 +1,22 @@
+---
+# tasks file for firefox
+
+- name: Add Mozilla Team PPA
+  ansible.builtin.apt_repository:
+    repo: ppa:mozillateam/ppa
+    state: present
+    update_cache: yes
+  tags:
+    - packages
+    - firefox
+    - browser
+
+- name: Install Firefox from Mozilla PPA
+  ansible.builtin.apt:
+    name: firefox
+    state: "{{ firefox_package_state }}"
+    update_cache: yes
+  tags:
+    - packages
+    - firefox
+    - browser

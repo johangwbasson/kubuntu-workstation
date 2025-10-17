@@ -7,3 +7,4 @@
     - ./.vars.yml
     - ./vars.yml
   roles:
+    - firefox

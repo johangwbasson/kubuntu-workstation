@@ -1,12 +1,35 @@
 ---
 # tasks file for firefox
 
+- name: Check if Firefox package is installed
+  ansible.builtin.shell: dpkg -l firefox 2>/dev/null | grep -q '^ii' && echo "installed" || echo "not_installed"
+  register: firefox_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - packages
+    - firefox
+    - browser
+
+- name: Check if installed Firefox is snap-based
+  ansible.builtin.shell: apt-cache policy firefox | grep -q 'Installed.*ubuntu' && echo "snap_based" || echo "not_snap"
+  register: firefox_snap_check
+  changed_when: false
+  failed_when: false
+  when: firefox_check.stdout == "installed"
+  tags:
+    - packages
+    - firefox
+    - browser
+
 - name: Remove snap-based Firefox package if present
   ansible.builtin.apt:
     name: firefox
     state: absent
     purge: yes
-  failed_when: false
+  when:
+    - firefox_check.stdout == "installed"
+    - firefox_snap_check.stdout == "snap_based"
   tags:
     - packages
     - firefox

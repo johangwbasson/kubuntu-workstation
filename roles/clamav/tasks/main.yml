@@ -1,0 +1,36 @@
+---
+- name: Install clamav
+  ansible.builtin.package:
+    name:
+      - clamav
+      - clamav-daemon
+    state: present
+
+- name: Configure clamav daemon
+  ansible.builtin.template:
+    src: clamd.conf.j2
+    dest: /etc/clamav/clamd.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart clamav-daemon
+
+- name: Create a global quarantine directory
+  ansible.builtin.file:
+    path: "{{ clamav_quarantine_dir }}"
+    state: directory
+    owner: clamav
+    group: clamav
+    mode: '0755'
+
+- name: Deploy ClamAV health check script
+  ansible.builtin.template:
+    src: clamav-verify.sh.j2
+    dest: /usr/local/bin/clamav-verify.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Include non-CI tasks
+  ansible.builtin.include_tasks: non-ci.yml
+  when: lookup('env', 'CI') != 'true'

@@ -11,3 +11,6 @@
     - firefox
     - flatpak
     - chrome-browser
+    - git
+    - clamav
+    - ufw

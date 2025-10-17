@@ -15,6 +15,7 @@
     - kubectl
     - terraform
     - awscli
+    - azure_cli
     - java
     - fish_shell
     - vscode

@@ -1,0 +1,6 @@
+---
+# defaults file for azure_cli
+azure_cli_gpg_key_url: https://packages.microsoft.com/keys/microsoft.asc
+azure_cli_repo_url: https://packages.microsoft.com/repos/azure-cli
+azure_cli_keyring_path: /usr/share/keyrings/microsoft-archive-keyring.gpg
+azure_cli_temp_keyring: /tmp/microsoft.asc

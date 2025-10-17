@@ -1,0 +1,133 @@
+---
+# tasks file for cli_tools
+
+- name: Install version control tools
+  ansible.builtin.apt:
+    name: "{{ vcs_tools }}"
+    state: "{{ cli_tools_package_state }}"
+    update_cache: yes
+  tags:
+    - cli-tools
+    - packages
+    - vcs
+    - git
+
+- name: Install network tools
+  ansible.builtin.apt:
+    name: "{{ network_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - network
+
+- name: Install JSON/YAML processing tools
+  ansible.builtin.apt:
+    name: "{{ json_yaml_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - data-tools
+
+- name: Install file management tools
+  ansible.builtin.apt:
+    name: "{{ file_management_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - file-tools
+
+- name: Install system monitoring tools
+  ansible.builtin.apt:
+    name: "{{ system_monitoring_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - monitoring
+
+- name: Install text editors
+  ansible.builtin.apt:
+    name: "{{ editors }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - editors
+
+- name: Install compression tools
+  ansible.builtin.apt:
+    name: "{{ compression_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - compression
+
+- name: Install build tools
+  ansible.builtin.apt:
+    name: "{{ build_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - build-tools
+    - development
+
+- name: Install package management tools
+  ansible.builtin.apt:
+    name: "{{ package_management_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - package-management
+
+- name: Install core utilities
+  ansible.builtin.apt:
+    name: "{{ core_utilities }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - core-utils
+
+- name: Install network utilities
+  ansible.builtin.apt:
+    name: "{{ network_utilities }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - network
+    - network-utils
+
+- name: Install terminal multiplexers
+  ansible.builtin.apt:
+    name: "{{ terminal_multiplexers }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - terminal
+
+- name: Install shell enhancement tools
+  ansible.builtin.apt:
+    name: "{{ shell_enhancement }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - shell
+
+- name: Install encryption tools
+  ansible.builtin.apt:
+    name: "{{ encryption_tools }}"
+    state: "{{ cli_tools_package_state }}"
+  tags:
+    - cli-tools
+    - packages
+    - encryption
+    - security

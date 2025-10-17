@@ -1,0 +1,91 @@
+---
+# vars file for cli_tools
+# Package names organized by category (Ubuntu/Debian naming)
+
+vcs_tools:
+  - git
+  - git-lfs
+
+network_tools:
+  - curl
+  - wget
+  - openssh-client  # Ubuntu: openssh-client (not openssh-clients)
+
+json_yaml_tools:
+  - jq
+  - yq  # Available in Ubuntu 22.04+
+
+file_management_tools:
+  - tree
+  - ncdu
+  - zip
+  - unzip
+  - p7zip-full  # Ubuntu: p7zip-full (includes plugins)
+  - stow
+  - rsync
+  - fd-find
+  - ripgrep
+  - fzf
+  - bat
+
+system_monitoring_tools:
+  - htop
+  - btop
+  - iotop
+  - nethogs
+  - iftop
+  - lsof
+  - strace
+  - inxi
+
+editors:
+  - neovim
+  - nano
+
+compression_tools:
+  - tar
+  - gzip
+  - bzip2
+  - xz-utils  # Ubuntu: xz-utils (not just xz)
+  - zstd
+  - liblz4-tool  # Ubuntu: liblz4-tool (for lz4 command)
+
+build_tools:
+  - make
+  - cmake
+  - gcc
+  - g++  # Ubuntu: g++ (not gcc-c++)
+  - build-essential  # Meta-package with essential build tools
+
+package_management_tools:
+  - flatpak
+  # Note: dnf-plugins-core is Fedora-specific, not needed on Ubuntu
+
+core_utilities:
+  - util-linux
+  - coreutils
+  - findutils
+  - procps  # Ubuntu: procps (not procps-ng)
+  - psmisc
+  - debianutils  # Ubuntu: provides 'which' command
+  - file
+  - less
+  - grep
+  - sed
+  - gawk  # Ubuntu: gawk (provides awk)
+
+network_utilities:
+  - netcat-openbsd  # Ubuntu: netcat-openbsd (recommended netcat variant)
+  - telnet
+  - ncat  # Ubuntu: ncat (from nmap package, similar to nmap-ncat)
+
+terminal_multiplexers:
+  - tmux
+  - screen
+
+shell_enhancement:
+  - direnv
+  - lsd
+
+encryption_tools:
+  - age

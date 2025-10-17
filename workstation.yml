@@ -8,6 +8,7 @@
     - ./vars.yml
   roles:
     - remove_snap
+    - cli_tools
     - firefox
     - flatpak
     - chrome-browser

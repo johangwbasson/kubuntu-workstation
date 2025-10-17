@@ -1,0 +1,3 @@
+---
+# defaults file for cli_tools
+cli_tools_package_state: present

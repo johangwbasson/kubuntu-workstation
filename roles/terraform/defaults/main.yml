@@ -1,0 +1,8 @@
+---
+# defaults file for terraform
+terraform_gpg_key_url: https://apt.releases.hashicorp.com/gpg
+terraform_gpg_keyring_path: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+terraform_repo_url: https://apt.releases.hashicorp.com
+terraform_package_state: present
+terraform_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+terraform_user_home: "{{ lookup('env', 'HOME') if terraform_user == lookup('env', 'USER') else '/home/' + terraform_user }}"

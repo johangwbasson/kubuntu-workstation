@@ -1,0 +1,218 @@
+---
+# tasks file for terraform
+
+- name: Install dependencies for Terraform installation
+  ansible.builtin.apt:
+    name:
+      - wget
+      - gpg
+      - coreutils
+      - lsb-release
+    state: present
+    update_cache: yes
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+    - dependencies
+
+- name: Download HashiCorp GPG key
+  ansible.builtin.get_url:
+    url: "{{ terraform_gpg_key_url }}"
+    dest: /tmp/hashicorp-gpg-key.asc
+    mode: '0644'
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+    - security
+
+- name: Convert and install HashiCorp GPG key to keyring
+  ansible.builtin.shell: |
+    cat /tmp/hashicorp-gpg-key.asc | gpg --dearmor --output {{ terraform_gpg_keyring_path }}
+  args:
+    creates: "{{ terraform_gpg_keyring_path }}"
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+    - security
+
+- name: Set proper permissions on HashiCorp keyring
+  ansible.builtin.file:
+    path: "{{ terraform_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/hashicorp-gpg-key.asc
+    state: absent
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+    - cleanup
+
+- name: Get Ubuntu codename
+  ansible.builtin.command: lsb_release -cs
+  register: ubuntu_codename
+  changed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+
+- name: Add HashiCorp repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ terraform_gpg_keyring_path }}] {{ terraform_repo_url }} {{ ubuntu_codename.stdout }} main"
+    state: present
+    filename: hashicorp
+    update_cache: yes
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+
+- name: Install Terraform
+  ansible.builtin.apt:
+    name: terraform
+    state: "{{ terraform_package_state }}"
+    update_cache: yes
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+
+- name: Ensure bash completion directory exists
+  ansible.builtin.file:
+    path: /etc/bash_completion.d
+    state: directory
+    mode: '0755'
+  tags:
+    - terraform
+    - infrastructure
+    - completion
+
+- name: Enable Terraform bash completion
+  ansible.builtin.shell: |
+    terraform -install-autocomplete
+  args:
+    creates: "{{ terraform_user_home }}/.bashrc"
+  register: terraform_bash_completion
+  changed_when: terraform_bash_completion.rc == 0
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - completion
+
+- name: Check if Fish shell is installed
+  ansible.builtin.command: which fish
+  register: fish_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - completion
+
+- name: Ensure Fish completions directory exists
+  ansible.builtin.file:
+    path: "{{ terraform_user_home }}/.config/fish/completions"
+    state: directory
+    owner: "{{ terraform_user }}"
+    group: "{{ terraform_user }}"
+    mode: '0755'
+  when: fish_installed.rc == 0
+  tags:
+    - terraform
+    - infrastructure
+    - completion
+
+- name: Generate Terraform Fish completion
+  become: true
+  become_user: "{{ terraform_user }}"
+  ansible.builtin.shell: |
+    terraform -install-autocomplete
+  args:
+    executable: /usr/bin/fish
+  when: fish_installed.rc == 0
+  register: terraform_fish_completion
+  changed_when: terraform_fish_completion.rc == 0
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - completion
+
+- name: Create Terraform aliases for bash
+  ansible.builtin.lineinfile:
+    path: "{{ terraform_user_home }}/.bashrc"
+    line: "{{ item }}"
+    create: yes
+    owner: "{{ terraform_user }}"
+    group: "{{ terraform_user }}"
+    mode: '0644'
+  loop:
+    - "# Terraform aliases"
+    - "alias tf='terraform'"
+  tags:
+    - terraform
+    - infrastructure
+    - aliases
+
+- name: Create Terraform abbreviations for Fish
+  become: true
+  become_user: "{{ terraform_user }}"
+  ansible.builtin.shell: |
+    fish -c "abbr --add --global tf terraform"
+  args:
+    executable: /usr/bin/fish
+  when: fish_installed.rc == 0
+  register: fish_abbr
+  changed_when: fish_abbr.rc == 0
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - aliases
+
+- name: Display Terraform installation info
+  ansible.builtin.debug:
+    msg: |
+      Terraform has been installed successfully!
+
+      Installed components:
+      - Terraform (Infrastructure as Code tool)
+      - Shell completions (bash and fish if available)
+      - Terraform alias: tf
+
+      Useful commands:
+      - terraform version        : Show Terraform version
+      - terraform init          : Initialize working directory
+      - terraform plan          : Preview changes
+      - terraform apply         : Apply changes
+      - terraform destroy       : Destroy infrastructure
+      - terraform validate      : Validate configuration
+      - terraform fmt           : Format configuration files
+      - terraform state list    : List resources in state
+      - tf                      : Shorthand for terraform
+
+      Getting started:
+      1. Create a new directory for your Terraform project
+      2. Create .tf files with your infrastructure code
+      3. Run 'terraform init' to initialize
+      4. Run 'terraform plan' to preview
+      5. Run 'terraform apply' to create resources
+
+      HashiCorp repository added - Terraform will receive automatic updates!
+  tags:
+    - terraform
+    - infrastructure

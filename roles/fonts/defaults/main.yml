@@ -1,0 +1,20 @@
+---
+# defaults file for fonts
+# Local font archives in role files directory
+fira_sans_zip: "{{ role_path }}/files/Fira_Sans.zip"
+jetbrains_mono_zip: "{{ role_path }}/files/JetBrainsMono.zip"
+
+# System font directories
+system_fonts_dir: /usr/local/share/fonts
+fira_sans_dir: "{{ system_fonts_dir }}/fira-sans"
+jetbrains_mono_dir: "{{ system_fonts_dir }}/jetbrains-mono"
+
+# APT font packages
+apt_font_packages:
+  - fonts-inter
+  - fonts-roboto
+  - fonts-roboto-unhinted
+  - fonts-ibm-plex
+
+# Microsoft fonts package
+microsoft_fonts_package: ttf-mscorefonts-installer

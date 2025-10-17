@@ -9,9 +9,11 @@
   roles:
     - remove_snap
     - ubuntu_drivers
+    - fonts
     - cli_tools
     - docker
     - kubectl
+    - terraform
     - fish_shell
     - neovim
     - firefox

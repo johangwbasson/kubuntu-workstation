@@ -2,4 +2,4 @@
 
 set -eu
 
-ansible-playbook -i inventory workstation.yml
+ansible-playbook -K -i inventory workstation.yml

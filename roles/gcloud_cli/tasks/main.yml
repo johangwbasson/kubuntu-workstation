@@ -1,0 +1,210 @@
+---
+# tasks file for gcloud_cli
+
+- name: Install dependencies for Google Cloud CLI installation
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - curl
+    state: present
+    update_cache: yes
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - packages
+    - cloud
+    - dependencies
+
+- name: Check if Google Cloud CLI is already installed
+  ansible.builtin.command: gcloud --version
+  register: gcloud_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+
+- name: Display current Google Cloud CLI version if installed
+  ansible.builtin.debug:
+    msg: "Google Cloud CLI already installed: {{ gcloud_installed.stdout_lines[0] }}"
+  when: gcloud_installed.rc == 0
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+
+- name: Create directory for Google Cloud GPG key
+  ansible.builtin.file:
+    path: /usr/share/keyrings
+    state: directory
+    mode: '0755'
+  when: gcloud_installed.rc != 0
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+
+- name: Download Google Cloud GPG key
+  ansible.builtin.get_url:
+    url: "{{ gcloud_gpg_key_url }}"
+    dest: "{{ gcloud_keyring_path }}"
+    mode: '0644'
+  when: gcloud_installed.rc != 0
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+    - download
+
+- name: Add Google Cloud SDK repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ gcloud_keyring_path }}] {{ gcloud_repo_url }} cloud-sdk main"
+    filename: google-cloud-sdk
+    state: present
+  when: gcloud_installed.rc != 0
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+
+- name: Install Google Cloud CLI and components
+  ansible.builtin.apt:
+    name:
+      - google-cloud-cli
+      - google-cloud-cli-gke-gcloud-auth-plugin
+    state: present
+    update_cache: yes
+  when: gcloud_installed.rc != 0
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+    - packages
+
+- name: Verify Google Cloud CLI installation
+  ansible.builtin.command: gcloud --version
+  register: gcloud_version
+  changed_when: false
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+
+- name: Enable Google Cloud CLI bash completion
+  ansible.builtin.lineinfile:
+    path: /etc/bash.bashrc
+    line: "source /usr/share/google-cloud-sdk/completion.bash.inc"
+    create: yes
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+    - completion
+
+- name: Display Google Cloud CLI installation info
+  ansible.builtin.debug:
+    msg: |
+      Google Cloud CLI has been installed successfully!
+
+      Version: {{ gcloud_version.stdout_lines[0] }}
+
+      Installed components:
+      - gcloud CLI core
+      - GKE gcloud auth plugin (for Kubernetes authentication)
+
+      Useful commands:
+      - gcloud --version              : Show gcloud version
+      - gcloud init                   : Initialize or reinitialize gcloud
+      - gcloud auth login             : Authenticate with Google Cloud
+      - gcloud config list            : Show current configuration
+      - gcloud projects list          : List available projects
+      - gcloud help                   : Show help
+      - gcloud <group> <command> help : Command-specific help
+
+      Initial setup:
+      1. Initialize gcloud: gcloud init
+         - Authenticates your account
+         - Sets default project
+         - Sets default compute region/zone
+
+      2. Or authenticate separately:
+         gcloud auth login
+         gcloud config set project PROJECT_ID
+         gcloud config set compute/region us-central1
+         gcloud config set compute/zone us-central1-a
+
+      3. Service Account authentication:
+         gcloud auth activate-service-account --key-file=KEY_FILE.json
+
+      4. Application Default Credentials (for local development):
+         gcloud auth application-default login
+
+      Configuration:
+      - Configuration directory: ~/.config/gcloud/
+      - Active configuration: gcloud config configurations list
+      - Create new config: gcloud config configurations create NAME
+      - Switch config: gcloud config configurations activate NAME
+
+      Common commands:
+      - gcloud compute instances list        : List VM instances
+      - gcloud container clusters list       : List GKE clusters
+      - gcloud storage buckets list          : List Cloud Storage buckets
+      - gcloud sql instances list            : List Cloud SQL instances
+      - gcloud functions list                : List Cloud Functions
+      - gcloud run services list             : List Cloud Run services
+      - gcloud projects list                 : List projects
+      - gcloud iam service-accounts list     : List service accounts
+      - gcloud services list --enabled       : List enabled APIs
+
+      GKE (Kubernetes) authentication:
+      - gcloud container clusters get-credentials CLUSTER_NAME --region REGION
+      - Uses the GKE gcloud auth plugin (already installed)
+
+      Component management:
+      - gcloud components list               : List available components
+      - gcloud components install COMPONENT  : Install additional components
+      - gcloud components update             : Update all components
+
+      Popular additional components (install if needed):
+      - kubectl                              : Kubernetes CLI
+      - gsutil                               : Cloud Storage utilities
+      - bq                                   : BigQuery CLI
+
+      Multiple configurations:
+      - gcloud config configurations create work
+      - gcloud config configurations activate work
+      - gcloud config set project work-project-id
+
+      Output formats:
+      - --format=json     : JSON format
+      - --format=yaml     : YAML format
+      - --format=table    : Table format (default)
+      - --format=csv      : CSV format
+      - --format=value    : Value only (for scripting)
+
+      Filter and project results:
+      - gcloud compute instances list --filter="zone:us-central1-a"
+      - gcloud projects list --format="value(projectId)"
+
+      Enable interactive mode (experimental):
+      - gcloud alpha interactive
+
+      Bash completion has been enabled!
+      You may need to restart your shell or run: source /etc/bash.bashrc
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud

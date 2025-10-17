@@ -16,6 +16,7 @@
     - terraform
     - awscli
     - azure_cli
+    - gcloud_cli
     - java
     - fish_shell
     - vscode

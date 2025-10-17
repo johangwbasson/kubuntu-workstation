@@ -1,0 +1,212 @@
+---
+# tasks file for fish_shell
+
+- name: Add Fish shell PPA
+  ansible.builtin.apt_repository:
+    repo: "{{ fish_ppa }}"
+    state: present
+    update_cache: yes
+  tags:
+    - fish
+    - shell
+    - packages
+
+- name: Install Fish shell
+  ansible.builtin.apt:
+    name: fish
+    state: "{{ fish_package_state }}"
+    update_cache: yes
+  tags:
+    - fish
+    - shell
+    - packages
+
+- name: Install dependencies for nvm and sdkman
+  ansible.builtin.apt:
+    name:
+      - curl
+      - unzip
+      - zip
+    state: present
+  tags:
+    - fish
+    - shell
+    - dependencies
+
+- name: Ensure Fish config directory exists
+  ansible.builtin.file:
+    path: "{{ fish_user_home }}/.config/fish"
+    state: directory
+    owner: "{{ fish_user }}"
+    group: "{{ fish_user }}"
+    mode: '0755'
+  tags:
+    - fish
+    - shell
+    - configuration
+
+- name: Ensure Fish functions directory exists
+  ansible.builtin.file:
+    path: "{{ fish_user_home }}/.config/fish/functions"
+    state: directory
+    owner: "{{ fish_user }}"
+    group: "{{ fish_user }}"
+    mode: '0755'
+  tags:
+    - fish
+    - shell
+    - configuration
+
+- name: Check if Fisher is already installed
+  ansible.builtin.stat:
+    path: "{{ fish_user_home }}/.config/fish/functions/fisher.fish"
+  register: fisher_installed
+  tags:
+    - fish
+    - shell
+    - fisher
+
+- name: Download and install Fisher
+  ansible.builtin.get_url:
+    url: "{{ fisher_install_url }}"
+    dest: "{{ fish_user_home }}/.config/fish/functions/fisher.fish"
+    owner: "{{ fish_user }}"
+    group: "{{ fish_user }}"
+    mode: '0644'
+  when: not fisher_installed.stat.exists
+  tags:
+    - fish
+    - shell
+    - fisher
+
+- name: Install Fisher plugins
+  become: true
+  become_user: "{{ fish_user }}"
+  ansible.builtin.shell: |
+    fish -c "fisher install {{ item }}"
+  args:
+    executable: /usr/bin/fish
+  loop: "{{ fisher_plugins }}"
+  register: fisher_plugin_install
+  changed_when: "'Installing' in fisher_plugin_install.stdout or 'Installed' in fisher_plugin_install.stdout"
+  failed_when: false
+  tags:
+    - fish
+    - shell
+    - fisher
+    - plugins
+
+- name: Configure Tide prompt (lean style)
+  become: true
+  become_user: "{{ fish_user }}"
+  ansible.builtin.shell: |
+    fish -c "tide configure --auto --style=Lean --prompt_colors='True color' --show_time='12-hour format' --lean_prompt_height='Two lines' --prompt_connection=Disconnected --prompt_spacing=Sparse --icons='Many icons' --transient=No"
+  args:
+    executable: /usr/bin/fish
+  register: tide_config
+  changed_when: tide_config.rc == 0
+  failed_when: false
+  tags:
+    - fish
+    - shell
+    - tide
+    - prompt
+
+- name: Install SDKMAN
+  become: true
+  become_user: "{{ fish_user }}"
+  ansible.builtin.shell: |
+    if not test -d {{ fish_user_home }}/.sdkman
+      curl -s "https://get.sdkman.io?rcupdate=false" | bash
+      echo "installed"
+    else
+      echo "already_installed"
+    end
+  args:
+    executable: /usr/bin/fish
+  register: sdkman_install
+  changed_when: "'installed' in sdkman_install.stdout"
+  tags:
+    - fish
+    - shell
+    - sdkman
+    - development
+
+- name: Check if Node.js is already installed via nvm
+  become: true
+  become_user: "{{ fish_user }}"
+  ansible.builtin.shell: |
+    fish -c "nvm list"
+  args:
+    executable: /usr/bin/fish
+  register: nvm_list
+  changed_when: false
+  failed_when: false
+  tags:
+    - fish
+    - shell
+    - nvm
+    - nodejs
+
+- name: Install Node.js LTS via nvm
+  become: true
+  become_user: "{{ fish_user }}"
+  ansible.builtin.shell: |
+    fish -c "nvm install {{ node_version }}"
+  args:
+    executable: /usr/bin/fish
+  when: nvm_list.stdout == "" or "No installed" in nvm_list.stdout
+  register: node_install
+  changed_when: "'installed' in node_install.stdout or 'Downloading' in node_install.stdout"
+  tags:
+    - fish
+    - shell
+    - nvm
+    - nodejs
+
+- name: Set Node.js LTS as default
+  become: true
+  become_user: "{{ fish_user }}"
+  ansible.builtin.shell: |
+    fish -c "nvm use {{ node_version }}"
+  args:
+    executable: /usr/bin/fish
+  when: node_install is changed
+  register: node_use
+  changed_when: node_use.rc == 0
+  failed_when: false
+  tags:
+    - fish
+    - shell
+    - nvm
+    - nodejs
+
+- name: Display Fish shell installation info
+  ansible.builtin.debug:
+    msg: |
+      Fish shell has been installed and configured!
+
+      Installed components:
+      - Fish shell ({{ fish_package_state }})
+      - Fisher plugin manager
+      - nvm.fish (Node.js version manager)
+      - sdkman-for-fish (Java/JVM tool manager)
+      - Tide prompt theme
+
+      To start using Fish shell:
+      1. Run: fish
+      2. To set Fish as your default shell: chsh -s /usr/bin/fish
+
+      Available commands:
+      - nvm install <version>  : Install Node.js version
+      - nvm list              : List installed Node versions
+      - nvm use <version>     : Switch Node.js version
+      - sdk list              : List available SDKMAN tools
+      - sdk install java      : Install Java via SDKMAN
+      - fisher list           : List installed Fisher plugins
+      - tide configure        : Reconfigure Tide prompt
+
+      Node.js LTS has been installed and is ready to use!
+  tags:
+    - fish
+    - shell

@@ -1,0 +1,14 @@
+---
+# defaults file for fish_shell
+fish_ppa: ppa:fish-shell/release-3
+fish_package_state: present
+fish_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
+fish_user_home: "{{ lookup('env', 'HOME') if fish_user == lookup('env', 'USER') else '/home/' + fish_user }}"
+fisher_install_url: https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish
+# Fisher plugins to install
+fisher_plugins:
+  - jorgebucaran/nvm.fish
+  - reitzig/sdkman-for-fish@v2.0.0
+  - ilancosman/tide@v6
+# Node.js version to install (lts/*)
+node_version: lts

@@ -11,9 +11,11 @@
     - ubuntu_drivers
     - cli_tools
     - docker
+    - fish_shell
     - neovim
     - firefox
     - brave
+    - chromium
     - flatpak
     - chrome-browser
     - slack

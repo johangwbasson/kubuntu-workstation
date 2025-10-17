@@ -1,0 +1,61 @@
+---
+# tasks file for chromium
+
+- name: Create APT preference to block snap-based Chromium
+  ansible.builtin.copy:
+    dest: "{{ chromium_apt_preferences_file }}"
+    content: |
+      # Block chromium-browser from Ubuntu snap repositories
+      Package: chromium-browser chromium-browser-l10n chromium-codecs-ffmpeg-extra
+      Pin: release o=Ubuntu*
+      Pin-Priority: -1
+
+      # Prefer chromium-browser from PPA
+      Package: chromium-browser chromium-browser-l10n chromium-codecs-ffmpeg-extra
+      Pin: release o=LP-PPA-savoury1-chromium
+      Pin-Priority: 1001
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - chromium
+    - packages
+    - browser
+    - apt-preferences
+
+- name: Add Chromium Team PPA
+  ansible.builtin.apt_repository:
+    repo: "{{ chromium_ppa }}"
+    state: present
+    update_cache: yes
+  tags:
+    - chromium
+    - packages
+    - browser
+
+- name: Remove snap-based Chromium if present
+  ansible.builtin.apt:
+    name:
+      - chromium-browser
+      - chromium-browser-l10n
+    state: absent
+    purge: yes
+  failed_when: false
+  tags:
+    - chromium
+    - packages
+    - browser
+    - cleanup
+
+- name: Install Chromium from PPA
+  ansible.builtin.apt:
+    name:
+      - chromium-browser
+      - chromium-browser-l10n
+      - chromium-codecs-ffmpeg-extra
+    state: "{{ chromium_package_state }}"
+    update_cache: yes
+  tags:
+    - chromium
+    - packages
+    - browser

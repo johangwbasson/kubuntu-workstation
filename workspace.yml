@@ -1,0 +1,9 @@
+---
+- name: Workstation setup
+  hosts: localhost
+  become: true
+  become_method: ansible.builtin.sudo
+  vars_files:
+    - ./.vars.yml
+    - ./vars.yml
+  roles:

@@ -1,0 +1,110 @@
+---
+# tasks file for remove_snap
+
+- name: Check if snapd is installed
+  ansible.builtin.command: which snap
+  register: snap_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - snap
+    - remove-snap
+    - cleanup
+
+- name: List installed snap packages
+  ansible.builtin.shell: snap list | tail -n +2 | awk '{print $1}'
+  register: snap_list
+  changed_when: false
+  failed_when: false
+  when: snap_installed.rc == 0
+  tags:
+    - snap
+    - remove-snap
+    - cleanup
+
+- name: Remove all snap packages (may require multiple attempts due to dependencies)
+  ansible.builtin.shell: |
+    set -e
+    for snap in $(snap list | tail -n +2 | awk '{print $1}'); do
+      snap remove --purge "$snap" 2>&1 || true
+    done
+    # Retry removal for any remaining snaps (handles dependency order issues)
+    for snap in $(snap list | tail -n +2 | awk '{print $1}'); do
+      snap remove --purge "$snap" 2>&1 || true
+    done
+    # Final cleanup - remove any stragglers
+    for snap in $(snap list | tail -n +2 | awk '{print $1}'); do
+      snap remove --purge "$snap" 2>&1 || true
+    done
+  when:
+    - snap_installed.rc == 0
+    - snap_list.stdout_lines | length > 0
+  register: snap_remove
+  changed_when: snap_remove.rc == 0
+  tags:
+    - snap
+    - remove-snap
+    - cleanup
+
+- name: Stop snapd services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop:
+    - snapd.service
+    - snapd.socket
+    - snapd.seeded.service
+  failed_when: false
+  tags:
+    - snap
+    - remove-snap
+    - cleanup
+    - services
+
+- name: Remove snapd and related packages
+  ansible.builtin.apt:
+    name: "{{ snap_packages_to_remove }}"
+    state: absent
+    purge: yes
+    autoremove: yes
+  tags:
+    - snap
+    - remove-snap
+    - cleanup
+    - packages
+
+- name: Remove snap directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ snap_directories_to_remove }}"
+  tags:
+    - snap
+    - remove-snap
+    - cleanup
+
+- name: Create APT preference to prevent snapd installation
+  ansible.builtin.copy:
+    dest: "{{ apt_preferences_file }}"
+    content: |
+      # Prevent snapd from being installed by APT
+      Package: snapd
+      Pin: release a=*
+      Pin-Priority: -1
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - snap
+    - remove-snap
+    - apt-preferences
+
+- name: Update APT cache after adding preferences
+  ansible.builtin.apt:
+    update_cache: yes
+  changed_when: false
+  tags:
+    - snap
+    - remove-snap
+    - apt-preferences

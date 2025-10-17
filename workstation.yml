@@ -7,5 +7,6 @@
     - ./.vars.yml
     - ./vars.yml
   roles:
+    - remove_snap
     - firefox
     - flatpak

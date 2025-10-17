@@ -1,6 +1,39 @@
 ---
 # tasks file for firefox
 
+- name: Remove snap-based Firefox package if present
+  ansible.builtin.apt:
+    name: firefox
+    state: absent
+    purge: yes
+  failed_when: false
+  tags:
+    - packages
+    - firefox
+    - browser
+
+- name: Create APT preference to prioritize Mozilla PPA over Ubuntu repo
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/mozilla-firefox
+    content: |
+      # Prioritize Firefox from Mozilla PPA over Ubuntu's snap-based package
+      Package: firefox*
+      Pin: release o=LP-PPA-mozillateam
+      Pin-Priority: 1001
+
+      # Block Firefox from Ubuntu repo (which requires snapd)
+      Package: firefox*
+      Pin: release o=Ubuntu*
+      Pin-Priority: -1
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - packages
+    - firefox
+    - browser
+    - apt-preferences
+
 - name: Add Mozilla Team PPA
   ansible.builtin.apt_repository:
     repo: ppa:mozillateam/ppa

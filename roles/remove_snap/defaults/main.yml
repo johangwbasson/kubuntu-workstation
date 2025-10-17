@@ -1,0 +1,12 @@
+---
+# defaults file for remove_snap
+snap_packages_to_remove:
+  - snapd
+  - gnome-software-plugin-snap
+snap_directories_to_remove:
+  - /snap
+  - /var/snap
+  - /var/lib/snapd
+  - /var/cache/snapd
+  - /usr/lib/snapd
+apt_preferences_file: /etc/apt/preferences.d/nosnap.pref

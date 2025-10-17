@@ -1,0 +1,172 @@
+---
+# tasks file for postman
+
+- name: Ensure Flatpak is installed
+  ansible.builtin.apt:
+    name: flatpak
+    state: present
+  tags:
+    - postman
+    - packages
+    - api
+    - development
+    - flatpak
+    - dependencies
+
+- name: Install Postman from Flathub
+  community.general.flatpak:
+    name: "{{ postman_flatpak_id }}"
+    state: present
+    remote: "{{ flatpak_remote }}"
+    method: "{{ flatpak_method }}"
+  tags:
+    - postman
+    - packages
+    - api
+    - development
+    - flatpak
+
+- name: Display Postman installation info
+  ansible.builtin.debug:
+    msg: |
+      Postman has been installed successfully from Flathub!
+
+      Installed as Flatpak application:
+      - Postman (com.getpostman.Postman)
+      - Sandboxed for security
+      - Automatic updates via Flatpak
+
+      Useful commands:
+      - flatpak run com.getpostman.Postman  : Launch Postman
+      - Or search for "Postman" in application menu
+
+      Features:
+      - REST API client
+      - GraphQL client
+      - WebSocket testing
+      - gRPC support
+      - SOAP/XML requests
+      - Request collections
+      - Environment variables
+      - Pre-request and test scripts
+      - Mock servers
+      - API monitoring
+      - API documentation
+      - Team collaboration
+      - Version control integration
+
+      Key features:
+      - Design, test, and debug APIs
+      - Organize requests into collections
+      - Create and manage environments
+      - Write tests with Chai assertions
+      - Automated testing (Newman CLI)
+      - Import OpenAPI/Swagger specs
+      - Export collections
+      - Generate code snippets
+      - API version control
+
+      Getting started:
+      1. Launch Postman
+      2. Create a workspace or sign in (optional)
+      3. Create a new request
+      4. Enter API endpoint URL
+      5. Select HTTP method (GET, POST, PUT, DELETE, etc.)
+      6. Add headers, body, or parameters
+      7. Send request and view response
+
+      Common workflows:
+      - Create collections to organize related requests
+      - Use environments for dev/staging/prod variables
+      - Write tests in the "Tests" tab
+      - Chain requests using collection runner
+      - Document APIs with descriptions
+      - Share collections with team
+
+      Testing APIs:
+      - Use pre-request scripts to set up test data
+      - Write assertions in the Tests tab
+      - Use collection runner for automated testing
+      - Export collections for CI/CD (Newman)
+
+      Environment variables:
+      - Create environments (dev, staging, prod)
+      - Define variables: {{baseUrl}}, {{apiKey}}
+      - Switch between environments easily
+      - Use global, environment, and local variables
+
+      Authentication support:
+      - No Auth
+      - Bearer Token
+      - Basic Auth
+      - API Key
+      - OAuth 1.0 / 2.0
+      - Hawk Authentication
+      - AWS Signature
+      - NTLM Authentication
+      - Digest Auth
+
+      Code generation:
+      - Generate code snippets in multiple languages
+      - Supported: cURL, Python, JavaScript, Go, Java, etc.
+      - Copy and use in your applications
+
+      Collaboration features:
+      - Workspaces (personal, team, public)
+      - Share collections and environments
+      - Comment on requests
+      - Version control for APIs
+      - Activity feed
+
+      CLI tool (Newman):
+      - Run Postman collections from command line
+      - Install: npm install -g newman
+      - Run: newman run collection.json -e environment.json
+      - Integrate with CI/CD pipelines
+
+      Keyboard shortcuts:
+      - Ctrl+N          : New request
+      - Ctrl+T          : New tab
+      - Ctrl+W          : Close tab
+      - Ctrl+S          : Save request
+      - Ctrl+Enter      : Send request
+      - Ctrl+L          : Focus URL bar
+      - Alt+C           : Open console
+
+      Manage permissions with Flatseal:
+      - flatpak run com.github.tchx84.Flatseal
+      - Select Postman to adjust permissions
+
+      Update Postman:
+      - flatpak update com.getpostman.Postman
+      - Or: flatpak update (updates all)
+
+      Data location:
+      - ~/.var/app/com.getpostman.Postman/
+
+      Tips:
+      - Use {{variable}} syntax for dynamic values
+      - Save frequently used requests in collections
+      - Use pre-request scripts for dynamic data generation
+      - Export collections for backup and sharing
+      - Use mock servers to simulate API responses
+      - Integrate with Git for version control
+
+      Documentation:
+      - Learning Center: https://learning.postman.com/
+      - API docs: https://www.postman.com/postman/workspace/
+
+      Note: Flatpak version provides better sandboxing and
+      easier installation than traditional package methods.
+
+      Postman account (optional):
+      - Sign up for free at postman.com
+      - Sync collections across devices
+      - Collaborate with teams
+      - Access cloud features
+  tags:
+    - postman
+    - packages
+    - api
+    - development
+    - flatpak

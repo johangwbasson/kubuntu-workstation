@@ -1,0 +1,278 @@
+---
+# tasks file for lazydocker
+
+- name: Install dependencies for lazydocker installation
+  ansible.builtin.apt:
+    name:
+      - curl
+      - tar
+      - gzip
+    state: present
+    update_cache: yes
+  tags:
+    - lazydocker
+    - packages
+    - docker
+    - development
+    - containers
+    - dependencies
+
+- name: Check if lazydocker is already installed
+  ansible.builtin.command: lazydocker --version
+  register: lazydocker_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Display current lazydocker version if installed
+  ansible.builtin.debug:
+    msg: "lazydocker already installed: {{ lazydocker_installed.stdout }}"
+  when: lazydocker_installed.rc == 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Get system architecture
+  ansible.builtin.command: uname -m
+  register: system_arch
+  changed_when: false
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Set architecture for download
+  ansible.builtin.set_fact:
+    lazydocker_arch: "{{ 'x86_64' if system_arch.stdout == 'x86_64' else 'armv6' if system_arch.stdout.startswith('arm') else system_arch.stdout }}"
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Get latest lazydocker version from GitHub
+  ansible.builtin.uri:
+    url: "{{ lazydocker_github_api }}"
+    return_content: yes
+  register: lazydocker_release
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Set lazydocker version
+  ansible.builtin.set_fact:
+    lazydocker_version: "{{ lazydocker_release.json.tag_name }}"
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Create temporary directory for lazydocker installation
+  ansible.builtin.file:
+    path: "{{ lazydocker_temp_dir }}"
+    state: directory
+    mode: '0755'
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Download lazydocker archive
+  ansible.builtin.get_url:
+    url: "{{ lazydocker_download_url }}"
+    dest: "{{ lazydocker_temp_dir }}/lazydocker.tar.gz"
+    mode: '0644'
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+    - download
+
+- name: Extract lazydocker archive
+  ansible.builtin.unarchive:
+    src: "{{ lazydocker_temp_dir }}/lazydocker.tar.gz"
+    dest: "{{ lazydocker_temp_dir }}"
+    remote_src: yes
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Install lazydocker binary
+  ansible.builtin.copy:
+    src: "{{ lazydocker_temp_dir }}/lazydocker"
+    dest: "{{ lazydocker_install_path }}"
+    mode: '0755'
+    remote_src: yes
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Clean up installation files
+  ansible.builtin.file:
+    path: "{{ lazydocker_temp_dir }}"
+    state: absent
+  when: lazydocker_installed.rc != 0
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+    - cleanup
+
+- name: Verify lazydocker installation
+  ansible.builtin.command: lazydocker --version
+  register: lazydocker_version_output
+  changed_when: false
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+
+- name: Display lazydocker installation info
+  ansible.builtin.debug:
+    msg: |
+      lazydocker has been installed successfully!
+
+      Version: {{ lazydocker_version_output.stdout }}
+
+      Useful commands:
+      - lazydocker          : Launch lazydocker
+      - lazydocker --version: Show version
+      - lazydocker --help   : Show help
+
+      Getting started:
+      1. Ensure Docker is running
+      2. Run: lazydocker
+      3. Use arrow keys or vim keybindings to navigate
+      4. Press 'x' to see menu options
+      5. Press '?' to see all keybindings
+
+      Key features:
+      - Interactive Docker management in terminal
+      - View and manage containers
+      - View and manage images
+      - View and manage volumes
+      - View and manage networks
+      - Real-time container stats
+      - Container logs with filtering
+      - Exec into containers
+      - Docker Compose integration
+      - Prune unused resources
+      - Resource usage graphs
+
+      Essential keybindings:
+      Navigation:
+      - [ / ]       : Previous/next panel
+      - h/l         : Previous/next tab
+      - j/k         : Navigate up/down in lists
+      - PgUp/PgDown : Scroll logs
+      - g/G         : Jump to top/bottom
+
+      Container operations:
+      - d           : Remove container
+      - s           : Stop container
+      - r           : Restart container
+      - p           : Pause/unpause container
+      - a           : Attach to container
+      - e           : Exec shell in container
+      - t           : View container stats
+      - c           : View container config
+      - l           : View container logs
+      - m           : View container metrics
+
+      Image operations:
+      - d           : Remove image
+      - p           : Prune unused images
+      - Enter       : View image details
+
+      Volume operations:
+      - d           : Remove volume
+      - p           : Prune unused volumes
+
+      Network operations:
+      - d           : Remove network
+      - p           : Prune unused networks
+
+      Global:
+      - x           : Show menu options
+      - ?           : Show keybindings help
+      - Esc         : Cancel/back
+      - q           : Quit
+      - /           : Search
+      - Ctrl+r      : Refresh
+      - [/]         : Switch panels
+      - m           : View main panel
+      - 1-5         : Quick panel access
+
+      Log viewing:
+      - w           : Toggle wrap
+      - f           : Follow logs (tail -f)
+      - s           : Search logs
+      - Ctrl+u/d    : Scroll up/down
+
+      Bulk operations:
+      - Ctrl+e      : Prune all unused resources
+      - Ctrl+p      : Prune containers
+      - Ctrl+i      : Prune images
+
+      Configuration:
+      - Config file: ~/.config/lazydocker/config.yml
+      - Customize appearance, keybindings, and behavior
+      - Example: https://github.com/jesseduffield/lazydocker/blob/master/docs/Config.md
+
+      Docker Compose:
+      - Automatically detects docker-compose.yml
+      - View and manage compose services
+      - View compose logs
+      - Restart compose services
+
+      Tips:
+      - Use 'e' to quickly exec into a container
+      - Use 'l' to view container logs with filtering
+      - Use Ctrl+e to clean up unused resources
+      - Press 'x' on any item to see available actions
+      - Integrate with your shell: alias lzd='lazydocker'
+
+      Requirements:
+      - Docker must be installed and running
+      - User must have Docker permissions (docker group)
+      - Works with Docker and Docker Compose
+
+      Documentation:
+      - GitHub: https://github.com/jesseduffield/lazydocker
+      - Keybindings: Press '?' in lazydocker
+      - Config docs: https://github.com/jesseduffield/lazydocker/blob/master/docs/Config.md
+
+      Integration with Fish shell:
+      - Add alias to ~/.config/fish/config.fish:
+        alias lzd='lazydocker'
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers

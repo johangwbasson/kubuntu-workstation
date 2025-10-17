@@ -1,0 +1,191 @@
+---
+# tasks file for lazygit
+
+- name: Install dependencies for lazygit PPA
+  ansible.builtin.apt:
+    name:
+      - software-properties-common
+    state: present
+    update_cache: yes
+  tags:
+    - lazygit
+    - packages
+    - git
+    - development
+    - vcs
+    - dependencies
+
+- name: Check if lazygit is already installed
+  ansible.builtin.command: lazygit --version
+  register: lazygit_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - lazygit
+    - git
+    - development
+    - vcs
+
+- name: Display current lazygit version if installed
+  ansible.builtin.debug:
+    msg: "lazygit already installed: {{ lazygit_installed.stdout }}"
+  when: lazygit_installed.rc == 0
+  tags:
+    - lazygit
+    - git
+    - development
+    - vcs
+
+- name: Add lazygit PPA
+  ansible.builtin.apt_repository:
+    repo: "{{ lazygit_ppa }}"
+    state: present
+    update_cache: yes
+  when: lazygit_installed.rc != 0
+  tags:
+    - lazygit
+    - packages
+    - git
+    - development
+    - vcs
+
+- name: Install lazygit
+  ansible.builtin.apt:
+    name: lazygit
+    state: present
+    update_cache: yes
+  when: lazygit_installed.rc != 0
+  tags:
+    - lazygit
+    - packages
+    - git
+    - development
+    - vcs
+
+- name: Verify lazygit installation
+  ansible.builtin.command: lazygit --version
+  register: lazygit_version
+  changed_when: false
+  tags:
+    - lazygit
+    - git
+    - development
+    - vcs
+
+- name: Display lazygit installation info
+  ansible.builtin.debug:
+    msg: |
+      lazygit has been installed successfully!
+
+      Version: {{ lazygit_version.stdout }}
+
+      Useful commands:
+      - lazygit                : Launch lazygit in current directory
+      - lazygit --version      : Show version
+      - lazygit --help         : Show help
+      - lazygit -p <path>      : Open lazygit in specific directory
+      - lazygit -f             : Start filtering commits from the start
+      - lazygit -g <path>      : Start in git directory
+
+      Getting started:
+      1. Navigate to a git repository
+      2. Run: lazygit
+      3. Use arrow keys or vim keybindings to navigate
+      4. Press '?' to see all keybindings
+
+      Key features:
+      - Interactive git interface in terminal
+      - Stage/unstage files and hunks
+      - Commit with editor integration
+      - Branch management
+      - Merge and rebase (interactive)
+      - Cherry-pick commits
+      - Stash management
+      - View diffs and logs
+      - Resolve merge conflicts
+      - Amend commits
+      - Push/pull/fetch
+      - Submodule support
+      - Custom commands
+      - Undo/redo operations
+
+      Essential keybindings:
+      Panel navigation:
+      - 1-5         : Switch between panels (Status, Files, Branches, Commits, Stash)
+      - Tab         : Next panel
+      - Shift+Tab   : Previous panel
+      - ?           : Show keybindings help
+
+      Files panel:
+      - Space       : Stage/unstage file
+      - a           : Stage/unstage all
+      - c           : Commit staged changes
+      - Enter       : View file diff
+      - d           : View diff options (staged/unstaged)
+      - e           : Edit file
+      - o           : Open file
+      - i           : Ignore file
+
+      Branches panel:
+      - Space       : Checkout branch
+      - n           : Create new branch
+      - r           : Rebase branch
+      - m           : Merge branch
+      - d           : Delete branch
+      - f           : Fast-forward branch
+      - p           : Pull
+      - P           : Push
+      - u           : Set upstream
+
+      Commits panel:
+      - Space       : Checkout commit
+      - c           : Cherry-pick commit
+      - r           : Reword commit
+      - s           : Squash commit
+      - f           : Fixup commit
+      - d           : Delete commit (reset)
+      - e           : Edit commit (rebase)
+      - p           : Pick commit (during rebase)
+      - A           : Amend commit with staged changes
+      - t           : Revert commit
+
+      Stash panel:
+      - Space       : Apply stash
+      - g           : Pop stash
+      - d           : Drop stash
+
+      Global:
+      - Ctrl+s      : View filter/sort options
+      - Ctrl+e      : View scroll options
+      - /           : Search
+      - Esc         : Cancel/back
+      - q           : Quit
+      - P           : Push
+      - p           : Pull
+      - R           : Refresh
+
+      Configuration:
+      - Config file: ~/.config/lazygit/config.yml
+      - Customize keybindings, theme, git commands
+      - Example config: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
+
+      Tips:
+      - Use 'Enter' to drill down into details
+      - Use 'Esc' to go back
+      - Stage individual lines/hunks with 'Space' in diff view
+      - Use custom commands for repetitive git workflows
+      - Integrate with your shell using aliases: alias lg='lazygit'
+
+      Documentation:
+      - GitHub: https://github.com/jesseduffield/lazygit
+      - Keybindings: Press '?' in lazygit
+      - Config docs: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
+
+      Integration with Fish shell:
+      - Add alias to ~/.config/fish/config.fish:
+        alias lg='lazygit'
+  tags:
+    - lazygit
+    - git
+    - development
+    - vcs

@@ -9,9 +9,11 @@
   roles:
     - remove_snap
     - ubuntu_drivers
+    - kernel_module_blacklist
     - fonts
     - cli_tools
     - docker
+    - lazydocker
     - kubectl
     - terraform
     - awscli
@@ -22,6 +24,7 @@
     - vscode
     - sublime_text
     - neovim
+    - lazyvim
     - firefox
     - brave
     - chromium
@@ -35,6 +38,9 @@
     - megasync
     - obsidian
     - onlyoffice
+    - insomnia
+    - postman
     - git
+    - lazygit
     - clamav
     - ufw

@@ -1,0 +1,11 @@
+---
+# defaults file for lazyvim
+lazyvim_starter_repo: https://github.com/LazyVim/starter
+lazyvim_config_dir: "{{ ansible_env.HOME }}/.config/nvim"
+lazyvim_data_dir: "{{ ansible_env.HOME }}/.local/share/nvim"
+lazyvim_state_dir: "{{ ansible_env.HOME }}/.local/state/nvim"
+lazyvim_cache_dir: "{{ ansible_env.HOME }}/.cache/nvim"
+lazyvim_backup_dir: "{{ ansible_env.HOME }}/.config/nvim.bak"
+lazyvim_data_backup_dir: "{{ ansible_env.HOME }}/.local/share/nvim.bak"
+lazyvim_state_backup_dir: "{{ ansible_env.HOME }}/.local/state/nvim.bak"
+lazyvim_cache_backup_dir: "{{ ansible_env.HOME }}/.cache/nvim.bak"

@@ -1,0 +1,29 @@
+---
+# handlers file for kernel_module_blacklist
+
+- name: Update initramfs
+  ansible.builtin.command: update-initramfs -u -k all
+  notify: Notify reboot required
+  tags:
+    - kernel_modules
+    - blacklist
+    - system
+    - hardware
+
+- name: Notify reboot required
+  ansible.builtin.debug:
+    msg: |
+      ⚠️  REBOOT REQUIRED ⚠️
+
+      The initramfs has been updated with the new kernel module blacklist.
+      A system reboot is required for the changes to take full effect.
+
+      After reboot, verify the blacklist with:
+      lsmod | grep mt7921e
+
+      The command should return no results if successful.
+  tags:
+    - kernel_modules
+    - blacklist
+    - system
+    - hardware

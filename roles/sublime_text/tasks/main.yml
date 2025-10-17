@@ -32,9 +32,20 @@
     - editor
     - security
 
+- name: Remove malformed Sublime Text repository file if it exists
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/sublime-text.list
+    state: absent
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+
 - name: Add Sublime Text repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64 signed-by={{ sublime_gpg_keyring_path }}] {{ sublime_repo_url }}apt/stable/"
+    repo: "deb [arch=amd64 signed-by={{ sublime_gpg_keyring_path }}] {{ sublime_repo_url }} apt/stable/"
     state: present
     filename: sublime-text
     update_cache: yes

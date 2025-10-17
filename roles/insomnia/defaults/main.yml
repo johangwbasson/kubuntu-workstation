@@ -1,0 +1,5 @@
+---
+# defaults file for insomnia
+insomnia_flatpak_id: rest.insomnia.Insomnia
+flatpak_remote: flathub
+flatpak_method: system

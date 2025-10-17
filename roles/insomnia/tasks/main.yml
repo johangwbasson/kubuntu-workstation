@@ -1,0 +1,91 @@
+---
+# tasks file for insomnia
+
+- name: Ensure Flatpak is installed
+  ansible.builtin.apt:
+    name: flatpak
+    state: present
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - flatpak
+    - dependencies
+
+- name: Install Insomnia from Flathub
+  community.general.flatpak:
+    name: "{{ insomnia_flatpak_id }}"
+    state: present
+    remote: "{{ flatpak_remote }}"
+    method: "{{ flatpak_method }}"
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - flatpak
+
+- name: Display Insomnia installation info
+  ansible.builtin.debug:
+    msg: |
+      Insomnia has been installed successfully from Flathub!
+
+      Installed as Flatpak application:
+      - Insomnia (rest.insomnia.Insomnia)
+      - Sandboxed for security
+      - Automatic updates via Flatpak
+
+      Useful commands:
+      - flatpak run rest.insomnia.Insomnia  : Launch Insomnia
+      - Or search for "Insomnia" in application menu
+
+      Features:
+      - REST API client
+      - GraphQL client
+      - gRPC client
+      - WebSocket testing
+      - Request chaining
+      - Environment variables
+      - Code generation
+      - OpenAPI/Swagger import
+      - Collections and workspaces
+      - Team collaboration (with account)
+
+      Key features:
+      - Design and debug APIs
+      - Create and organize requests
+      - Environment and variable management
+      - Response viewing (JSON, XML, HTML, etc.)
+      - Authentication (OAuth, JWT, Basic, etc.)
+      - Request history
+      - Import/export collections
+      - Plugin system
+
+      Common use cases:
+      - Test REST APIs
+      - Debug GraphQL queries
+      - Test gRPC services
+      - Generate client code
+      - API documentation
+      - Team API testing
+
+      Manage permissions with Flatseal:
+      - flatpak run com.github.tchx84.Flatseal
+      - Select Insomnia to adjust permissions
+
+      Update Insomnia:
+      - flatpak update rest.insomnia.Insomnia
+      - Or: flatpak update (updates all)
+
+      Data location:
+      - ~/.var/app/rest.insomnia.Insomnia/
+
+      Note: Flatpak version provides better sandboxing and
+      easier installation than the traditional package methods.
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - flatpak

@@ -1,0 +1,5 @@
+---
+# defaults file for postman
+postman_flatpak_id: com.getpostman.Postman
+flatpak_remote: flathub
+flatpak_method: system

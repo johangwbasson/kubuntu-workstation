@@ -14,6 +14,28 @@
     - cloud-storage
     - dependencies
 
+- name: Check if MEGA GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ mega_gpg_keyring_path }}"
+  register: mega_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - security
+
+- name: Remove corrupted MEGA GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ mega_gpg_keyring_path }}"
+    state: absent
+  when: mega_keyring_check.rc != 0
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - security
+
 - name: Download MEGA GPG key
   ansible.builtin.get_url:
     url: "{{ mega_gpg_key_url }}"

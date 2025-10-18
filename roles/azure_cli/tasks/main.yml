@@ -47,6 +47,28 @@
     - azure
     - cloud
 
+- name: Check if Azure CLI GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ azure_cli_keyring_path }}"
+  register: azure_cli_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - azure_cli
+    - azure
+    - cloud
+    - security
+
+- name: Remove corrupted Azure CLI GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ azure_cli_keyring_path }}"
+    state: absent
+  when: azure_cli_keyring_check.rc != 0
+  tags:
+    - azure_cli
+    - azure
+    - cloud
+    - security
+
 - name: Download Microsoft GPG key
   ansible.builtin.get_url:
     url: "{{ azure_cli_gpg_key_url }}"

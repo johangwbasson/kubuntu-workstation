@@ -1,6 +1,31 @@
 ---
 # tasks file for spotify
 
+- name: Remove old Spotify repository file if exists
+  ansible.builtin.file:
+    path: "/etc/apt/sources.list.d/{{ item }}"
+    state: absent
+  loop:
+    - spotify.list
+    - spotify.sources
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - cleanup
+
+- name: Remove old Spotify GPG keyring if exists
+  ansible.builtin.file:
+    path: /usr/share/keyrings/spotify-archive-keyring.gpg
+    state: absent
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - cleanup
+
 - name: Ensure Flatpak is installed
   ansible.builtin.apt:
     name: flatpak

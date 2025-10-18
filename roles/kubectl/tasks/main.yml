@@ -16,6 +16,28 @@
     - packages
     - dependencies
 
+- name: Check if Kubernetes GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ kubectl_gpg_keyring_path }}"
+  register: kubectl_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+    - security
+
+- name: Remove corrupted Kubernetes GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ kubectl_gpg_keyring_path }}"
+    state: absent
+  when: kubectl_keyring_check.rc != 0
+  tags:
+    - kubectl
+    - kubernetes
+    - packages
+    - security
+
 - name: Download Kubernetes GPG key
   ansible.builtin.get_url:
     url: "{{ kubectl_gpg_key_url }}"

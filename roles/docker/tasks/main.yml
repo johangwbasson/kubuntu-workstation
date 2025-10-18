@@ -16,6 +16,28 @@
     - containers
     - dependencies
 
+- name: Check if Docker GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ docker_gpg_keyring_path }}"
+  register: docker_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - docker
+    - packages
+    - containers
+    - security
+
+- name: Remove corrupted Docker GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ docker_gpg_keyring_path }}"
+    state: absent
+  when: docker_keyring_check.rc != 0
+  tags:
+    - docker
+    - packages
+    - containers
+    - security
+
 - name: Download Docker GPG key
   ansible.builtin.get_url:
     url: "{{ docker_gpg_key_url }}"

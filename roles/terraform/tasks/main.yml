@@ -16,6 +16,28 @@
     - packages
     - dependencies
 
+- name: Check if Terraform GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ terraform_gpg_keyring_path }}"
+  register: terraform_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+    - security
+
+- name: Remove corrupted Terraform GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ terraform_gpg_keyring_path }}"
+    state: absent
+  when: terraform_keyring_check.rc != 0
+  tags:
+    - terraform
+    - infrastructure
+    - packages
+    - security
+
 - name: Download HashiCorp GPG key
   ansible.builtin.get_url:
     url: "{{ terraform_gpg_key_url }}"

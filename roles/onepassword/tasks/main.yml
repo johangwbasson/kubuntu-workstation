@@ -14,6 +14,26 @@
     - security
     - dependencies
 
+- name: Check if 1Password GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ onepassword_gpg_keyring_path }}"
+  register: onepassword_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - onepassword
+    - packages
+    - security
+
+- name: Remove corrupted 1Password GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ onepassword_gpg_keyring_path }}"
+    state: absent
+  when: onepassword_keyring_check.rc != 0
+  tags:
+    - onepassword
+    - packages
+    - security
+
 - name: Download 1Password GPG key
   ansible.builtin.get_url:
     url: "{{ onepassword_gpg_key_url }}"

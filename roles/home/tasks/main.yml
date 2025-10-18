@@ -1,0 +1,48 @@
+---
+- name: Setup xdg directories
+  become_user: '{{ username }}'
+  ansible.builtin.template:
+    src: files/user-dirs.j2
+    dest: '{{ user_home }}/.config/user-dirs.dirs'
+    mode: '0644'
+
+- name: Create directories in home directory
+  become_user: '{{ username }}'
+  tasks:
+    - name: Create directories from list
+      file:
+        path: "{{ user_home }}/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - bin
+        - archive
+        - applications
+        - desktop
+        - downloads
+        - documents
+        - projects
+        - notes
+        - media/music
+        - media/pictures
+        - media/templates
+        - media/videos
+        - workspace
+        - tmp
+
+- name: Remove directories in home directory
+  hosts: localhost
+  tasks:
+    - name: Remove directories from list
+      file:
+        path: "{{ user_home }}/{{ item }}"
+        state: absent
+      loop:
+        - Desktop
+        - Documents
+        - Downloads
+        - Music       
+        - Pictures     
+        - Public    
+        - Templates       
+        - Videos

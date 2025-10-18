@@ -2,7 +2,7 @@
 # defaults file for btrfs_optimize
 
 # BTRFS mount options optimized for SSD
-btrfs_mount_options: "noatime,ssd,compress=zstd:1,space_cache=v2,discard=async,commit=120"
+btrfs_mount_options: "noatime,ssd,compress=zstd:1,space_cache=v2,discard=async"
 
 # Backup location for fstab
 btrfs_fstab_backup_dir: /root/fstab-backups

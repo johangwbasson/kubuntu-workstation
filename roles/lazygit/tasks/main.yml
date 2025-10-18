@@ -1,10 +1,14 @@
 ---
 # tasks file for lazygit
 
-- name: Install dependencies for lazygit PPA
+# lazygit PPA doesn't support Ubuntu 24.04 yet, so we install from GitHub releases
+
+- name: Install dependencies for lazygit
   ansible.builtin.apt:
     name:
-      - software-properties-common
+      - curl
+      - tar
+      - gzip
     state: present
     update_cache: yes
   tags:
@@ -26,6 +30,18 @@
     - development
     - vcs
 
+- name: Get installed lazygit version
+  ansible.builtin.shell: lazygit --version | grep -oP 'version=\K[0-9.]+'
+  register: lazygit_current_version
+  changed_when: false
+  failed_when: false
+  when: lazygit_installed.rc == 0
+  tags:
+    - lazygit
+    - git
+    - development
+    - vcs
+
 - name: Display current lazygit version if installed
   ansible.builtin.debug:
     msg: "lazygit already installed: {{ lazygit_installed.stdout }}"
@@ -36,12 +52,34 @@
     - development
     - vcs
 
-- name: Add lazygit PPA
-  ansible.builtin.apt_repository:
-    repo: "{{ lazygit_ppa }}"
-    state: present
-    update_cache: yes
-  when: lazygit_installed.rc != 0
+- name: Get latest lazygit release version
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
+    return_content: yes
+  register: lazygit_latest_release
+  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_latest_release.json.tag_name | default('') | regex_replace('^v', ''))
+  tags:
+    - lazygit
+    - git
+    - development
+    - vcs
+
+- name: Set lazygit version to install
+  ansible.builtin.set_fact:
+    lazygit_version: "{{ lazygit_latest_release.json.tag_name | regex_replace('^v', '') }}"
+  when: lazygit_latest_release.json is defined
+  tags:
+    - lazygit
+    - git
+    - development
+    - vcs
+
+- name: Download lazygit tarball
+  ansible.builtin.get_url:
+    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    dest: "/tmp/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    mode: '0644'
+  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:
     - lazygit
     - packages
@@ -49,18 +87,50 @@
     - development
     - vcs
 
-- name: Install lazygit
-  ansible.builtin.apt:
-    name: lazygit
-    state: present
-    update_cache: yes
-  when: lazygit_installed.rc != 0
+- name: Extract lazygit tarball
+  ansible.builtin.unarchive:
+    src: "/tmp/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:
     - lazygit
     - packages
     - git
     - development
     - vcs
+
+- name: Install lazygit binary
+  ansible.builtin.copy:
+    src: /tmp/lazygit
+    dest: /usr/local/bin/lazygit
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: yes
+  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
+  tags:
+    - lazygit
+    - packages
+    - git
+    - development
+    - vcs
+
+- name: Clean up temporary files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    - /tmp/lazygit
+  when: lazygit_version is defined
+  tags:
+    - lazygit
+    - packages
+    - git
+    - development
+    - vcs
+    - cleanup
 
 - name: Verify lazygit installation
   ansible.builtin.command: lazygit --version

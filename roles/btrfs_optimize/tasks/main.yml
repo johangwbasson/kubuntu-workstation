@@ -134,7 +134,6 @@
       ✓ compress=zstd:1  - Zstandard compression level 1 (balanced)
       ✓ space_cache=v2   - Modern free space cache
       ✓ discard=async    - Asynchronous TRIM for SSD longevity
-      ✓ commit=120       - Increased commit interval (reduced writes)
       ✗ autodefrag       - REMOVED (not recommended for SSD)
 
       ================================================================================

@@ -1,6 +1,38 @@
 ---
 # tasks file for megasync
 
+# CLEANUP FIRST - Before any APT operations
+# This ensures we start with a clean slate if there are any conflicting repositories
+
+- name: Remove ALL existing MEGA repository files (clean slate)
+  ansible.builtin.file:
+    path: "/etc/apt/sources.list.d/{{ item }}"
+    state: absent
+  loop:
+    - megasync.list      # Remove existing file (may have duplicates)
+    - megasync.sources   # Remove DEB822 format if exists
+    - mega.list          # Remove alternate name
+    - mega.sources       # Remove DEB822 alternate
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - cleanup
+
+- name: Remove old/conflicting MEGA GPG keyrings
+  ansible.builtin.file:
+    path: "/usr/share/keyrings/{{ item }}"
+    state: absent
+  loop:
+    - meganz-archive-keyring.gpg      # Old keyring name
+    - mega-archive-keyring.gpg        # Alternate name
+  tags:
+    - megasync
+    - packages
+    - cloud-storage
+    - cleanup
+    - security
+
 - name: Install dependencies for MEGAsync installation
   ansible.builtin.apt:
     name:
@@ -13,20 +45,6 @@
     - packages
     - cloud-storage
     - dependencies
-
-- name: Remove conflicting MEGA repository files if they exist
-  ansible.builtin.file:
-    path: "/etc/apt/sources.list.d/{{ item }}"
-    state: absent
-  loop:
-    - megasync.sources
-    - mega.list
-    - mega.sources
-  tags:
-    - megasync
-    - packages
-    - cloud-storage
-    - cleanup
 
 - name: Check if MEGA GPG keyring exists and is valid
   ansible.builtin.command: gpg --list-keys --keyring "{{ mega_gpg_keyring_path }}"

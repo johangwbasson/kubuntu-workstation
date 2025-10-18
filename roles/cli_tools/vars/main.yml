@@ -77,6 +77,7 @@ network_utilities:
   - netcat-openbsd  # Ubuntu: netcat-openbsd (recommended netcat variant)
   - telnet
   - ncat  # Ubuntu: ncat (from nmap package, similar to nmap-ncat)
+  - ansible-lint
 
 terminal_multiplexers:
   - tmux

@@ -91,7 +91,7 @@
 
       Environment variables:
       - Create environments (dev, staging, prod)
-      - Define variables: {{baseUrl}}, {{apiKey}}
+      - Define variables: {% raw %}{{baseUrl}}{% endraw %}, {% raw %}{{apiKey}}{% endraw %}
       - Switch between environments easily
       - Use global, environment, and local variables
 
@@ -145,7 +145,7 @@
       - ~/.var/app/com.getpostman.Postman/
 
       Tips:
-      - Use {{variable}} syntax for dynamic values
+      - Use {% raw %}{{variable}}{% endraw %} syntax for dynamic values
       - Save frequently used requests in collections
       - Use pre-request scripts for dynamic data generation
       - Export collections for backup and sharing

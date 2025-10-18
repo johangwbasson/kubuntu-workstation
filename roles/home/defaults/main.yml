@@ -19,7 +19,6 @@ home_custom_directories:
   - media/pictures
   - media/templates
   - media/videos
-  - workspace
   - tmp
 
 # Default XDG directories to remove (replaced by custom structure)

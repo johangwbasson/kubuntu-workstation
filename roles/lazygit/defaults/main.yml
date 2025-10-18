@@ -1,3 +1,4 @@
 ---
 # defaults file for lazygit
-lazygit_ppa: ppa:lazygit-team/release
+# Install from GitHub releases since PPA doesn't support Ubuntu 24.04
+lazygit_install_method: github  # github or ppa (when supported)

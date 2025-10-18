@@ -21,6 +21,7 @@
     - azure_cli
     - gcloud_cli
     - java
+    - rust
     - fish_shell
     - vscode
     - sublime_text

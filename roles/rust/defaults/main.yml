@@ -1,0 +1,37 @@
+---
+# defaults file for rust
+
+# User to install Rust for (from vars.yml)
+rust_user: "{{ username }}"
+rust_user_home: "{{ user_home }}"
+
+# Rustup installation
+rustup_init_url: https://sh.rustup.rs
+rustup_profile: default  # minimal, default, complete
+rust_toolchain: stable   # stable, beta, nightly, or specific version (1.70.0)
+
+# Cargo home directory
+cargo_home: "{{ rust_user_home }}/.cargo"
+rustup_home: "{{ rust_user_home }}/.rustup"
+
+# Cargo tools to install
+rust_install_topgrade: true
+rust_install_cargo_update: true
+
+# Additional cargo tools (optional)
+rust_additional_tools: []
+# Examples:
+# - ripgrep
+# - bat
+# - fd-find
+# - exa
+# - starship
+
+# Shell integration
+rust_add_to_bashrc: true
+rust_add_to_fish: true
+
+# Environment variables
+rust_env_vars:
+  CARGO_HOME: "{{ cargo_home }}"
+  RUSTUP_HOME: "{{ rustup_home }}"

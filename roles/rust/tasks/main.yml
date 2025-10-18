@@ -1,0 +1,380 @@
+---
+# tasks file for rust
+
+- name: Install dependencies for Rust installation
+  ansible.builtin.apt:
+    name:
+      - curl
+      - build-essential
+      - pkg-config
+      - libssl-dev
+    state: present
+    update_cache: yes
+  tags:
+    - rust
+    - rustup
+    - packages
+    - dependencies
+
+- name: Check if Rustup is already installed
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command: "{{ cargo_home }}/bin/rustup --version"
+  register: rustup_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - rust
+    - rustup
+
+- name: Display current Rustup version if installed
+  ansible.builtin.debug:
+    msg: "Rustup already installed: {{ rustup_installed.stdout }}"
+  when: rustup_installed.rc == 0
+  tags:
+    - rust
+    - rustup
+
+- name: Download Rustup installer
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.get_url:
+    url: "{{ rustup_init_url }}"
+    dest: "/tmp/rustup-init.sh"
+    mode: '0755'
+  when: rustup_installed.rc != 0
+  tags:
+    - rust
+    - rustup
+    - download
+
+- name: Install Rustup
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command:
+    cmd: "/tmp/rustup-init.sh -y --profile {{ rustup_profile }} --default-toolchain {{ rust_toolchain }}"
+  args:
+    creates: "{{ cargo_home }}/bin/rustup"
+  environment:
+    CARGO_HOME: "{{ cargo_home }}"
+    RUSTUP_HOME: "{{ rustup_home }}"
+  when: rustup_installed.rc != 0
+  register: rustup_install_result
+  tags:
+    - rust
+    - rustup
+
+- name: Remove Rustup installer
+  ansible.builtin.file:
+    path: /tmp/rustup-init.sh
+    state: absent
+  tags:
+    - rust
+    - rustup
+    - cleanup
+
+- name: Ensure Cargo bin directory exists
+  ansible.builtin.file:
+    path: "{{ cargo_home }}/bin"
+    state: directory
+    owner: "{{ rust_user }}"
+    group: "{{ rust_user }}"
+    mode: '0755'
+  tags:
+    - rust
+    - cargo
+
+- name: Add Cargo bin to PATH in .bashrc
+  ansible.builtin.lineinfile:
+    path: "{{ rust_user_home }}/.bashrc"
+    line: 'export PATH="$HOME/.cargo/bin:$PATH"'
+    create: yes
+    owner: "{{ rust_user }}"
+    group: "{{ rust_user }}"
+    mode: '0644'
+    state: present
+  when: rust_add_to_bashrc
+  tags:
+    - rust
+    - cargo
+    - shell
+    - bash
+
+- name: Check if Fish shell is installed
+  ansible.builtin.command: which fish
+  register: fish_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - rust
+    - cargo
+    - shell
+    - fish
+
+- name: Ensure Fish config directory exists
+  ansible.builtin.file:
+    path: "{{ rust_user_home }}/.config/fish/conf.d"
+    state: directory
+    owner: "{{ rust_user }}"
+    group: "{{ rust_user }}"
+    mode: '0755'
+  when:
+    - fish_installed.rc == 0
+    - rust_add_to_fish
+  tags:
+    - rust
+    - cargo
+    - shell
+    - fish
+
+- name: Add Cargo bin to PATH in Fish config
+  ansible.builtin.copy:
+    dest: "{{ rust_user_home }}/.config/fish/conf.d/rust.fish"
+    content: |
+      # Add Cargo bin to PATH
+      set -gx PATH $HOME/.cargo/bin $PATH
+
+      # Rust environment variables
+      set -gx CARGO_HOME {{ cargo_home }}
+      set -gx RUSTUP_HOME {{ rustup_home }}
+    owner: "{{ rust_user }}"
+    group: "{{ rust_user }}"
+    mode: '0644'
+  when:
+    - fish_installed.rc == 0
+    - rust_add_to_fish
+  tags:
+    - rust
+    - cargo
+    - shell
+    - fish
+
+- name: Update Rust toolchain to latest stable
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command:
+    cmd: "{{ cargo_home }}/bin/rustup update {{ rust_toolchain }}"
+  environment:
+    CARGO_HOME: "{{ cargo_home }}"
+    RUSTUP_HOME: "{{ rustup_home }}"
+  register: rustup_update
+  changed_when: "'updated' in rustup_update.stdout or 'installed' in rustup_update.stdout"
+  tags:
+    - rust
+    - rustup
+    - update
+
+- name: Check if cargo-update (cargo-install-update) is installed
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command: "{{ cargo_home }}/bin/cargo install-update --version"
+  register: cargo_update_installed
+  changed_when: false
+  failed_when: false
+  when: rust_install_cargo_update
+  tags:
+    - rust
+    - cargo
+    - cargo-update
+
+- name: Install cargo-update (cargo-install-update)
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command:
+    cmd: "{{ cargo_home }}/bin/cargo install cargo-update"
+  environment:
+    CARGO_HOME: "{{ cargo_home }}"
+    RUSTUP_HOME: "{{ rustup_home }}"
+  when:
+    - rust_install_cargo_update
+    - cargo_update_installed.rc != 0
+  register: cargo_update_install
+  changed_when: cargo_update_install.rc == 0
+  tags:
+    - rust
+    - cargo
+    - cargo-update
+    - tools
+
+- name: Check if topgrade is installed
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command: "{{ cargo_home }}/bin/topgrade --version"
+  register: topgrade_installed
+  changed_when: false
+  failed_when: false
+  when: rust_install_topgrade
+  tags:
+    - rust
+    - cargo
+    - topgrade
+
+- name: Install topgrade
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command:
+    cmd: "{{ cargo_home }}/bin/cargo install topgrade"
+  environment:
+    CARGO_HOME: "{{ cargo_home }}"
+    RUSTUP_HOME: "{{ rustup_home }}"
+  when:
+    - rust_install_topgrade
+    - topgrade_installed.rc != 0
+  register: topgrade_install
+  changed_when: topgrade_install.rc == 0
+  tags:
+    - rust
+    - cargo
+    - topgrade
+    - tools
+
+- name: Install additional cargo tools
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command:
+    cmd: "{{ cargo_home }}/bin/cargo install {{ item }}"
+  environment:
+    CARGO_HOME: "{{ cargo_home }}"
+    RUSTUP_HOME: "{{ rustup_home }}"
+  loop: "{{ rust_additional_tools }}"
+  when: rust_additional_tools | length > 0
+  register: additional_tools_install
+  changed_when: "'Installing' in additional_tools_install.stdout or 'Installed' in additional_tools_install.stdout"
+  failed_when: false
+  tags:
+    - rust
+    - cargo
+    - tools
+
+- name: Verify Rust installation
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command: "{{ cargo_home }}/bin/rustc --version"
+  environment:
+    CARGO_HOME: "{{ cargo_home }}"
+    RUSTUP_HOME: "{{ rustup_home }}"
+  register: rust_version
+  changed_when: false
+  tags:
+    - rust
+    - rustup
+
+- name: Verify Cargo installation
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.command: "{{ cargo_home }}/bin/cargo --version"
+  environment:
+    CARGO_HOME: "{{ cargo_home }}"
+    RUSTUP_HOME: "{{ rustup_home }}"
+  register: cargo_version
+  changed_when: false
+  tags:
+    - rust
+    - cargo
+
+- name: Display Rust installation info
+  ansible.builtin.debug:
+    msg: |
+      Rust has been installed successfully!
+
+      Installed components:
+      - {{ rust_version.stdout }}
+      - {{ cargo_version.stdout }}
+      - Rustup (Rust toolchain installer)
+      {% if rust_install_cargo_update and cargo_update_installed.rc == 0 %}
+      - cargo-update (cargo install-update)
+      {% endif %}
+      {% if rust_install_topgrade and topgrade_installed.rc == 0 %}
+      - topgrade (Universal upgrade tool)
+      {% endif %}
+      {% if rust_additional_tools | length > 0 %}
+      - Additional tools: {{ rust_additional_tools | join(', ') }}
+      {% endif %}
+
+      Installation paths:
+      - Cargo home: {{ cargo_home }}
+      - Rustup home: {{ rustup_home }}
+      - Binaries: {{ cargo_home }}/bin
+
+      Essential Rust commands:
+      - rustc --version           : Show Rust compiler version
+      - cargo --version           : Show Cargo version
+      - rustup --version          : Show Rustup version
+      - cargo new <project>       : Create new Rust project
+      - cargo build               : Build project
+      - cargo run                 : Build and run project
+      - cargo test                : Run tests
+      - cargo doc --open          : Generate and open documentation
+
+      Rustup toolchain management:
+      - rustup update             : Update Rust toolchains
+      - rustup show               : Show installed toolchains
+      - rustup default <channel>  : Set default toolchain (stable, beta, nightly)
+      - rustup toolchain install <channel> : Install additional toolchain
+      - rustup component list     : List available components
+      - rustup component add <component> : Add component (rustfmt, clippy, etc.)
+
+      Cargo package management:
+      - cargo install <package>   : Install binary package from crates.io
+      - cargo uninstall <package> : Uninstall binary package
+      - cargo search <query>      : Search crates.io
+      {% if rust_install_cargo_update %}
+      - cargo install-update -a   : Update all installed cargo binaries
+      - cargo install-update -l   : List installed cargo binaries
+      {% endif %}
+
+      {% if rust_install_topgrade %}
+      Topgrade - Universal system updater:
+      - topgrade                  : Update everything on your system
+      - topgrade -n               : Dry run (show what would be updated)
+      - topgrade --only <step>    : Run specific update step
+      - topgrade --disable <step> : Skip specific update step
+      - topgrade -y               : Skip all confirmations
+
+      Topgrade updates:
+      - System packages (apt, snap, flatpak)
+      - Rustup and cargo tools
+      - Programming language tools (npm, pip, gem, etc.)
+      - Git repositories
+      - Vim/Neovim plugins
+      - And much more!
+
+      Topgrade configuration:
+      - Config file: ~/.config/topgrade.toml
+      - Create with: topgrade --edit-config
+      {% endif %}
+
+      Useful Rust tools to install:
+      - cargo install ripgrep     : Fast grep alternative (rg)
+      - cargo install bat         : Cat clone with syntax highlighting
+      - cargo install fd-find     : Fast find alternative
+      - cargo install exa         : Modern ls replacement
+      - cargo install starship    : Cross-shell prompt
+      - cargo install tokei       : Code statistics tool
+      - cargo install hyperfine   : Command-line benchmarking
+      - cargo install cargo-edit  : Cargo subcommands (add, rm, upgrade)
+      - cargo install cargo-watch : Watch for changes and run commands
+
+      Shell integration:
+      {% if rust_add_to_bashrc %}
+      - Bash: Cargo bin added to PATH in ~/.bashrc
+      {% endif %}
+      {% if fish_installed.rc == 0 and rust_add_to_fish %}
+      - Fish: Cargo bin added to PATH in ~/.config/fish/conf.d/rust.fish
+      {% endif %}
+
+      Note: You may need to restart your shell or run:
+      source ~/.bashrc  # For bash
+      # Or start a new fish shell
+
+      Learning resources:
+      - Official Rust book: https://doc.rust-lang.org/book/
+      - Rust by Example: https://doc.rust-lang.org/rust-by-example/
+      - Cargo book: https://doc.rust-lang.org/cargo/
+      - Crates.io (package registry): https://crates.io/
+
+      Rust will be automatically updated via topgrade or 'rustup update'!
+  tags:
+    - rust
+    - rustup
+    - cargo

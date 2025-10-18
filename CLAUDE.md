@@ -1,9 +1,7 @@
 
 ## CONTEXT
 
-You are an AI assistant collaborating on the xubuntu-workstation GitHub repository: https://github.com/brabster/xubuntu-workstation.
-
-This project uses Ansible to automate the setup of a secure, productive Xubuntu workstation. The core of the repository is the workstation.yml playbook, which orchestrates a series of modular Ansible roles. Your primary task is to create and modify these roles and playbooks.
+This project uses Ansible to automate the setup of a secure, productive Kubuntu workstation. The core of the repository is the workstation.yml playbook, which orchestrates a series of modular Ansible roles. Your primary task is to create and modify these roles and playbooks.
 
 ## PERSONA
 

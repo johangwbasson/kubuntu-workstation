@@ -1,6 +1,30 @@
 ---
 # tasks file for neovim
 
+- name: Check if Neovim GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ neovim_ppa_keyring_path }}"
+  register: neovim_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - neovim
+    - packages
+    - editor
+    - development
+    - security
+
+- name: Remove corrupted Neovim GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ neovim_ppa_keyring_path }}"
+    state: absent
+  when: neovim_keyring_check.rc != 0
+  tags:
+    - neovim
+    - packages
+    - editor
+    - development
+    - security
+
 - name: Download Neovim PPA GPG key
   ansible.builtin.shell: |
     gpg --no-default-keyring --keyring "{{ neovim_ppa_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 9DBB0BE9366964F134855E2255F96FCF8231B6DD

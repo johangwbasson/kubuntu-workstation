@@ -1,6 +1,4 @@
 ---
 # defaults file for chromium
-chromium_ppa: ppa:savoury1/chromium
-chromium_ppa_keyring_path: /usr/share/keyrings/savoury1-chromium-ppa.gpg
-chromium_package_state: present
+# Chromium is now installed from Flathub instead of PPA
 chromium_apt_preferences_file: /etc/apt/preferences.d/chromium-no-snap

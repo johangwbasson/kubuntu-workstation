@@ -38,7 +38,8 @@
   ansible.builtin.stat:
     path: "{{ lazyvim_config_dir }}/lua/config/lazy.lua"
   register: lazyvim_installed
-  become: false
+  become: true
+  become_user: "{{ lazyvim_user }}"
   tags:
     - lazyvim
     - neovim
@@ -62,7 +63,8 @@
     removes: "{{ lazyvim_config_dir }}"
     creates: "{{ lazyvim_backup_dir }}"
   when: not lazyvim_installed.stat.exists
-  become: false
+  become: true
+  become_user: "{{ lazyvim_user }}"
   tags:
     - lazyvim
     - neovim
@@ -77,7 +79,8 @@
     removes: "{{ lazyvim_data_dir }}"
     creates: "{{ lazyvim_data_backup_dir }}"
   when: not lazyvim_installed.stat.exists
-  become: false
+  become: true
+  become_user: "{{ lazyvim_user }}"
   tags:
     - lazyvim
     - neovim
@@ -92,7 +95,8 @@
     removes: "{{ lazyvim_state_dir }}"
     creates: "{{ lazyvim_state_backup_dir }}"
   when: not lazyvim_installed.stat.exists
-  become: false
+  become: true
+  become_user: "{{ lazyvim_user }}"
   tags:
     - lazyvim
     - neovim
@@ -107,7 +111,8 @@
     removes: "{{ lazyvim_cache_dir }}"
     creates: "{{ lazyvim_cache_backup_dir }}"
   when: not lazyvim_installed.stat.exists
-  become: false
+  become: true
+  become_user: "{{ lazyvim_user }}"
   tags:
     - lazyvim
     - neovim
@@ -122,7 +127,8 @@
     version: main
     force: false
   when: not lazyvim_installed.stat.exists
-  become: false
+  become: true
+  become_user: "{{ lazyvim_user }}"
   tags:
     - lazyvim
     - neovim
@@ -134,7 +140,8 @@
     path: "{{ lazyvim_config_dir }}/.git"
     state: absent
   when: not lazyvim_installed.stat.exists
-  become: false
+  become: true
+  become_user: "{{ lazyvim_user }}"
   tags:
     - lazyvim
     - neovim

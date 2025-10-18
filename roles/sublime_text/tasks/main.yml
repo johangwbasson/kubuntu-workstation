@@ -17,10 +17,48 @@
     - editor
     - dependencies
 
-- name: Download Sublime HQ GPG key
-  ansible.builtin.get_url:
-    url: "{{ sublime_gpg_key_url }}"
-    dest: "{{ sublime_gpg_keyring_path }}"
+- name: Check if Sublime Text GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ sublime_gpg_keyring_path }}"
+  register: sublime_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - security
+
+- name: Remove corrupted Sublime Text GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ sublime_gpg_keyring_path }}"
+    state: absent
+  when: sublime_keyring_check.rc != 0
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - security
+
+- name: Download and convert Sublime HQ GPG key
+  ansible.builtin.shell: |
+    curl -fsSL "{{ sublime_gpg_key_url }}" | gpg --dearmor -o "{{ sublime_gpg_keyring_path }}"
+  args:
+    creates: "{{ sublime_gpg_keyring_path }}"
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - security
+
+- name: Set correct permissions on Sublime Text GPG keyring
+  ansible.builtin.file:
+    path: "{{ sublime_gpg_keyring_path }}"
     mode: '0644'
     owner: root
     group: root

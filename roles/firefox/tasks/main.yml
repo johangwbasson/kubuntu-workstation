@@ -57,6 +57,28 @@
     - browser
     - apt-preferences
 
+- name: Check if Mozilla Team GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ firefox_ppa_keyring_path }}"
+  register: firefox_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - packages
+    - firefox
+    - browser
+    - security
+
+- name: Remove corrupted Mozilla Team GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ firefox_ppa_keyring_path }}"
+    state: absent
+  when: firefox_keyring_check.rc != 0
+  tags:
+    - packages
+    - firefox
+    - browser
+    - security
+
 - name: Download Mozilla Team PPA GPG key
   ansible.builtin.shell: |
     gpg --no-default-keyring --keyring "{{ firefox_ppa_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 0AB215679C571D1C8325275B9BDB3D89CE49EC21

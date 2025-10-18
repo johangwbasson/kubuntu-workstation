@@ -1,6 +1,28 @@
 ---
 # tasks file for fish_shell
 
+- name: Check if Fish shell GPG keyring exists and is valid
+  ansible.builtin.command: gpg --list-keys --keyring "{{ fish_keyring_path }}"
+  register: fish_keyring_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - fish
+    - shell
+    - packages
+    - security
+
+- name: Remove corrupted Fish shell GPG keyring if invalid
+  ansible.builtin.file:
+    path: "{{ fish_keyring_path }}"
+    state: absent
+  when: fish_keyring_check.rc != 0
+  tags:
+    - fish
+    - shell
+    - packages
+    - security
+
 - name: Download Fish shell PPA GPG key
   ansible.builtin.shell: |
     gpg --no-default-keyring --keyring "{{ fish_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 59FDA1CE1B84B3FAD89366C027557F056DC33CA5

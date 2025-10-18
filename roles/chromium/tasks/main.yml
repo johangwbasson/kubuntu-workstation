@@ -1,85 +1,84 @@
 ---
 # tasks file for chromium
 
-- name: Create APT preference to block snap-based Chromium
-  ansible.builtin.copy:
-    dest: "{{ chromium_apt_preferences_file }}"
-    content: |
-      # Block chromium-browser from Ubuntu snap repositories
-      Package: chromium-browser chromium-browser-l10n chromium-codecs-ffmpeg-extra
-      Pin: release o=Ubuntu*
-      Pin-Priority: -1
-
-      # Prefer chromium-browser from PPA
-      Package: chromium-browser chromium-browser-l10n chromium-codecs-ffmpeg-extra
-      Pin: release o=LP-PPA-savoury1-chromium
-      Pin-Priority: 1001
-    mode: '0644'
-    owner: root
-    group: root
-  tags:
-    - chromium
-    - packages
-    - browser
-    - apt-preferences
-
-- name: Download Chromium PPA GPG key
-  ansible.builtin.shell: |
-    gpg --no-default-keyring --keyring "{{ chromium_ppa_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 0C0B2B9E6FC5BAC1D1D0BFE0EF909B37F66BD0B6
-  args:
-    creates: "{{ chromium_ppa_keyring_path }}"
-  tags:
-    - chromium
-    - packages
-    - browser
-    - security
-
-- name: Set correct permissions on Chromium GPG keyring
-  ansible.builtin.file:
-    path: "{{ chromium_ppa_keyring_path }}"
-    mode: '0644'
-    owner: root
-    group: root
-  tags:
-    - chromium
-    - packages
-    - browser
-    - security
-
-- name: Add Chromium Team PPA with signed-by
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by={{ chromium_ppa_keyring_path }}] http://ppa.launchpad.net/savoury1/chromium/ubuntu {{ ansible_distribution_release }} main"
-    filename: savoury1-chromium
+- name: Ensure Flatpak is installed
+  ansible.builtin.apt:
+    name: flatpak
     state: present
     update_cache: yes
   tags:
     - chromium
     - packages
     - browser
+    - flatpak
 
-- name: Remove snap-based Chromium if present
-  ansible.builtin.apt:
-    name:
-      - chromium-browser
-      - chromium-browser-l10n
-    state: absent
-    purge: yes
-  failed_when: false
+- name: Add Flathub repository
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
   tags:
     - chromium
     - packages
     - browser
-    - cleanup
+    - flatpak
 
-- name: Install Chromium from PPA
-  ansible.builtin.apt:
-    name:
-      - chromium-browser
-      - chromium-browser-l10n
-      - chromium-codecs-ffmpeg-extra
-    state: "{{ chromium_package_state }}"
-    update_cache: yes
+- name: Install Chromium from Flathub
+  community.general.flatpak:
+    name: org.chromium.Chromium
+    state: present
+    remote: flathub
   tags:
     - chromium
     - packages
+    - browser
+    - flatpak
+
+- name: Remove old Chromium PPA repository file if it exists
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/savoury1-chromium.list
+    state: absent
+  tags:
+    - chromium
+    - cleanup
+
+- name: Remove old Chromium PPA keyring if it exists
+  ansible.builtin.file:
+    path: /usr/share/keyrings/savoury1-chromium-ppa.gpg
+    state: absent
+  tags:
+    - chromium
+    - cleanup
+
+- name: Remove old Chromium APT preferences file if it exists
+  ansible.builtin.file:
+    path: "{{ chromium_apt_preferences_file }}"
+    state: absent
+  tags:
+    - chromium
+    - cleanup
+
+- name: Display Chromium installation info
+  ansible.builtin.debug:
+    msg: |
+      Chromium has been installed from Flathub!
+
+      Launch Chromium:
+      - From application menu: Search for "Chromium"
+      - From terminal: flatpak run org.chromium.Chromium
+
+      Chromium Flatpak features:
+      - Sandboxed for better security
+      - Automatic updates from Flathub
+      - Isolated from system
+
+      Useful Flatpak commands:
+      - flatpak update org.chromium.Chromium  : Update Chromium
+      - flatpak uninstall org.chromium.Chromium : Remove Chromium
+      - flatpak info org.chromium.Chromium    : Show package info
+
+      Note: Chromium is now installed as a Flatpak instead of from PPA.
+      This provides better security through sandboxing and easier updates.
+  tags:
+    - chromium
     - browser

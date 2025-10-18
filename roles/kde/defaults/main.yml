@@ -1,0 +1,83 @@
+---
+# defaults file for kde
+
+# KDE applications to install
+kde_applications:
+  # Multimedia
+  - name: vlc
+    description: "VLC media player - plays most multimedia files"
+    category: multimedia
+
+  # Document viewers
+  - name: okular
+    description: "Universal document viewer (PDF, ePub, etc.)"
+    category: documents
+
+  # Graphics
+  - name: gimp
+    description: "GNU Image Manipulation Program"
+    category: graphics
+
+  # Development tools
+  - name: meld
+    description: "Visual diff and merge tool"
+    category: development
+
+  # KDE utilities
+  - name: spectacle
+    description: "Screenshot capture utility"
+    category: utilities
+
+  - name: yakuake
+    description: "Drop-down terminal emulator"
+    category: utilities
+
+  - name: kamoso
+    description: "Webcam application"
+    category: multimedia
+
+  - name: filelight
+    description: "Disk usage visualizer"
+    category: utilities
+
+  # Security/Encryption
+  - name: kgpg
+    description: "GPG encryption interface"
+    category: security
+
+  - name: kleopatra
+    description: "Certificate manager and crypto GUI"
+    category: security
+
+  # File management
+  - name: krusader
+    description: "Advanced twin-panel file manager"
+    category: filemanagement
+
+  # Development/Hex editor
+  - name: okteta
+    description: "Hex/binary editor"
+    category: development
+
+  # Git tools
+  - name: kommit
+    description: "Git client for KDE"
+    category: development
+
+  # Productivity
+  - name: zanshin
+    description: "To-do and task management"
+    category: productivity
+
+  - name: akregator
+    description: "RSS/Atom feed reader"
+    category: productivity
+
+# Package state
+kde_package_state: present
+
+# Update cache before installation
+kde_update_cache: yes
+
+# Enable installation of recommended packages
+kde_install_recommends: yes

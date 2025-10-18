@@ -217,4 +217,5 @@ This project is provided as-is for personal and educational use.
 
 ## Acknowledgments
 
-Built following Ansible best practices and modern DevOps principles from Thoughtworks and continuous delivery experts.
+This repository was inspired by and includes elements from [brabster/xubuntu-workstation](https://github.com/brabster/xubuntu-workstation/tree/main).
+

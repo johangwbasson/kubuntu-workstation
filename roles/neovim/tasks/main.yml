@@ -1,9 +1,35 @@
 ---
 # tasks file for neovim
 
-- name: Add Neovim PPA
+- name: Download Neovim PPA GPG key
+  ansible.builtin.shell: |
+    gpg --no-default-keyring --keyring "{{ neovim_ppa_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 9DBB0BE9366964F134855E2255F96FCF8231B6DD
+  args:
+    creates: "{{ neovim_ppa_keyring_path }}"
+  tags:
+    - neovim
+    - packages
+    - editor
+    - development
+    - security
+
+- name: Set correct permissions on Neovim GPG keyring
+  ansible.builtin.file:
+    path: "{{ neovim_ppa_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - neovim
+    - packages
+    - editor
+    - development
+    - security
+
+- name: Add Neovim PPA with signed-by
   ansible.builtin.apt_repository:
-    repo: "{{ neovim_ppa }}"
+    repo: "deb [signed-by={{ neovim_ppa_keyring_path }}] http://ppa.launchpad.net/neovim-ppa/unstable/ubuntu {{ ansible_distribution_release }} main"
+    filename: neovim-ppa-unstable
     state: present
     update_cache: yes
   tags:

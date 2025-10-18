@@ -2,4 +2,4 @@
 # defaults file for gcloud_cli
 gcloud_gpg_key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
 gcloud_repo_url: https://packages.cloud.google.com/apt
-gcloud_keyring_path: /usr/share/keyrings/cloud.google.gpg
+gcloud_keyring_path: /usr/share/keyrings/cloud.google.asc

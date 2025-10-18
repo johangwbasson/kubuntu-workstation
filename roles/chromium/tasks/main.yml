@@ -23,9 +23,33 @@
     - browser
     - apt-preferences
 
-- name: Add Chromium Team PPA
+- name: Download Chromium PPA GPG key
+  ansible.builtin.shell: |
+    gpg --no-default-keyring --keyring "{{ chromium_ppa_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 0C0B2B9E6FC5BAC1D1D0BFE0EF909B37F66BD0B6
+  args:
+    creates: "{{ chromium_ppa_keyring_path }}"
+  tags:
+    - chromium
+    - packages
+    - browser
+    - security
+
+- name: Set correct permissions on Chromium GPG keyring
+  ansible.builtin.file:
+    path: "{{ chromium_ppa_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - chromium
+    - packages
+    - browser
+    - security
+
+- name: Add Chromium Team PPA with signed-by
   ansible.builtin.apt_repository:
-    repo: "{{ chromium_ppa }}"
+    repo: "deb [signed-by={{ chromium_ppa_keyring_path }}] http://ppa.launchpad.net/savoury1/chromium/ubuntu {{ ansible_distribution_release }} main"
+    filename: savoury1-chromium
     state: present
     update_cache: yes
   tags:

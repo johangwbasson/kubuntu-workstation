@@ -51,11 +51,11 @@
     - google_cloud
     - cloud
 
-- name: Download Google Cloud GPG key
-  ansible.builtin.get_url:
-    url: "{{ gcloud_gpg_key_url }}"
-    dest: "{{ gcloud_keyring_path }}"
-    mode: '0644'
+- name: Download and convert Google Cloud GPG key
+  ansible.builtin.shell: |
+    curl -fsSL "{{ gcloud_gpg_key_url }}" | gpg --dearmor -o "{{ gcloud_keyring_path }}"
+  args:
+    creates: "{{ gcloud_keyring_path }}"
   when: gcloud_installed.rc != 0
   tags:
     - gcloud_cli
@@ -63,6 +63,19 @@
     - google_cloud
     - cloud
     - download
+
+- name: Set correct permissions on Google Cloud GPG keyring
+  ansible.builtin.file:
+    path: "{{ gcloud_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  when: gcloud_installed.rc != 0
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
 
 - name: Add Google Cloud SDK repository
   ansible.builtin.apt_repository:

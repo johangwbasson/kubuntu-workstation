@@ -1,9 +1,33 @@
 ---
 # tasks file for fish_shell
 
-- name: Add Fish shell PPA
+- name: Download Fish shell PPA GPG key
+  ansible.builtin.shell: |
+    gpg --no-default-keyring --keyring "{{ fish_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 59FDA1CE1B84B3FAD89366C027557F056DC33CA5
+  args:
+    creates: "{{ fish_keyring_path }}"
+  tags:
+    - fish
+    - shell
+    - packages
+    - security
+
+- name: Set correct permissions on Fish shell GPG keyring
+  ansible.builtin.file:
+    path: "{{ fish_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - fish
+    - shell
+    - packages
+    - security
+
+- name: Add Fish shell PPA with signed-by
   ansible.builtin.apt_repository:
-    repo: "{{ fish_ppa }}"
+    repo: "deb [signed-by={{ fish_keyring_path }}] http://ppa.launchpad.net/fish-shell/release-3/ubuntu {{ ansible_distribution_release }} main"
+    filename: fish-shell-release-3
     state: present
     update_cache: yes
   tags:

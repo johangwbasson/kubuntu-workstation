@@ -1,6 +1,7 @@
 ---
 # defaults file for fish_shell
 fish_ppa: ppa:fish-shell/release-3
+fish_keyring_path: /usr/share/keyrings/fish-shell-release-3.gpg
 fish_package_state: present
 fish_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
 fish_user_home: "{{ lookup('env', 'HOME') if fish_user == lookup('env', 'USER') else '/home/' + fish_user }}"

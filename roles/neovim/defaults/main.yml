@@ -2,4 +2,5 @@
 # defaults file for neovim
 # Use 'stable' for stable releases or 'unstable' for latest/nightly builds
 neovim_ppa: ppa:neovim-ppa/unstable
+neovim_ppa_keyring_path: /usr/share/keyrings/neovim-ppa.gpg
 neovim_package_state: present

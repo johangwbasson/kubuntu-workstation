@@ -1,3 +1,4 @@
 ---
 # defaults file for firefox
 firefox_package_state: present
+firefox_ppa_keyring_path: /usr/share/keyrings/mozillateam-ppa.gpg

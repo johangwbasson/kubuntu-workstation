@@ -1,0 +1,19 @@
+---
+# defaults file for btrfs_optimize
+
+# BTRFS mount options optimized for SSD
+btrfs_mount_options: "noatime,ssd,compress=zstd:1,space_cache=v2,discard=async,commit=120"
+
+# Backup location for fstab
+btrfs_fstab_backup_dir: /root/fstab-backups
+
+# Whether to create a backup before modifying fstab (ALWAYS recommended)
+btrfs_create_backup: true
+
+# Subvolume mount points to optimize
+# These will have their mount options replaced with btrfs_mount_options
+btrfs_subvolumes:
+  - mountpoint: "/"
+    subvol: "@"
+  - mountpoint: "/home"
+    subvol: "@home"

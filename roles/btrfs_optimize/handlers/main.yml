@@ -1,0 +1,12 @@
+---
+# handlers file for btrfs_optimize
+
+# Note: We intentionally do NOT auto-remount or reboot
+# This is a safety measure to let the user control when the system reboots
+# Remounting root filesystems can be risky and should be done manually
+
+- name: Remind user to reboot
+  ansible.builtin.debug:
+    msg: |
+      REMINDER: A reboot is required for BTRFS mount option changes to take full effect.
+      Please reboot your system at your earliest convenience.

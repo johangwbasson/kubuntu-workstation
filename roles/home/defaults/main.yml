@@ -1,0 +1,37 @@
+---
+# defaults file for home
+
+# User configuration (from vars.yml)
+home_username: "{{ username }}"
+home_user_home: "{{ user_home }}"
+
+# Custom directories to create
+home_custom_directories:
+  - bin
+  - archive
+  - applications
+  - desktop
+  - downloads
+  - documents
+  - projects
+  - notes
+  - media/music
+  - media/pictures
+  - media/templates
+  - media/videos
+  - workspace
+  - tmp
+
+# Default XDG directories to remove (replaced by custom structure)
+home_remove_default_dirs:
+  - Desktop
+  - Documents
+  - Downloads
+  - Music
+  - Pictures
+  - Public
+  - Templates
+  - Videos
+
+# Update XDG user directories after configuration
+home_update_xdg: true

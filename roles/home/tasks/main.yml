@@ -1,48 +1,148 @@
 ---
-- name: Setup xdg directories
-  become_user: '{{ username }}'
+# tasks file for home
+
+- name: Ensure user config directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/.config"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+  tags:
+    - home
+    - xdg
+    - configuration
+
+- name: Setup XDG user directories configuration
   ansible.builtin.template:
-    src: files/user-dirs.j2
-    dest: '{{ user_home }}/.config/user-dirs.dirs'
+    src: user-dirs.j2
+    dest: "{{ user_home }}/.config/user-dirs.dirs"
+    owner: "{{ username }}"
+    group: "{{ username }}"
     mode: '0644'
+  tags:
+    - home
+    - xdg
+    - configuration
 
-- name: Create directories in home directory
-  become_user: '{{ username }}'
-  tasks:
-    - name: Create directories from list
-      file:
-        path: "{{ user_home }}/{{ item }}"
-        state: directory
-        mode: '0755'
-      loop:
-        - bin
-        - archive
-        - applications
-        - desktop
-        - downloads
-        - documents
-        - projects
-        - notes
-        - media/music
-        - media/pictures
-        - media/templates
-        - media/videos
-        - workspace
-        - tmp
+- name: Create custom directories in home directory
+  ansible.builtin.file:
+    path: "{{ user_home }}/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+  loop:
+    - bin
+    - archive
+    - applications
+    - desktop
+    - downloads
+    - documents
+    - projects
+    - notes
+    - media/music
+    - media/pictures
+    - media/templates
+    - media/videos
+    - workspace
+    - tmp
+  tags:
+    - home
+    - directories
 
-- name: Remove directories in home directory
-  hosts: localhost
-  tasks:
-    - name: Remove directories from list
-      file:
-        path: "{{ user_home }}/{{ item }}"
-        state: absent
-      loop:
-        - Desktop
-        - Documents
-        - Downloads
-        - Music
-        - Pictures     
-        - Public    
-        - Templates       
-        - Videos
+- name: Check if default XDG directories exist
+  ansible.builtin.stat:
+    path: "{{ user_home }}/{{ item }}"
+  loop:
+    - Desktop
+    - Documents
+    - Downloads
+    - Music
+    - Pictures
+    - Public
+    - Templates
+    - Videos
+  register: xdg_dirs_check
+  tags:
+    - home
+    - cleanup
+
+- name: Remove default XDG directories (replaced by custom structure)
+  ansible.builtin.file:
+    path: "{{ user_home }}/{{ item.item }}"
+    state: absent
+  loop: "{{ xdg_dirs_check.results }}"
+  when: item.stat.exists
+  tags:
+    - home
+    - cleanup
+
+- name: Update XDG user directories
+  ansible.builtin.command: xdg-user-dirs-update
+  environment:
+    HOME: "{{ user_home }}"
+  become: false
+  changed_when: false
+  tags:
+    - home
+    - xdg
+
+- name: Display home directory setup info
+  ansible.builtin.debug:
+    msg: |
+      Home directory structure has been configured!
+
+      Custom directory structure:
+      ─────────────────────────────
+      {{ user_home }}/
+      ├── bin/              : Personal scripts and executables
+      ├── archive/          : Long-term storage and archives
+      ├── applications/     : Application-specific data
+      ├── desktop/          : Desktop files (XDG_DESKTOP_DIR)
+      ├── downloads/        : Downloads (XDG_DOWNLOAD_DIR)
+      ├── documents/        : Documents (XDG_DOCUMENTS_DIR)
+      ├── projects/         : Development projects
+      ├── notes/            : Personal notes and documentation
+      ├── media/
+      │   ├── music/        : Music files (XDG_MUSIC_DIR)
+      │   ├── pictures/     : Images and photos (XDG_PICTURES_DIR)
+      │   ├── templates/    : Templates (XDG_TEMPLATES_DIR)
+      │   └── videos/       : Video files (XDG_VIDEOS_DIR)
+      ├── workspace/        : Active working area
+      └── tmp/              : Temporary files
+
+      XDG directories configured:
+      ──────────────────────────────
+      - Desktop    → ~/desktop
+      - Documents  → ~/documents
+      - Downloads  → ~/downloads
+      - Music      → ~/media/music
+      - Pictures   → ~/media/pictures
+      - Templates  → ~/media/templates
+      - Videos     → ~/media/videos
+
+      Old default directories removed:
+      ────────────────────────────────
+      - ~/Desktop (replaced by ~/desktop)
+      - ~/Documents (replaced by ~/documents)
+      - ~/Downloads (replaced by ~/downloads)
+      - ~/Music (replaced by ~/media/music)
+      - ~/Pictures (replaced by ~/media/pictures)
+      - ~/Public (removed)
+      - ~/Templates (replaced by ~/media/templates)
+      - ~/Videos (replaced by ~/media/videos)
+
+      Benefits:
+      ─────────
+      ✓ Lowercase directory names (easier to type)
+      ✓ Organized media files under ~/media
+      ✓ Dedicated workspace for active projects
+      ✓ Personal ~/bin for custom scripts
+      ✓ Archive directory for long-term storage
+      ✓ XDG compliance (applications will use correct paths)
+
+      Note: Applications will now save files to these new locations.
+      File manager and desktop will use the new structure automatically.
+  tags:
+    - home

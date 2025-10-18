@@ -59,6 +59,27 @@
     - meld
     - development
 
+- name: Ensure Flatpak is installed
+  ansible.builtin.apt:
+    name: flatpak
+    state: present
+  tags:
+    - kde
+    - flatpak
+    - packages
+
+- name: Install KDE Flatpak applications
+  community.general.flatpak:
+    name: "{{ item.name }}"
+    state: present
+    remote: "{{ kde_flatpak_remote }}"
+    method: "{{ kde_flatpak_method }}"
+  loop: "{{ kde_flatpak_apps }}"
+  tags:
+    - kde
+    - flatpak
+    - development
+
 - name: Display KDE applications installation info
   ansible.builtin.debug:
     msg: |
@@ -184,10 +205,10 @@
         • File corruption repair
         • Data extraction
 
-      Kommit
-      ──────
+      Kommit (Flatpak)
+      ────────────────
       Description: Git client for KDE
-      Launch: kommit or search "Kommit" in application menu
+      Launch: flatpak run org.kde.kommit or search "Kommit" in application menu
       Features:
         • Visual Git interface
         • Commit history browsing
@@ -195,6 +216,7 @@
         • Branch management
         • Merge and rebase support
         • Blame annotations
+      Note: Installed via Flatpak for latest version
 
       ═══════════════════════════════════════════════════════════════
       KDE UTILITIES
@@ -392,17 +414,19 @@
       Multimedia:       vlc, kamoso
       Documents:        okular
       Graphics:         gimp
-      Development:      meld, okteta, kommit
-      Utilities:        spectacle, yakuake, filelight
+      Development:      meld, okteta, kommit (Flatpak)
+      Utilities:        spectacle (kde-spectacle), yakuake, filelight
       Security:         kgpg, kleopatra
       File Management:  krusader
       Productivity:     zanshin, akregator
 
-      Total applications installed: {{ kde_applications | length }}
+      Total APT applications: {{ kde_applications | length }}
+      Total Flatpak applications: {{ kde_flatpak_apps | length }}
 
       ═══════════════════════════════════════════════════════════════
 
-      All applications will receive automatic updates through APT!
+      APT applications will receive automatic updates through APT.
+      Flatpak applications can be updated with: flatpak update
   tags:
     - kde
     - packages

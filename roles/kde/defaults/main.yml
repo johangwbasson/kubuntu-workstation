@@ -24,7 +24,7 @@ kde_applications:
     category: development
 
   # KDE utilities
-  - name: spectacle
+  - name: kde-spectacle
     description: "Screenshot capture utility"
     category: utilities
 
@@ -59,10 +59,8 @@ kde_applications:
     description: "Hex/binary editor"
     category: development
 
-  # Git tools
-  - name: kommit
-    description: "Git client for KDE"
-    category: development
+  # Git tools (installed via Flatpak)
+  # Note: kommit installed separately via Flatpak task
 
   # Productivity
   - name: zanshin
@@ -81,3 +79,13 @@ kde_update_cache: yes
 
 # Enable installation of recommended packages
 kde_install_recommends: yes
+
+# Flatpak applications
+kde_flatpak_apps:
+  - name: org.kde.kommit
+    description: "Git client for KDE"
+    category: development
+
+# Flatpak remote
+kde_flatpak_remote: flathub
+kde_flatpak_method: system

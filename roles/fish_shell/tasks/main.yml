@@ -120,6 +120,16 @@
     - fisher
     - plugins
 
+- name: Check if Tide is already configured
+  ansible.builtin.stat:
+    path: "{{ fish_user_home }}/.config/fish/conf.d/tide.fish"
+  register: tide_configured
+  tags:
+    - fish
+    - shell
+    - tide
+    - prompt
+
 - name: Configure Tide prompt (lean style)
   become: true
   become_user: "{{ fish_user }}"
@@ -127,6 +137,7 @@
     fish -c "tide configure --auto --style=Lean --prompt_colors='True color' --show_time='12-hour format' --lean_prompt_height='Two lines' --prompt_connection=Disconnected --prompt_spacing=Sparse --icons='Many icons' --transient=No"
   args:
     executable: /usr/bin/fish
+  when: not tide_configured.stat.exists
   register: tide_config
   changed_when: tide_config.rc == 0
   failed_when: false
@@ -196,8 +207,6 @@
   args:
     executable: /usr/bin/fish
   when: node_install is changed
-  register: node_use
-  changed_when: node_use.rc == 0
   failed_when: false
   tags:
     - fish

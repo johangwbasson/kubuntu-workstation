@@ -42,7 +42,6 @@
     path: /usr/share/keyrings
     state: directory
     mode: '0755'
-  when: azure_cli_installed.rc != 0
   tags:
     - azure_cli
     - azure
@@ -53,7 +52,6 @@
     url: "{{ azure_cli_gpg_key_url }}"
     dest: "{{ azure_cli_temp_keyring }}"
     mode: '0644'
-  when: azure_cli_installed.rc != 0
   tags:
     - azure_cli
     - azure
@@ -65,7 +63,6 @@
     cmd: gpg --dearmor --output {{ azure_cli_keyring_path }} {{ azure_cli_temp_keyring }}
   args:
     creates: "{{ azure_cli_keyring_path }}"
-  when: azure_cli_installed.rc != 0
   tags:
     - azure_cli
     - azure
@@ -75,7 +72,6 @@
   ansible.builtin.file:
     path: "{{ azure_cli_temp_keyring }}"
     state: absent
-  when: azure_cli_installed.rc != 0
   tags:
     - azure_cli
     - azure
@@ -86,7 +82,6 @@
   ansible.builtin.command: lsb_release -cs
   register: ubuntu_codename
   changed_when: false
-  when: azure_cli_installed.rc != 0
   tags:
     - azure_cli
     - azure
@@ -97,7 +92,6 @@
     repo: "deb [arch=amd64 signed-by={{ azure_cli_keyring_path }}] {{ azure_cli_repo_url }} {{ ubuntu_codename.stdout }} main"
     filename: azure-cli
     state: present
-  when: azure_cli_installed.rc != 0
   tags:
     - azure_cli
     - azure

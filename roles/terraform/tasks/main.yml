@@ -100,13 +100,21 @@
     - infrastructure
     - completion
 
+- name: Check if Terraform bash completion is installed
+  ansible.builtin.shell: |
+    grep -q 'complete -C.*terraform' "{{ terraform_user_home }}/.bashrc"
+  register: terraform_bash_completion_exists
+  changed_when: false
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - completion
+
 - name: Enable Terraform bash completion
   ansible.builtin.shell: |
     terraform -install-autocomplete
-  args:
-    creates: "{{ terraform_user_home }}/.bashrc"
-  register: terraform_bash_completion
-  changed_when: terraform_bash_completion.rc == 0
+  when: terraform_bash_completion_exists.rc != 0
   failed_when: false
   tags:
     - terraform
@@ -136,6 +144,20 @@
     - infrastructure
     - completion
 
+- name: Check if Terraform Fish completion is installed
+  become: true
+  become_user: "{{ terraform_user }}"
+  ansible.builtin.shell: |
+    grep -q 'complete -c terraform' "{{ terraform_user_home }}/.config/fish/config.fish" 2>/dev/null
+  when: fish_installed.rc == 0
+  register: terraform_fish_completion_exists
+  changed_when: false
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - completion
+
 - name: Generate Terraform Fish completion
   become: true
   become_user: "{{ terraform_user }}"
@@ -143,9 +165,9 @@
     terraform -install-autocomplete
   args:
     executable: /usr/bin/fish
-  when: fish_installed.rc == 0
-  register: terraform_fish_completion
-  changed_when: terraform_fish_completion.rc == 0
+  when:
+    - fish_installed.rc == 0
+    - terraform_fish_completion_exists.rc != 0
   failed_when: false
   tags:
     - terraform
@@ -168,6 +190,22 @@
     - infrastructure
     - aliases
 
+- name: Check if Terraform abbreviation exists in Fish
+  become: true
+  become_user: "{{ terraform_user }}"
+  ansible.builtin.shell: |
+    fish -c "abbr --show | grep -q '^abbr -a -g -- tf terraform$'"
+  args:
+    executable: /usr/bin/fish
+  when: fish_installed.rc == 0
+  register: terraform_abbr_exists
+  changed_when: false
+  failed_when: false
+  tags:
+    - terraform
+    - infrastructure
+    - aliases
+
 - name: Create Terraform abbreviations for Fish
   become: true
   become_user: "{{ terraform_user }}"
@@ -175,10 +213,9 @@
     fish -c "abbr --add --global tf terraform"
   args:
     executable: /usr/bin/fish
-  when: fish_installed.rc == 0
-  register: fish_abbr
-  changed_when: fish_abbr.rc == 0
-  failed_when: false
+  when:
+    - fish_installed.rc == 0
+    - terraform_abbr_exists.rc != 0
   tags:
     - terraform
     - infrastructure

@@ -153,6 +153,22 @@
     - kubernetes
     - aliases
 
+- name: Check if kubectl abbreviation exists in Fish
+  become: true
+  become_user: "{{ kubectl_user }}"
+  ansible.builtin.shell: |
+    fish -c "abbr --show | grep -q '^abbr -a -g -- k kubectl$'"
+  args:
+    executable: /usr/bin/fish
+  when: fish_installed.rc == 0
+  register: kubectl_abbr_exists
+  changed_when: false
+  failed_when: false
+  tags:
+    - kubectl
+    - kubernetes
+    - aliases
+
 - name: Create kubectl abbreviations for Fish
   become: true
   become_user: "{{ kubectl_user }}"
@@ -160,10 +176,9 @@
     fish -c "abbr --add --global k kubectl"
   args:
     executable: /usr/bin/fish
-  when: fish_installed.rc == 0
-  register: fish_abbr
-  changed_when: fish_abbr.rc == 0
-  failed_when: false
+  when:
+    - fish_installed.rc == 0
+    - kubectl_abbr_exists.rc != 0
   tags:
     - kubectl
     - kubernetes

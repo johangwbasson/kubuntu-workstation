@@ -9,7 +9,7 @@
       - pkg-config
       - libssl-dev
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - rust
     - rustup
@@ -88,7 +88,7 @@
   ansible.builtin.lineinfile:
     path: "{{ rust_user_home }}/.bashrc"
     line: 'export PATH="$HOME/.cargo/bin:$PATH"'
-    create: yes
+    create: true
     owner: "{{ rust_user }}"
     group: "{{ rust_user }}"
     mode: '0644'

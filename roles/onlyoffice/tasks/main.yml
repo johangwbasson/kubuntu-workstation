@@ -8,7 +8,7 @@
       - gpg
       - apt-transport-https
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - onlyoffice
     - packages
@@ -54,6 +54,7 @@
 
 - name: Convert and install OnlyOffice GPG key to keyring
   ansible.builtin.shell: |
+    set -o pipefail
     cat /tmp/onlyoffice-gpg-key.asc | gpg --dearmor --output {{ onlyoffice_gpg_keyring_path }}
   args:
     creates: "{{ onlyoffice_gpg_keyring_path }}"
@@ -93,7 +94,7 @@
     repo: "deb [signed-by={{ onlyoffice_gpg_keyring_path }}] {{ onlyoffice_repo_url }} {{ onlyoffice_repo_distribution }} {{ onlyoffice_repo_component }}"
     state: present
     filename: onlyoffice
-    update_cache: yes
+    update_cache: true
   tags:
     - onlyoffice
     - packages
@@ -104,7 +105,7 @@
   ansible.builtin.apt:
     name: onlyoffice-desktopeditors
     state: "{{ onlyoffice_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - onlyoffice
     - packages

@@ -9,7 +9,7 @@
       - groff
       - less
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - awscli
     - aws
@@ -63,7 +63,7 @@
   ansible.builtin.unarchive:
     src: "{{ awscli_temp_dir }}/awscliv2.zip"
     dest: "{{ awscli_temp_dir }}"
-    remote_src: yes
+    remote_src: true
   when: awscli_installed.rc != 0
   tags:
     - awscli
@@ -105,7 +105,8 @@
   ansible.builtin.lineinfile:
     path: /etc/bash.bashrc
     line: "complete -C '/usr/local/bin/aws_completer' aws"
-    create: yes
+    create: true
+    mode: '0644'
   tags:
     - awscli
     - aws

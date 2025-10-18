@@ -7,7 +7,7 @@
       - unzip
       - fontconfig
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - fonts
     - packages
@@ -43,7 +43,7 @@
   ansible.builtin.unarchive:
     src: "{{ fira_sans_zip }}"
     dest: "{{ fira_sans_dir }}"
-    remote_src: no
+    remote_src: false
   when: not fira_sans_installed.stat.exists
   tags:
     - fonts
@@ -71,7 +71,7 @@
   ansible.builtin.unarchive:
     src: "{{ jetbrains_mono_zip }}"
     dest: "{{ jetbrains_mono_dir }}"
-    remote_src: no
+    remote_src: false
   when: not jetbrains_mono_installed.stat.exists
   tags:
     - fonts
@@ -81,7 +81,7 @@
   ansible.builtin.apt:
     name: "{{ apt_font_packages }}"
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - fonts
     - packages
@@ -101,7 +101,7 @@
   ansible.builtin.apt:
     name: "{{ microsoft_fonts_package }}"
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - fonts
     - packages

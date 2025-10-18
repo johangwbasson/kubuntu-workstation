@@ -9,7 +9,7 @@
       - curl
       - gpg
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - kubectl
     - kubernetes
@@ -51,6 +51,7 @@
 
 - name: Convert and install Kubernetes GPG key to keyring
   ansible.builtin.shell: |
+    set -o pipefail
     cat /tmp/kubernetes-release.key | gpg --dearmor --output {{ kubectl_gpg_keyring_path }}
   args:
     creates: "{{ kubectl_gpg_keyring_path }}"
@@ -87,7 +88,7 @@
     repo: "deb [signed-by={{ kubectl_gpg_keyring_path }}] {{ kubectl_repo_url }} /"
     state: present
     filename: kubernetes
-    update_cache: yes
+    update_cache: true
   tags:
     - kubectl
     - kubernetes
@@ -97,7 +98,7 @@
   ansible.builtin.apt:
     name: kubectl
     state: "{{ kubectl_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - kubectl
     - kubernetes
@@ -162,7 +163,7 @@
   ansible.builtin.lineinfile:
     path: "{{ kubectl_user_home }}/.bashrc"
     line: "{{ item }}"
-    create: yes
+    create: true
     owner: "{{ kubectl_user }}"
     group: "{{ kubectl_user }}"
     mode: '0644'
@@ -179,6 +180,7 @@
   become: true
   become_user: "{{ kubectl_user }}"
   ansible.builtin.shell: |
+    set -o pipefail
     fish -c "abbr --show | grep -q '^abbr -a -g -- k kubectl$'"
   args:
     executable: /usr/bin/fish
@@ -198,6 +200,7 @@
     fish -c "abbr --add --global k kubectl"
   args:
     executable: /usr/bin/fish
+  changed_when: true
   when:
     - fish_installed.rc == 0
     - kubectl_abbr_exists.rc != 0

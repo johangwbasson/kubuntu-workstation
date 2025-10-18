@@ -55,7 +55,7 @@
     repo: "deb [signed-by={{ neovim_ppa_keyring_path }}] http://ppa.launchpad.net/neovim-ppa/unstable/ubuntu {{ ansible_distribution_release }} main"
     filename: neovim-ppa-unstable
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - neovim
     - packages
@@ -66,7 +66,7 @@
   ansible.builtin.apt:
     name: neovim
     state: "{{ neovim_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - neovim
     - packages

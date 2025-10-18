@@ -9,7 +9,7 @@
       - coreutils
       - lsb-release
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - terraform
     - infrastructure
@@ -51,9 +51,11 @@
 
 - name: Convert and install HashiCorp GPG key to keyring
   ansible.builtin.shell: |
+    set -o pipefail
     cat /tmp/hashicorp-gpg-key.asc | gpg --dearmor --output {{ terraform_gpg_keyring_path }}
   args:
     creates: "{{ terraform_gpg_keyring_path }}"
+    executable: /bin/bash
   tags:
     - terraform
     - infrastructure
@@ -96,7 +98,7 @@
     repo: "deb [signed-by={{ terraform_gpg_keyring_path }}] {{ terraform_repo_url }} {{ ubuntu_codename.stdout }} main"
     state: present
     filename: hashicorp
-    update_cache: yes
+    update_cache: true
   tags:
     - terraform
     - infrastructure
@@ -106,7 +108,7 @@
   ansible.builtin.apt:
     name: terraform
     state: "{{ terraform_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - terraform
     - infrastructure
@@ -134,9 +136,9 @@
     - completion
 
 - name: Enable Terraform bash completion
-  ansible.builtin.shell: |
-    terraform -install-autocomplete
+  ansible.builtin.command: terraform -install-autocomplete
   when: terraform_bash_completion_exists.rc != 0
+  changed_when: true
   failed_when: false
   tags:
     - terraform
@@ -183,13 +185,11 @@
 - name: Generate Terraform Fish completion
   become: true
   become_user: "{{ terraform_user }}"
-  ansible.builtin.shell: |
-    terraform -install-autocomplete
-  args:
-    executable: /usr/bin/fish
+  ansible.builtin.command: terraform -install-autocomplete
   when:
     - fish_installed.rc == 0
     - terraform_fish_completion_exists.rc != 0
+  changed_when: true
   failed_when: false
   tags:
     - terraform
@@ -200,7 +200,7 @@
   ansible.builtin.lineinfile:
     path: "{{ terraform_user_home }}/.bashrc"
     line: "{{ item }}"
-    create: yes
+    create: true
     owner: "{{ terraform_user }}"
     group: "{{ terraform_user }}"
     mode: '0644'
@@ -216,9 +216,10 @@
   become: true
   become_user: "{{ terraform_user }}"
   ansible.builtin.shell: |
+    set -o pipefail
     fish -c "abbr --show | grep -q '^abbr -a -g -- tf terraform$'"
   args:
-    executable: /usr/bin/fish
+    executable: /bin/bash
   when: fish_installed.rc == 0
   register: terraform_abbr_exists
   changed_when: false
@@ -231,13 +232,11 @@
 - name: Create Terraform abbreviations for Fish
   become: true
   become_user: "{{ terraform_user }}"
-  ansible.builtin.shell: |
-    fish -c "abbr --add --global tf terraform"
-  args:
-    executable: /usr/bin/fish
+  ansible.builtin.command: fish -c "abbr --add --global tf terraform"
   when:
     - fish_installed.rc == 0
     - terraform_abbr_exists.rc != 0
+  changed_when: true
   tags:
     - terraform
     - infrastructure

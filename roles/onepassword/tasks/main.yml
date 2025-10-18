@@ -7,7 +7,7 @@
       - curl
       - gpg
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - onepassword
     - packages
@@ -46,6 +46,7 @@
 
 - name: Convert and install 1Password GPG key to keyring
   ansible.builtin.shell: |
+    set -o pipefail
     cat /tmp/1password.asc | gpg --dearmor --output {{ onepassword_gpg_keyring_path }}
   args:
     creates: "{{ onepassword_gpg_keyring_path }}"
@@ -79,7 +80,7 @@
     repo: "deb [arch=amd64 signed-by={{ onepassword_gpg_keyring_path }}] {{ onepassword_repo_url }} {{ onepassword_repo_distribution }} {{ onepassword_repo_component }}"
     state: present
     filename: 1password
-    update_cache: yes
+    update_cache: true
   tags:
     - onepassword
     - packages
@@ -89,7 +90,7 @@
   ansible.builtin.apt:
     name: 1password
     state: "{{ onepassword_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - onepassword
     - packages

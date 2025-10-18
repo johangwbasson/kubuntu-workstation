@@ -8,7 +8,7 @@
       - tar
       - gzip
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - lazydocker
     - packages
@@ -62,7 +62,7 @@
 - name: Get latest lazydocker version from GitHub
   ansible.builtin.uri:
     url: "{{ lazydocker_github_api }}"
-    return_content: yes
+    return_content: true
   register: lazydocker_release
   when: lazydocker_installed.rc != 0
   tags:
@@ -110,7 +110,7 @@
   ansible.builtin.unarchive:
     src: "{{ lazydocker_temp_dir }}/lazydocker.tar.gz"
     dest: "{{ lazydocker_temp_dir }}"
-    remote_src: yes
+    remote_src: true
   when: lazydocker_installed.rc != 0
   tags:
     - lazydocker
@@ -123,7 +123,7 @@
     src: "{{ lazydocker_temp_dir }}/lazydocker"
     dest: "{{ lazydocker_install_path }}"
     mode: '0755'
-    remote_src: yes
+    remote_src: true
   when: lazydocker_installed.rc != 0
   tags:
     - lazydocker

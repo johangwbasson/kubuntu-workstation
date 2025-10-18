@@ -5,7 +5,7 @@
   ansible.builtin.apt:
     name: flatpak
     state: "{{ flatpak_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
     - flatpak
@@ -15,7 +15,7 @@
   ansible.builtin.apt:
     name: plasma-discover-backend-flatpak
     state: "{{ flatpak_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
     - flatpak

@@ -75,11 +75,10 @@ kde_applications:
 kde_package_state: present
 
 # Update cache before installation
-kde_update_cache: yes
+kde_update_cache: true
 
 # Enable installation of recommended packages
-kde_install_recommends: yes
-
+kde_install_recommends: true
 # Flatpak applications
 kde_flatpak_apps:
   - name: org.kde.kommit

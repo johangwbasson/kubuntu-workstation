@@ -5,7 +5,7 @@
   ansible.builtin.apt:
     name: ubuntu-drivers-common
     state: "{{ ubuntu_drivers_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - ubuntu-drivers
     - drivers
@@ -35,6 +35,7 @@
 
 - name: Check if drivers are already installed
   ansible.builtin.shell: |
+    set -o pipefail
     ubuntu-drivers devices | grep -q "manual_install" && echo "drivers_needed" || echo "drivers_ok"
   register: drivers_status
   changed_when: false

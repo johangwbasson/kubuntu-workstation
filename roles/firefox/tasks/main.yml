@@ -2,7 +2,11 @@
 # tasks file for firefox
 
 - name: Check if Firefox package is installed
-  ansible.builtin.shell: dpkg -l firefox 2>/dev/null | grep -q '^ii' && echo "installed" || echo "not_installed"
+  ansible.builtin.shell: |
+    set -o pipefail
+    dpkg -l firefox 2>/dev/null | grep -q '^ii' && echo "installed" || echo "not_installed"
+  args:
+    executable: /bin/bash
   register: firefox_check
   changed_when: false
   failed_when: false
@@ -12,7 +16,11 @@
     - browser
 
 - name: Check if installed Firefox is snap-based
-  ansible.builtin.shell: apt-cache policy firefox | grep -q 'Installed.*ubuntu' && echo "snap_based" || echo "not_snap"
+  ansible.builtin.shell: |
+    set -o pipefail
+    apt-cache policy firefox | grep -q 'Installed.*ubuntu' && echo "snap_based" || echo "not_snap"
+  args:
+    executable: /bin/bash
   register: firefox_snap_check
   changed_when: false
   failed_when: false
@@ -26,7 +34,7 @@
   ansible.builtin.apt:
     name: firefox
     state: absent
-    purge: yes
+    purge: true
   when:
     - firefox_check.stdout == "installed"
     - firefox_snap_check.stdout == "snap_based"
@@ -107,7 +115,7 @@
     repo: "deb [signed-by={{ firefox_ppa_keyring_path }}] http://ppa.launchpad.net/mozillateam/ppa/ubuntu {{ ansible_distribution_release }} main"
     filename: mozillateam-ppa
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
     - firefox
@@ -117,7 +125,7 @@
   ansible.builtin.apt:
     name: firefox
     state: "{{ firefox_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - packages
     - firefox

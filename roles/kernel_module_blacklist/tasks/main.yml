@@ -2,7 +2,9 @@
 # tasks file for kernel_module_blacklist
 
 - name: Check if kernel modules are currently loaded
-  ansible.builtin.shell: lsmod | grep -E "{{ blacklisted_modules | join('|') }}" || true
+  ansible.builtin.shell: |
+    set -o pipefail
+    lsmod | grep -E "{{ blacklisted_modules | join('|') }}" || true
   register: loaded_modules
   changed_when: false
   tags:
@@ -54,7 +56,7 @@
     state: absent
   loop: "{{ blacklisted_modules }}"
   when: loaded_modules.stdout | regex_search(item)
-  ignore_errors: yes
+  failed_when: false
   tags:
     - kernel_modules
     - blacklist
@@ -62,7 +64,9 @@
     - hardware
 
 - name: Verify modules are not loaded
-  ansible.builtin.shell: lsmod | grep -E "{{ blacklisted_modules | join('|') }}" || true
+  ansible.builtin.shell: |
+    set -o pipefail
+    lsmod | grep -E "{{ blacklisted_modules | join('|') }}" || true
   register: modules_after_unload
   changed_when: false
   tags:

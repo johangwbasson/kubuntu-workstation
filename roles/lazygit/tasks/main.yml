@@ -10,7 +10,7 @@
       - tar
       - gzip
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - lazygit
     - packages
@@ -31,7 +31,11 @@
     - vcs
 
 - name: Get installed lazygit version
-  ansible.builtin.shell: lazygit --version | grep -oP 'version=\K[0-9.]+'
+  ansible.builtin.shell: |
+    set -o pipefail
+    lazygit --version | grep -oP 'version=\K[0-9.]+'
+  args:
+    executable: /bin/bash
   register: lazygit_current_version
   changed_when: false
   failed_when: false
@@ -55,7 +59,7 @@
 - name: Get latest lazygit release version
   ansible.builtin.uri:
     url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
-    return_content: yes
+    return_content: true
   register: lazygit_latest_release
   when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_latest_release.json.tag_name | default('') | regex_replace('^v', ''))
   tags:
@@ -91,7 +95,7 @@
   ansible.builtin.unarchive:
     src: "/tmp/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
     dest: /tmp
-    remote_src: yes
+    remote_src: true
   when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:
     - lazygit
@@ -107,7 +111,7 @@
     mode: '0755'
     owner: root
     group: root
-    remote_src: yes
+    remote_src: true
   when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:
     - lazygit

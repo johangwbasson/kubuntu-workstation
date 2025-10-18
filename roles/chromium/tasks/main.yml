@@ -5,7 +5,7 @@
   ansible.builtin.apt:
     name: flatpak
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - chromium
     - packages

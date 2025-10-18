@@ -9,7 +9,7 @@
       - gnupg
       - curl
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - gcloud_cli
     - gcloud
@@ -74,6 +74,7 @@
 
 - name: Download and import Google Cloud GPG key (official method)
   ansible.builtin.shell: |
+    set -o pipefail
     curl -fsSL "{{ gcloud_gpg_key_url }}" | gpg --dearmor -o "{{ gcloud_keyring_path }}"
   args:
     creates: "{{ gcloud_keyring_path }}"
@@ -111,7 +112,7 @@
   ansible.builtin.apt:
     name: google-cloud-cli
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - gcloud_cli
     - gcloud

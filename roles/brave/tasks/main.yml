@@ -36,7 +36,7 @@
       - apt-transport-https
       - curl
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - brave
     - packages
@@ -84,7 +84,7 @@
     repo: "deb [arch=amd64 signed-by={{ brave_gpg_keyring_path }}] {{ brave_repo_url }} stable {{ brave_repo_component }}"
     state: present
     filename: brave-browser-release
-    update_cache: yes
+    update_cache: true
   tags:
     - brave
     - packages
@@ -94,7 +94,7 @@
   ansible.builtin.apt:
     name: brave-browser
     state: "{{ brave_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - brave
     - packages

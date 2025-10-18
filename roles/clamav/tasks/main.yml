@@ -118,7 +118,7 @@
   ansible.builtin.user:
     name: "{{ username }}"
     groups: clamav
-    append: yes
+    append: true
   when: lookup('env', 'CI') != 'true'
   tags:
     - clamav

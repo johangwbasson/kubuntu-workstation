@@ -12,7 +12,11 @@
     - cleanup
 
 - name: List installed snap packages
-  ansible.builtin.shell: snap list | tail -n +2 | awk '{print $1}'
+  ansible.builtin.shell: |
+    set -o pipefail
+    snap list | tail -n +2 | awk '{print $1}'
+  args:
+    executable: /bin/bash
   register: snap_list
   changed_when: false
   failed_when: false
@@ -24,6 +28,7 @@
 
 - name: Remove all snap packages (may require multiple attempts due to dependencies)
   ansible.builtin.shell: |
+    set -o pipefail
     set -e
     for snap in $(snap list | tail -n +2 | awk '{print $1}'); do
       snap remove --purge "$snap" 2>&1 || true
@@ -66,8 +71,8 @@
   ansible.builtin.apt:
     name: "{{ snap_packages_to_remove }}"
     state: absent
-    purge: yes
-    autoremove: yes
+    purge: true
+    autoremove: true
   tags:
     - snap
     - remove-snap
@@ -102,7 +107,7 @@
 
 - name: Update APT cache after adding preferences
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
   changed_when: false
   tags:
     - snap

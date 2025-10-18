@@ -8,7 +8,7 @@
       - gpg
       - apt-transport-https
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - vscode
     - packages
@@ -75,6 +75,7 @@
 
 - name: Convert and install Microsoft GPG key to keyring
   ansible.builtin.shell: |
+    set -o pipefail
     cat /tmp/microsoft-gpg-key.asc | gpg --dearmor --output {{ vscode_gpg_keyring_path }}
   args:
     creates: "{{ vscode_gpg_keyring_path }}"
@@ -114,7 +115,7 @@
     repo: "deb [arch=amd64 signed-by={{ vscode_gpg_keyring_path }}] {{ vscode_repo_url }} stable main"
     state: present
     filename: vscode
-    update_cache: yes
+    update_cache: true
   tags:
     - vscode
     - packages
@@ -125,7 +126,7 @@
   ansible.builtin.apt:
     name: code
     state: "{{ vscode_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - vscode
     - packages

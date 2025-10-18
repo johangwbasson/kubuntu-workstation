@@ -39,7 +39,7 @@
       - curl
       - gpg
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - megasync
     - packages
@@ -81,6 +81,7 @@
 
 - name: Convert and install MEGA GPG key to keyring
   ansible.builtin.shell: |
+    set -o pipefail
     cat /tmp/mega-release.key | gpg --dearmor --output {{ mega_gpg_keyring_path }}
   args:
     creates: "{{ mega_gpg_keyring_path }}"
@@ -117,7 +118,7 @@
     repo: "deb [signed-by={{ mega_gpg_keyring_path }}] {{ mega_repo_url }} ./"
     state: present
     filename: megasync
-    update_cache: yes
+    update_cache: true
   tags:
     - megasync
     - packages
@@ -137,7 +138,7 @@
   ansible.builtin.apt:
     name: megasync
     state: "{{ mega_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - megasync
     - packages
@@ -147,7 +148,7 @@
   ansible.builtin.apt:
     name: megacmd
     state: "{{ mega_package_state }}"
-    update_cache: yes
+    update_cache: true
   when: mega_install_megacmd | bool
   tags:
     - megasync

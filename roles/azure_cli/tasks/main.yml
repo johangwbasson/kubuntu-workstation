@@ -10,7 +10,7 @@
       - lsb-release
       - gnupg
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - azure_cli
     - azure
@@ -123,7 +123,7 @@
   ansible.builtin.apt:
     name: azure-cli
     state: present
-    update_cache: yes
+    update_cache: true
   when: azure_cli_installed.rc != 0
   tags:
     - azure_cli
@@ -144,7 +144,8 @@
   ansible.builtin.lineinfile:
     path: /etc/bash.bashrc
     line: "source /etc/bash_completion.d/azure-cli"
-    create: yes
+    create: true
+    mode: '0644'
   tags:
     - azure_cli
     - azure

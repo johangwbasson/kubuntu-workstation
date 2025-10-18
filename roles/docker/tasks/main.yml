@@ -9,7 +9,7 @@
       - gnupg
       - lsb-release
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - docker
     - packages
@@ -51,9 +51,11 @@
 
 - name: Convert and install Docker GPG key to keyring
   ansible.builtin.shell: |
+    set -o pipefail
     cat /tmp/docker-gpg-key.asc | gpg --dearmor --output {{ docker_gpg_keyring_path }}
   args:
     creates: "{{ docker_gpg_keyring_path }}"
+    executable: /bin/bash
   tags:
     - docker
     - packages
@@ -96,7 +98,7 @@
     repo: "deb [arch=amd64 signed-by={{ docker_gpg_keyring_path }}] {{ docker_repo_url }} {{ ubuntu_codename.stdout }} stable"
     state: present
     filename: docker
-    update_cache: yes
+    update_cache: true
   tags:
     - docker
     - packages
@@ -106,7 +108,7 @@
   ansible.builtin.apt:
     name: "{{ docker_packages }}"
     state: present
-    update_cache: yes
+    update_cache: true
   tags:
     - docker
     - packages
@@ -144,7 +146,7 @@
   ansible.builtin.user:
     name: "{{ item }}"
     groups: docker
-    append: yes
+    append: true
   loop: "{{ docker_users }}"
   when: docker_users | length > 0
   tags:

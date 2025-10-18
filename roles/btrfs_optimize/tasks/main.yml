@@ -19,7 +19,7 @@
   ansible.builtin.copy:
     src: /etc/fstab
     dest: "{{ btrfs_fstab_backup_dir }}/fstab.{{ ansible_date_time.iso8601_basic_short }}"
-    remote_src: yes
+    remote_src: true
     mode: '0600'
     owner: root
     group: root
@@ -32,6 +32,7 @@
 
 - name: Check current fstab for BTRFS entries
   ansible.builtin.shell: |
+    set -o pipefail
     grep -E '^\s*UUID=.*\s+btrfs\s+' /etc/fstab || true
   register: current_btrfs_entries
   changed_when: false
@@ -56,9 +57,9 @@
   ansible.builtin.lineinfile:
     path: /etc/fstab
     regexp: '^(\s*UUID=[a-f0-9-]+)\s+/\s+btrfs\s+.*subvol=/@.*$'
-    backrefs: yes
+    backrefs: true
     line: '\1 /              btrfs   subvol=/@,{{ btrfs_mount_options }} 0 0'
-    backup: no
+    backup: false
     validate: '/usr/bin/findmnt --verify --tab-file %s'
   register: root_fstab_modified
   tags:
@@ -71,9 +72,9 @@
   ansible.builtin.lineinfile:
     path: /etc/fstab
     regexp: '^(\s*UUID=[a-f0-9-]+)\s+/home\s+btrfs\s+.*subvol=/@home.*$'
-    backrefs: yes
+    backrefs: true
     line: '\1 /home          btrfs   subvol=/@home,{{ btrfs_mount_options }} 0 0'
-    backup: no
+    backup: false
     validate: '/usr/bin/findmnt --verify --tab-file %s'
   register: home_fstab_modified
   tags:

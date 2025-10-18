@@ -5,7 +5,7 @@
   ansible.builtin.apt:
     name: "{{ vcs_tools }}"
     state: "{{ cli_tools_package_state }}"
-    update_cache: yes
+    update_cache: true
   tags:
     - cli-tools
     - packages

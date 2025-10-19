@@ -5,6 +5,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     lsmod | grep -E "{{ blacklisted_modules | join('|') }}" || true
+  args:
+    executable: /bin/bash
   register: loaded_modules
   changed_when: false
   tags:
@@ -67,6 +69,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     lsmod | grep -E "{{ blacklisted_modules | join('|') }}" || true
+  args:
+    executable: /bin/bash
   register: modules_after_unload
   changed_when: false
   tags:

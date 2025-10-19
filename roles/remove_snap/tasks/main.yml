@@ -41,6 +41,8 @@
     for snap in $(snap list | tail -n +2 | awk '{print $1}'); do
       snap remove --purge "$snap" 2>&1 || true
     done
+  args:
+    executable: /bin/bash
   when:
     - snap_installed.rc == 0
     - snap_list.stdout_lines | length > 0

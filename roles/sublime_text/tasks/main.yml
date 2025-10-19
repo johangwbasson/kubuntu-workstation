@@ -48,6 +48,7 @@
     set -o pipefail
     curl -fsSL "{{ sublime_gpg_key_url }}" | gpg --dearmor -o "{{ sublime_gpg_keyring_path }}"
   args:
+    executable: /bin/bash
     creates: "{{ sublime_gpg_keyring_path }}"
   tags:
     - sublime-text

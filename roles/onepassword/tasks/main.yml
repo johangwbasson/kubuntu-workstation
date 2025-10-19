@@ -49,6 +49,7 @@
     set -o pipefail
     cat /tmp/1password.asc | gpg --dearmor --output {{ onepassword_gpg_keyring_path }}
   args:
+    executable: /bin/bash
     creates: "{{ onepassword_gpg_keyring_path }}"
   tags:
     - onepassword

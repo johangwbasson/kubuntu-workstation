@@ -57,6 +57,7 @@
     set -o pipefail
     cat /tmp/onlyoffice-gpg-key.asc | gpg --dearmor --output {{ onlyoffice_gpg_keyring_path }}
   args:
+    executable: /bin/bash
     creates: "{{ onlyoffice_gpg_keyring_path }}"
   tags:
     - onlyoffice

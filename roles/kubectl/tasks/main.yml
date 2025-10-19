@@ -54,6 +54,7 @@
     set -o pipefail
     cat /tmp/kubernetes-release.key | gpg --dearmor --output {{ kubectl_gpg_keyring_path }}
   args:
+    executable: /bin/bash
     creates: "{{ kubectl_gpg_keyring_path }}"
   tags:
     - kubectl
@@ -183,7 +184,7 @@
     set -o pipefail
     fish -c "abbr --show | grep -q '^abbr -a -g -- k kubectl$'"
   args:
-    executable: /usr/bin/fish
+    executable: /bin/bash
   when: fish_installed.rc == 0
   register: kubectl_abbr_exists
   changed_when: false

@@ -84,6 +84,7 @@
     set -o pipefail
     cat /tmp/mega-release.key | gpg --dearmor --output {{ mega_gpg_keyring_path }}
   args:
+    executable: /bin/bash
     creates: "{{ mega_gpg_keyring_path }}"
   tags:
     - megasync

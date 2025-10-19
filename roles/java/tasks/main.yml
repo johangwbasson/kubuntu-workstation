@@ -16,6 +16,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     update-java-alternatives -l | grep java-1 | head -1 | awk '{print $3}'
+  args:
+    executable: /bin/bash
   register: java_home_path
   changed_when: false
   failed_when: false

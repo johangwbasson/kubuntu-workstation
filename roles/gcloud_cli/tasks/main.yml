@@ -77,6 +77,7 @@
     set -o pipefail
     curl -fsSL "{{ gcloud_gpg_key_url }}" | gpg --dearmor -o "{{ gcloud_keyring_path }}"
   args:
+    executable: /bin/bash
     creates: "{{ gcloud_keyring_path }}"
   tags:
     - gcloud_cli

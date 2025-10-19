@@ -173,7 +173,6 @@
   become: true
   become_user: "{{ fish_user }}"
   ansible.builtin.shell: |
-    set -o pipefail
     if not test -d {{ fish_user_home }}/.sdkman
       curl -s "https://get.sdkman.io?rcupdate=false" | bash
       echo "installed"

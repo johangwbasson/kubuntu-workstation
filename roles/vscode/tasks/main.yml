@@ -78,6 +78,7 @@
     set -o pipefail
     cat /tmp/microsoft-gpg-key.asc | gpg --dearmor --output {{ vscode_gpg_keyring_path }}
   args:
+    executable: /bin/bash
     creates: "{{ vscode_gpg_keyring_path }}"
   tags:
     - vscode

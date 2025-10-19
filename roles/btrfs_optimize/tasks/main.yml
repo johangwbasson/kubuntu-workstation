@@ -34,6 +34,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     grep -E '^\s*UUID=.*\s+btrfs\s+' /etc/fstab || true
+  args:
+    executable: /bin/bash
   register: current_btrfs_entries
   changed_when: false
   tags:

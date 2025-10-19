@@ -37,6 +37,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     ubuntu-drivers devices | grep -q "manual_install" && echo "drivers_needed" || echo "drivers_ok"
+  args:
+    executable: /bin/bash
   register: drivers_status
   changed_when: false
   failed_when: false

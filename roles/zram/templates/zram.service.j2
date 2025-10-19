@@ -1,0 +1,13 @@
+[Unit]
+Description=zram compressed swap
+After=local-fs.target
+Before=swap.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/zram-setup.sh
+ExecStop=/bin/sh -c 'for i in /dev/zram*; do [ -b "$i" ] && swapoff "$i"; done'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

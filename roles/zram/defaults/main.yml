@@ -1,0 +1,22 @@
+---
+# defaults file for zram
+
+# Method: 'package' uses zram-config package, 'manual' uses custom systemd service
+zram_method: package
+
+# Zram configuration (used for manual method)
+# Size as percentage of RAM (50 means 50% of total RAM)
+zram_size_percent: 50
+
+# Compression algorithm (lz4, lzo, zstd)
+# lz4 is fastest, zstd offers best compression
+zram_compression_algorithm: lz4
+
+# Swap priority (higher = preferred over other swap)
+zram_swap_priority: 100
+
+# Number of zram devices (usually 1 is sufficient)
+zram_num_devices: 1
+
+# Disable traditional disk-based swap
+zram_disable_disk_swap: false

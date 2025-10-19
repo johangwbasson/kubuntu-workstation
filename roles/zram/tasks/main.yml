@@ -1,0 +1,95 @@
+---
+# tasks file for zram
+
+- name: Install zram-config package (package method)
+  ansible.builtin.apt:
+    name: zram-config
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  when: zram_method == 'package'
+  tags:
+    - zram
+    - packages
+
+- name: Ensure zram-config service is enabled and started (package method)
+  ansible.builtin.systemd:
+    name: zram-config
+    enabled: true
+    state: started
+  when: zram_method == 'package'
+  tags:
+    - zram
+    - services
+
+- name: Load zram kernel module (manual method)
+  ansible.builtin.modprobe:
+    name: zram
+    state: present
+  when: zram_method == 'manual'
+  tags:
+    - zram
+    - kernel
+
+- name: Ensure zram module loads on boot (manual method)
+  ansible.builtin.lineinfile:
+    path: /etc/modules-load.d/zram.conf
+    line: zram
+    create: true
+    mode: '0644'
+  when: zram_method == 'manual'
+  tags:
+    - zram
+    - kernel
+
+- name: Install zram setup script (manual method)
+  ansible.builtin.template:
+    src: zram-setup.sh.j2
+    dest: /usr/local/bin/zram-setup.sh
+    mode: '0755'
+  when: zram_method == 'manual'
+  notify: Restart zram service
+  tags:
+    - zram
+    - scripts
+
+- name: Install zram systemd service (manual method)
+  ansible.builtin.template:
+    src: zram.service.j2
+    dest: /etc/systemd/system/zram.service
+    mode: '0644'
+  when: zram_method == 'manual'
+  notify: Restart zram service
+  tags:
+    - zram
+    - services
+
+- name: Enable and start zram service (manual method)
+  ansible.builtin.systemd:
+    name: zram
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: zram_method == 'manual'
+  tags:
+    - zram
+    - services
+
+- name: Disable disk-based swap
+  ansible.builtin.command:
+    cmd: swapoff -a
+  when: zram_disable_disk_swap
+  changed_when: false
+  tags:
+    - zram
+    - swap
+
+- name: Remove swap entries from /etc/fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^[^#].*\s+swap\s+'
+    state: absent
+  when: zram_disable_disk_swap
+  tags:
+    - zram
+    - swap

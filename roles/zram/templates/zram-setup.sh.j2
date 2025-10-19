@@ -1,0 +1,38 @@
+#!/bin/bash
+# Ansible managed - zram setup script
+
+set -e
+
+ZRAM_SIZE_PERCENT={{ zram_size_percent }}
+ZRAM_ALGORITHM={{ zram_compression_algorithm }}
+ZRAM_PRIORITY={{ zram_swap_priority }}
+NUM_DEVICES={{ zram_num_devices }}
+
+# Calculate zram size based on total RAM
+TOTAL_RAM=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+ZRAM_SIZE=$((TOTAL_RAM * ZRAM_SIZE_PERCENT / 100))
+
+# Setup zram devices
+for i in $(seq 0 $((NUM_DEVICES - 1))); do
+    ZRAM_DEV="/dev/zram${i}"
+
+    # Reset device if it exists
+    if [ -b "${ZRAM_DEV}" ]; then
+        swapoff "${ZRAM_DEV}" 2>/dev/null || true
+        echo 1 > "/sys/block/zram${i}/reset"
+    fi
+
+    # Set compression algorithm
+    echo "${ZRAM_ALGORITHM}" > "/sys/block/zram${i}/comp_algorithm"
+
+    # Set device size
+    echo "${ZRAM_SIZE}K" > "/sys/block/zram${i}/disksize"
+
+    # Create swap on the device
+    mkswap "${ZRAM_DEV}"
+
+    # Enable swap with priority
+    swapon -p "${ZRAM_PRIORITY}" "${ZRAM_DEV}"
+done
+
+echo "zram swap configured: ${NUM_DEVICES} device(s), ${ZRAM_SIZE}K each (${ZRAM_SIZE_PERCENT}% of RAM)"

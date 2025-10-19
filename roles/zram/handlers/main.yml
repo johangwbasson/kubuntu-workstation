@@ -1,0 +1,9 @@
+---
+# handlers file for zram
+
+- name: Restart zram service
+  ansible.builtin.systemd:
+    name: zram
+    state: restarted
+    daemon_reload: true
+  when: zram_method == 'manual'

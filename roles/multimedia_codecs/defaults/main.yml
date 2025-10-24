@@ -1,0 +1,16 @@
+---
+# Multimedia codec packages to install
+multimedia_codec_packages:
+  # Ubuntu restricted extras (includes common codecs, fonts, and plugins)
+  - ubuntu-restricted-extras
+  # GStreamer plugins for additional format support
+  - gstreamer1.0-plugins-bad
+  - gstreamer1.0-plugins-ugly
+  - gstreamer1.0-libav
+  - gstreamer1.0-vaapi
+  # Hardware acceleration libraries
+  - va-driver-all
+  - vdpau-driver-all
+  # Additional codec support
+  - libavcodec-extra
+  - libdvd-pkg

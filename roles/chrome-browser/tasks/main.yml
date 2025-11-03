@@ -4,31 +4,57 @@
   ansible.builtin.stat:
     path: '/usr/bin/google-chrome'
   register: chrome
+  tags:
+    - chrome
+    - packages
 
 - name: Run Playbook
   ansible.builtin.import_tasks: tasks.yml
   when: not chrome.stat.exists
+  tags:
+    - chrome
+    - packages
 
-- name: Ensures Chrome policy dir exists
+- name: Ensure Chrome recommended policy directory exists
   ansible.builtin.file:
     path: /etc/opt/chrome/policies/recommended
     state: directory
+    owner: root
+    group: root
     mode: '0755'
+  tags:
+    - chrome
+    - configuration
 
-- name: Configure Recommended Policies
+- name: Configure Chrome recommended policies
   ansible.builtin.copy:
     src: recommended.json
     dest: /etc/opt/chrome/policies/recommended/prefs.json
+    owner: root
+    group: root
     mode: '0644'
+  tags:
+    - chrome
+    - configuration
 
-- name: Ensures Chrome policy dir exists
+- name: Ensure Chrome managed policy directory exists
   ansible.builtin.file:
     path: /etc/opt/chrome/policies/managed
     state: directory
+    owner: root
+    group: root
     mode: '0755'
+  tags:
+    - chrome
+    - configuration
 
-- name: Configure Recommended Policies
+- name: Configure Chrome managed policies
   ansible.builtin.copy:
     src: managed.json
     dest: /etc/opt/chrome/policies/managed/prefs.json
+    owner: root
+    group: root
     mode: '0644'
+  tags:
+    - chrome
+    - configuration

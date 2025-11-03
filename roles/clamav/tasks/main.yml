@@ -90,7 +90,7 @@
 
 - name: Grant clamav rwx access to the user's downloads directory
   ansible.posix.acl:
-    path: "/home/{{ username }}/downloads"
+    path: "/home/{{ username }}/Downloads"
     entity: clamav
     etype: group
     permissions: rwx
@@ -103,7 +103,7 @@
 
 - name: Grant clamav access to delete (quarantine) files in the downloads directory
   ansible.posix.acl:
-    path: "/home/{{ username }}/downloads/"
+    path: "/home/{{ username }}/Downloads/"
     entity: clamav
     etype: group
     recursive: true

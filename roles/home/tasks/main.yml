@@ -33,20 +33,20 @@
     group: "{{ username }}"
     mode: '0755'
   loop:
-    - bin
-    - archive
-    - applications
-    - desktop
-    - downloads
-    - documents
-    - projects
-    - notes
-    - media/music
-    - media/pictures
-    - media/templates
-    - media/videos
-    - workspace
-    - tmp
+    - Bin
+    - Archive
+    - Applications
+    - Desktop
+    - Downloads
+    - Documents
+    - Projects
+    - Notes
+    - Media/Music
+    - Media/Pictures
+    - Media/Templates
+    - Media/Videos
+    - Workspace
+    - Tmp
   tags:
     - home
     - directories
@@ -55,9 +55,6 @@
   ansible.builtin.stat:
     path: "{{ user_home }}/{{ item }}"
   loop:
-    - Desktop
-    - Documents
-    - Downloads
     - Music
     - Pictures
     - Public

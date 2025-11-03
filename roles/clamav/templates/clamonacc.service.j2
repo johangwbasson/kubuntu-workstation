@@ -7,8 +7,15 @@ After=clamav-daemon.service syslog.target network.target
 [Service]
 Type=simple
 User=root
-ExecStartPre=/bin/bash -c "while [ ! -S /run/clamav/clamd.ctl ]; do sleep 1; done"
-ExecStart=/usr/sbin/clamonacc -F --move={{ clamav_quarantine_dir }} --log=/var/log/clamav/clamonacc.log
+# Wait for clamd socket to be available (with timeout)
+ExecStartPre=/bin/bash -c "for i in {1..60}; do [ -S /run/clamav/clamd.ctl ] && break || sleep 1; done"
+# Watch only the downloads directory to reduce startup time and system overhead
+ExecStart=/usr/sbin/clamonacc -F --move={{ clamav_quarantine_dir }} --log=/var/log/clamav/clamonacc.log /home/{{ username }}/downloads
+# Allow up to 5 minutes for startup (clamonacc can take time to initialize)
+TimeoutStartSec=300
+# Restart on failure for robustness
+Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

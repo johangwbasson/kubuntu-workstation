@@ -33,6 +33,7 @@
   loop:
     - /var/log/clamav/freshclam.log
     - /var/log/clamav/clamav.log
+    - /var/log/clamav/clamonacc.log
   tags:
     - clamav
     - logs

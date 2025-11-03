@@ -1,11 +1,29 @@
 ---
 # tasks file for chrome-browser
+# NOTE: Google Chrome .deb downloads from stable_current URL do not have
+# published checksums. We rely on HTTPS transport security and the conditional
+# execution in main.yml (only runs when Chrome is not already installed).
 - name: Fetch Chrome Browser
   ansible.builtin.get_url:
     url: https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
     dest: /tmp/google-chrome.deb
     mode: '0644'
+  tags:
+    - chrome
+    - packages
 
 - name: Install Chrome
   ansible.builtin.apt:
     deb: /tmp/google-chrome.deb
+    state: present
+  tags:
+    - chrome
+    - packages
+
+- name: Remove Chrome installer
+  ansible.builtin.file:
+    path: /tmp/google-chrome.deb
+    state: absent
+  tags:
+    - chrome
+    - packages

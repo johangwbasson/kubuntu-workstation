@@ -58,9 +58,9 @@
 - name: Optimize BTRFS mount options for root subvolume
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    regexp: '^(\s*UUID=[a-f0-9-]+)\s+/\s+btrfs\s+.*subvol=/@.*$'
+    regexp: '^(UUID=[a-f0-9-]+)\s+/\s+btrfs\s+.*subvol=/@[^\s,]*(.*)(\s+\d+\s+\d+)\s*$'
     backrefs: true
-    line: '\1 /              btrfs   subvol=/@,{{ btrfs_mount_options }} 0 0'
+    line: '\1\t/\tbtrfs\tsubvol=/@,{{ btrfs_mount_options }}\3'
     backup: false
     validate: '/usr/bin/findmnt --verify --tab-file %s'
   register: root_fstab_modified
@@ -73,9 +73,9 @@
 - name: Optimize BTRFS mount options for home subvolume
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    regexp: '^(\s*UUID=[a-f0-9-]+)\s+/home\s+btrfs\s+.*subvol=/@home.*$'
+    regexp: '^(UUID=[a-f0-9-]+)\s+/home\s+btrfs\s+.*subvol=/@home[^\s,]*(.*)(\s+\d+\s+\d+)\s*$'
     backrefs: true
-    line: '\1 /home          btrfs   subvol=/@home,{{ btrfs_mount_options }} 0 0'
+    line: '\1\t/home\tbtrfs\tsubvol=/@home,{{ btrfs_mount_options }}\3'
     backup: false
     validate: '/usr/bin/findmnt --verify --tab-file %s'
   register: home_fstab_modified
@@ -110,7 +110,10 @@
 
 - name: Read updated fstab BTRFS entries
   ansible.builtin.shell: |
+    set -o pipefail
     grep -E '^\s*UUID=.*\s+btrfs\s+' /etc/fstab
+  args:
+    executable: /bin/bash
   register: updated_btrfs_entries
   changed_when: false
   when: root_fstab_modified.changed or home_fstab_modified.changed

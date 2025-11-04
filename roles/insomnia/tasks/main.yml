@@ -1,44 +1,153 @@
 ---
 # tasks file for insomnia
 
-- name: Ensure Flatpak is installed
+- name: Install dependencies for Insomnia installation
   ansible.builtin.apt:
-    name: flatpak
+    name:
+      - curl
+      - gpg
+      - apt-transport-https
+      - ca-certificates
     state: present
+    update_cache: true
   tags:
     - insomnia
     - packages
     - api
     - development
-    - flatpak
     - dependencies
 
-- name: Install Insomnia from Flathub
-  community.general.flatpak:
-    name: "{{ insomnia_flatpak_id }}"
-    state: present
-    remote: "{{ flatpak_remote }}"
-    method: "{{ flatpak_method }}"
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
   tags:
     - insomnia
     - packages
     - api
     - development
-    - flatpak
+
+- name: Check if Kong Insomnia GPG key already exists
+  ansible.builtin.stat:
+    path: "{{ insomnia_keyring_path }}"
+  register: insomnia_keyring
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+
+# NOTE: Kong GPG keys don't have published checksums
+# We mitigate this by: (1) HTTPS transport, (2) only downloading once, (3) GPG verification
+- name: Download Kong Insomnia GPG key
+  ansible.builtin.get_url:
+    url: "{{ insomnia_gpg_key_url }}"
+    dest: /tmp/insomnia-gpg-key.asc
+    mode: '0644'
+  when: not insomnia_keyring.stat.exists
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - security
+
+- name: Convert and install Kong Insomnia GPG key to keyring
+  ansible.builtin.shell: |
+    gpg --dearmor < /tmp/insomnia-gpg-key.asc > {{ insomnia_keyring_path }}
+  args:
+    creates: "{{ insomnia_keyring_path }}"
+  when: not insomnia_keyring.stat.exists
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - security
+
+- name: Set correct permissions on Insomnia keyring
+  ansible.builtin.file:
+    path: "{{ insomnia_keyring_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/insomnia-gpg-key.asc
+    state: absent
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - cleanup
+
+- name: Remove old Insomnia repository (Bintray/download.konghq.com)
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/insomnia.list
+    state: absent
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - cleanup
+
+- name: Add Kong Insomnia apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ insomnia_keyring_path }}] {{ insomnia_repo_url }} {{ insomnia_repo_distribution }} {{ insomnia_repo_component }}"
+    state: present
+    filename: insomnia
+    update_cache: false
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  changed_when: false
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+
+- name: Install Insomnia API client
+  ansible.builtin.apt:
+    name: "{{ insomnia_package_name }}"
+    state: present
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
 
 - name: Display Insomnia installation info
   ansible.builtin.debug:
     msg: |
-      Insomnia has been installed successfully from Flathub!
+      Insomnia has been installed successfully from Kong repository!
 
-      Installed as Flatpak application:
-      - Insomnia (rest.insomnia.Insomnia)
-      - Sandboxed for security
-      - Automatic updates via Flatpak
+      Installed as native package:
+      - Insomnia API Client
+      - Automatic updates via apt
+      - Better system integration
 
-      Useful commands:
-      - flatpak run rest.insomnia.Insomnia  : Launch Insomnia
-      - Or search for "Insomnia" in application menu
+      Launch Insomnia:
+      - From application menu: Search for "Insomnia"
+      - From terminal: insomnia
 
       Features:
       - REST API client
@@ -52,40 +161,13 @@
       - Collections and workspaces
       - Team collaboration (with account)
 
-      Key features:
-      - Design and debug APIs
-      - Create and organize requests
-      - Environment and variable management
-      - Response viewing (JSON, XML, HTML, etc.)
-      - Authentication (OAuth, JWT, Basic, etc.)
-      - Request history
-      - Import/export collections
-      - Plugin system
-
-      Common use cases:
-      - Test REST APIs
-      - Debug GraphQL queries
-      - Test gRPC services
-      - Generate client code
-      - API documentation
-      - Team API testing
-
-      Manage permissions with Flatseal:
-      - flatpak run com.github.tchx84.Flatseal
-      - Select Insomnia to adjust permissions
-
       Update Insomnia:
-      - flatpak update rest.insomnia.Insomnia
-      - Or: flatpak update (updates all)
+      - sudo apt update && sudo apt upgrade
 
-      Data location:
-      - ~/.var/app/rest.insomnia.Insomnia/
-
-      Note: Flatpak version provides better sandboxing and
-      easier installation than the traditional package methods.
+      Note: Insomnia is now installed from the official Kong repository
+      with GPG verification for better security and automatic updates.
   tags:
     - insomnia
     - packages
     - api
     - development
-    - flatpak

@@ -1,39 +1,114 @@
 ---
 # tasks file for slack
 
-- name: Ensure Flatpak is installed
+- name: Install dependencies for Slack installation
   ansible.builtin.apt:
-    name: flatpak
+    name:
+      - curl
+      - gpg
+      - apt-transport-https
     state: present
+    update_cache: true
   tags:
     - slack
     - packages
     - communication
-    - flatpak
     - dependencies
 
-- name: Install Slack from Flathub
-  community.general.flatpak:
-    name: "{{ slack_flatpak_id }}"
-    state: present
-    remote: "{{ flatpak_remote }}"
-    method: "{{ flatpak_method }}"
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
   tags:
     - slack
     - packages
     - communication
-    - flatpak
 
-- name: Install Flatseal from Flathub
-  community.general.flatpak:
-    name: "{{ flatseal_flatpak_id }}"
-    state: present
-    remote: "{{ flatpak_remote }}"
-    method: "{{ flatpak_method }}"
+- name: Check if Slack GPG key already exists
+  ansible.builtin.stat:
+    path: "{{ slack_keyring_path }}"
+  register: slack_keyring
   tags:
     - slack
     - packages
     - communication
-    - flatpak
-    - flatseal
+
+# NOTE: PackageCloud GPG keys don't have published checksums
+# We mitigate this by: (1) HTTPS transport, (2) only downloading once, (3) GPG verification
+- name: Download Slack GPG key
+  ansible.builtin.get_url:
+    url: "{{ slack_gpg_key_url }}"
+    dest: /tmp/slack-gpg-key.asc
+    mode: '0644'
+  when: not slack_keyring.stat.exists
+  tags:
+    - slack
+    - packages
+    - communication
     - security
+
+- name: Convert and install Slack GPG key to keyring
+  ansible.builtin.shell: |
+    gpg --dearmor < /tmp/slack-gpg-key.asc > {{ slack_keyring_path }}
+  args:
+    creates: "{{ slack_keyring_path }}"
+  when: not slack_keyring.stat.exists
+  tags:
+    - slack
+    - packages
+    - communication
+    - security
+
+- name: Set correct permissions on Slack keyring
+  ansible.builtin.file:
+    path: "{{ slack_keyring_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - slack
+    - packages
+    - communication
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/slack-gpg-key.asc
+    state: absent
+  tags:
+    - slack
+    - packages
+    - communication
+    - cleanup
+
+- name: Add Slack apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ slack_keyring_path }}] {{ slack_repo_url }} {{ slack_repo_distribution }} {{ slack_repo_component }}"
+    state: present
+    filename: slack
+    update_cache: false
+  tags:
+    - slack
+    - packages
+    - communication
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  changed_when: false
+  tags:
+    - slack
+    - packages
+    - communication
+
+- name: Install Slack desktop application
+  ansible.builtin.apt:
+    name: "{{ slack_package_name }}"
+    state: present
+  tags:
+    - slack
+    - packages
+    - communication

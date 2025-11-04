@@ -1,6 +1,8 @@
 ---
 # defaults file for slack
-slack_flatpak_id: com.slack.Slack
-flatseal_flatpak_id: com.github.tchx84.Flatseal
-flatpak_remote: flathub
-flatpak_method: system
+slack_gpg_key_url: https://packagecloud.io/slacktechnologies/slack/gpgkey
+slack_keyring_path: /etc/apt/keyrings/slacktechnologies_slack-archive-keyring.gpg
+slack_repo_url: https://packagecloud.io/slacktechnologies/slack/debian
+slack_repo_distribution: jessie
+slack_repo_component: main
+slack_package_name: slack-desktop

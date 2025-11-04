@@ -1,7 +1,88 @@
 ---
 # tasks file for spotify
 
-- name: Remove old Spotify repository file if exists
+- name: Install dependencies for Spotify installation
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+      - apt-transport-https
+    state: present
+    update_cache: true
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - dependencies
+
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+
+- name: Check if Spotify GPG key already exists
+  ansible.builtin.stat:
+    path: "{{ spotify_keyring_path }}"
+  register: spotify_keyring
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+
+# NOTE: Spotify GPG keys don't have published checksums
+# Spotify occasionally rotates keys, causing temporary GPG errors
+# We mitigate this by: (1) HTTPS transport, (2) only downloading once, (3) GPG verification
+- name: Download Spotify GPG key
+  ansible.builtin.get_url:
+    url: "{{ spotify_gpg_key_url }}"
+    dest: /tmp/spotify-gpg-key.gpg
+    mode: '0644'
+  when: not spotify_keyring.stat.exists
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - security
+
+- name: Install Spotify GPG key to keyring
+  ansible.builtin.copy:
+    src: /tmp/spotify-gpg-key.gpg
+    dest: "{{ spotify_keyring_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
+  when: not spotify_keyring.stat.exists
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/spotify-gpg-key.gpg
+    state: absent
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - cleanup
+
+- name: Remove old Spotify repository files if they exist
   ansible.builtin.file:
     path: "/etc/apt/sources.list.d/{{ item }}"
     state: absent
@@ -15,7 +96,7 @@
     - music
     - cleanup
 
-- name: Remove old Spotify GPG keyring if exists
+- name: Remove old Spotify GPG keyring from deprecated location
   ansible.builtin.file:
     path: /usr/share/keyrings/spotify-archive-keyring.gpg
     state: absent
@@ -26,65 +107,34 @@
     - music
     - cleanup
 
-- name: Ensure Flatpak is installed
+- name: Add Spotify apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ spotify_keyring_path }}] {{ spotify_repo_url }} {{ spotify_repo_distribution }} {{ spotify_repo_component }}"
+    state: present
+    filename: spotify
+    update_cache: false
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+
+- name: Update apt cache
   ansible.builtin.apt:
-    name: flatpak
+    update_cache: true
+  changed_when: false
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+
+- name: Install Spotify client
+  ansible.builtin.apt:
+    name: "{{ spotify_package_name }}"
     state: present
   tags:
     - spotify
     - packages
     - media
     - music
-    - flatpak
-    - dependencies
-
-- name: Install Spotify from Flathub
-  community.general.flatpak:
-    name: "{{ spotify_flatpak_id }}"
-    state: present
-    remote: "{{ flatpak_remote }}"
-    method: "{{ flatpak_method }}"
-  tags:
-    - spotify
-    - packages
-    - media
-    - music
-    - flatpak
-
-- name: Display Spotify installation info
-  ansible.builtin.debug:
-    msg: |
-      Spotify has been installed successfully from Flathub!
-
-      Installed as Flatpak application:
-      - Spotify Client (com.spotify.Client)
-      - Sandboxed for security
-      - Automatic updates via Flatpak
-
-      Useful commands:
-      - flatpak run com.spotify.Client  : Launch Spotify
-      - Or search for "Spotify" in application menu
-
-      Features:
-      - Music streaming
-      - Podcasts
-      - Playlists
-      - Offline mode (Premium)
-      - Connect (multi-device)
-
-      Manage permissions with Flatseal:
-      - flatpak run com.github.tchx84.Flatseal
-      - Select Spotify to adjust permissions
-
-      Update Spotify:
-      - flatpak update com.spotify.Client
-      - Or: flatpak update (updates all)
-
-      Note: Flatpak version provides better sandboxing than
-      the repository version and avoids GPG key issues.
-  tags:
-    - spotify
-    - packages
-    - media
-    - music
-    - flatpak

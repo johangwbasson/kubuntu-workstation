@@ -1,5 +1,8 @@
 ---
 # defaults file for insomnia
-insomnia_flatpak_id: rest.insomnia.Insomnia
-flatpak_remote: flathub
-flatpak_method: system
+insomnia_gpg_key_url: https://packages.konghq.com/public/insomnia/gpg.3D23DA5EFCE26359.key
+insomnia_keyring_path: /etc/apt/keyrings/kong-insomnia-archive-keyring.gpg
+insomnia_repo_url: https://packages.konghq.com/public/insomnia/deb/ubuntu
+insomnia_repo_distribution: "{{ ansible_distribution_release }}"
+insomnia_repo_component: main
+insomnia_package_name: insomnia

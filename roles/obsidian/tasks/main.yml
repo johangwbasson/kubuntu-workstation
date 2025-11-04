@@ -1,27 +1,124 @@
 ---
 # tasks file for obsidian
 
-- name: Ensure Flatpak is installed
+- name: Install dependencies for Obsidian installation
   ansible.builtin.apt:
-    name: flatpak
+    name:
+      - curl
+      - gpg
+      - apt-transport-https
     state: present
+    update_cache: true
   tags:
     - obsidian
     - packages
     - productivity
     - notes
-    - flatpak
     - dependencies
 
-- name: Install Obsidian from Flathub
-  community.general.flatpak:
-    name: "{{ obsidian_flatpak_id }}"
-    state: present
-    remote: "{{ flatpak_remote }}"
-    method: "{{ flatpak_method }}"
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
   tags:
     - obsidian
     - packages
     - productivity
     - notes
-    - flatpak
+
+- name: Check if Obsidian GPG key already exists
+  ansible.builtin.stat:
+    path: "{{ obsidian_keyring_path }}"
+  register: obsidian_keyring
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+
+# NOTE: Obsidian GPG keys don't have published checksums
+# We mitigate this by: (1) HTTPS transport, (2) only downloading once, (3) GPG verification
+- name: Download Obsidian GPG key
+  ansible.builtin.get_url:
+    url: "{{ obsidian_gpg_key_url }}"
+    dest: /tmp/obsidian-gpg-key.asc
+    mode: '0644'
+  when: not obsidian_keyring.stat.exists
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+    - security
+
+- name: Convert and install Obsidian GPG key to keyring
+  ansible.builtin.shell: |
+    gpg --dearmor < /tmp/obsidian-gpg-key.asc > {{ obsidian_keyring_path }}
+  args:
+    creates: "{{ obsidian_keyring_path }}"
+  when: not obsidian_keyring.stat.exists
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+    - security
+
+- name: Set correct permissions on Obsidian keyring
+  ansible.builtin.file:
+    path: "{{ obsidian_keyring_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+    - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/obsidian-gpg-key.asc
+    state: absent
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+    - cleanup
+
+- name: Add Obsidian apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by={{ obsidian_keyring_path }}] {{ obsidian_repo_url }} {{ obsidian_repo_distribution }} {{ obsidian_repo_component }}"
+    state: present
+    filename: obsidian
+    update_cache: false
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  changed_when: false
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes
+
+- name: Install Obsidian
+  ansible.builtin.apt:
+    name: "{{ obsidian_package_name }}"
+    state: present
+  tags:
+    - obsidian
+    - packages
+    - productivity
+    - notes

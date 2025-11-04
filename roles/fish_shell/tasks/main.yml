@@ -237,32 +237,59 @@
     - nvm
     - nodejs
 
-- name: Display Fish shell installation info
-  ansible.builtin.debug:
-    msg: |
-      Fish shell has been installed and configured!
-
-      Installed components:
-      - Fish shell ({{ fish_package_state }})
-      - Fisher plugin manager
-      - nvm.fish (Node.js version manager)
-      - sdkman-for-fish (Java/JVM tool manager)
-      - Tide prompt theme
-
-      To start using Fish shell:
-      1. Run: fish
-      2. To set Fish as your default shell: chsh -s /usr/bin/fish
-
-      Available commands:
-      - nvm install <version>  : Install Node.js version
-      - nvm list              : List installed Node versions
-      - nvm use <version>     : Switch Node.js version
-      - sdk list              : List available SDKMAN tools
-      - sdk install java      : Install Java via SDKMAN
-      - fisher list           : List installed Fisher plugins
-      - tide configure        : Reconfigure Tide prompt
-
-      Node.js LTS has been installed and is ready to use!
-  tags:
-    - fish
-    - shell
+    - name: Add aliases to fish config
+      ansible.builtin.lineinfile:
+        path: /home/{{ username }}/.config/fish/config.fish
+        line: "{{ item }}"
+        state: present
+        create: true
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0644'
+      loop:
+        - "# LS Aliases"
+        - "alias ls='lsd'"
+        - "alias l='ls -lha'"
+        - "alias la='ls -lhA'"
+        - "alias ll='ls -lAFh'"
+        - "alias lla='lsd -la'"
+        - "alias lsa='ls -lha'"
+        - "alias lt='lsd --tree'"
+        - ""
+        - "# General Aliases"
+        - "alias c=clear"
+        - ""
+        - "# Build Aliases"
+        - "alias mcb='mvn clean build'"
+        - "alias gcb='./gradlew clean build'"
+        - "alias m='make'"
+        - ""
+        - "# System Aliases"
+        - "alias tg='topgrade'"
+        - "alias dcu='docker-compose up'"
+        - ""
+        - "# Git Aliases"
+        - "alias gc='git commit'"
+        - "alias gs='git status'"
+        - "alias gp='git push'"
+        - "alias gl='git pull'"
+        - "alias gco='git checkout'"
+        - "alias gd='git diff'"
+        - "alias gb='git branch'"
+        - "alias ga='git add'"
+        - "alias glo='git log --oneline --decorate --color'"
+        - ""
+        - "# NPM Aliases"
+        - "alias ni='npm install'"
+        - "alias nid='npm install --save-dev'"
+        - "alias nig='npm install -g'"
+        - "alias nr='npm run'"
+        - "alias ns='npm start'"
+        - "alias nt='npm test'"
+        - "alias nb='npm run build'"
+        - "alias spot='./gradlew spotlessApply'"
+        - ""
+        - "# Utility Aliases"
+        - "alias lad=lazydocker"
+      become: true
+      become_user: "{{ username }}"

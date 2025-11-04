@@ -17,9 +17,9 @@
     - development
     - dependencies
 
-- name: Ensure apt keyrings directory exists
+- name: Ensure keyrings directory exists
   ansible.builtin.file:
-    path: /etc/apt/keyrings
+    path: /usr/share/keyrings
     state: directory
     owner: root
     group: root
@@ -95,6 +95,17 @@
 - name: Remove old Insomnia repository (Bintray/download.konghq.com)
   ansible.builtin.file:
     path: /etc/apt/sources.list.d/insomnia.list
+    state: absent
+  tags:
+    - insomnia
+    - packages
+    - api
+    - development
+    - cleanup
+
+- name: Remove old Insomnia GPG keyring from deprecated location
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/kong-insomnia-archive-keyring.gpg
     state: absent
   tags:
     - insomnia

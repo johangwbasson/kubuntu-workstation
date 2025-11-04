@@ -45,7 +45,7 @@
 - name: Download Spotify GPG key
   ansible.builtin.get_url:
     url: "{{ spotify_gpg_key_url }}"
-    dest: /tmp/spotify-gpg-key.gpg
+    dest: /tmp/spotify-gpg-key.asc
     mode: '0644'
   when: not spotify_keyring.stat.exists
   tags:
@@ -55,15 +55,25 @@
     - music
     - security
 
-- name: Install Spotify GPG key to keyring
-  ansible.builtin.copy:
-    src: /tmp/spotify-gpg-key.gpg
-    dest: "{{ spotify_keyring_path }}"
+- name: Convert and install Spotify GPG key to keyring
+  ansible.builtin.shell: |
+    gpg --dearmor < /tmp/spotify-gpg-key.asc > {{ spotify_keyring_path }}
+  args:
+    creates: "{{ spotify_keyring_path }}"
+  when: not spotify_keyring.stat.exists
+  tags:
+    - spotify
+    - packages
+    - media
+    - music
+    - security
+
+- name: Set correct permissions on Spotify keyring
+  ansible.builtin.file:
+    path: "{{ spotify_keyring_path }}"
     owner: root
     group: root
     mode: '0644'
-    remote_src: true
-  when: not spotify_keyring.stat.exists
   tags:
     - spotify
     - packages
@@ -73,7 +83,7 @@
 
 - name: Remove temporary GPG key file
   ansible.builtin.file:
-    path: /tmp/spotify-gpg-key.gpg
+    path: /tmp/spotify-gpg-key.asc
     state: absent
   tags:
     - spotify

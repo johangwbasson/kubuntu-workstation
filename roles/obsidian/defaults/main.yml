@@ -1,8 +1,4 @@
 ---
 # defaults file for obsidian
-obsidian_gpg_key_url: https://obsidian.md/gpg-key.asc
-obsidian_keyring_path: /etc/apt/keyrings/obsidian-archive-keyring.gpg
-obsidian_repo_url: https://download.obsidian.md/linux-repo
-obsidian_repo_distribution: stable
-obsidian_repo_component: main
-obsidian_package_name: obsidian
+obsidian_flatpak_name: md.obsidian.Obsidian
+obsidian_flatpak_remote: flathub

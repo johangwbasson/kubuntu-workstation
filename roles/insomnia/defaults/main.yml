@@ -3,6 +3,7 @@
 insomnia_gpg_key_url: https://packages.konghq.com/public/insomnia/gpg.474B9148D779222B.key
 insomnia_keyring_path: /usr/share/keyrings/kong-insomnia-archive-keyring.gpg
 insomnia_repo_url: https://packages.konghq.com/public/insomnia/deb/ubuntu
-insomnia_repo_distribution: "{{ ansible_distribution_release }}"
+# NOTE: Kong only provides packages for focal, but they work on newer Ubuntu versions
+insomnia_repo_distribution: focal
 insomnia_repo_component: main
 insomnia_package_name: insomnia

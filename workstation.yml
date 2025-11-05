@@ -35,6 +35,7 @@
     - chromium
     - flatpak
     - kde
+    - kde_fonts
     - chrome-browser
     - slack
     - zoom

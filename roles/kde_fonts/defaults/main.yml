@@ -1,0 +1,24 @@
+---
+# defaults file for kde_fonts
+
+# Default UI font (Fira Sans 10)
+kde_font_general: "Fira Sans,10,-1,5,50,0,0,0,0,0"
+
+# Fixed-width/monospace font (JetBrainsMono Nerd Font Mono 10)
+kde_font_fixed: "JetBrainsMono Nerd Font Mono,10,-1,5,50,0,0,0,0,0"
+
+# Small font (for widgets that need smaller text)
+kde_font_small: "Fira Sans,8,-1,5,50,0,0,0,0,0"
+
+# Toolbar font
+kde_font_toolbar: "Fira Sans,10,-1,5,50,0,0,0,0,0"
+
+# Menu font
+kde_font_menu: "Fira Sans,10,-1,5,50,0,0,0,0,0"
+
+# Active font (for active windows)
+kde_font_active: "Fira Sans,10,-1,5,50,0,0,0,0,0"
+
+# User to configure KDE fonts for
+kde_fonts_user: "{{ username }}"
+kde_fonts_user_home: "{{ user_home }}"

@@ -9,3 +9,14 @@ user_profile: '{{ user_home }}/.profile'
 update_script: /usr/local/bin/update
 user_update_script: '{{ user_home }}/.local/bin/update'
 is_gh_actions: '{{ lookup("ansible.builtin.env", "CI", default="false") | bool }}'
+
+# Networking configuration
+# Set configure_custom_dns to false in .vars.yml for VirtualBox VMs to avoid DNS issues
+configure_custom_dns: true
+dns_servers:
+  - 1.1.1.3  # Cloudflare for Families (malware blocking)
+  - 1.0.0.3
+  - 2606:4700:4700::1113
+  - 2606:4700:4700::1003
+dns_over_tls: true  # Set to false for VirtualBox VMs
+dns_stub_listener: true

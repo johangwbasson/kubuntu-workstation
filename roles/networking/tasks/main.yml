@@ -6,16 +6,45 @@
     owner: root
     group: root
     mode: '0755'
+  when: configure_custom_dns
+  tags:
+    - networking
+    - dns
 
-- name: Configure Cloudflare for Families DNS
+- name: Configure custom DNS servers
   become: true
   ansible.builtin.copy:
-    dest: /etc/systemd/resolved.conf.d/cloudflare-families.conf
+    dest: /etc/systemd/resolved.conf.d/custom-dns.conf
     content: |
       [Resolve]
-      DNS=1.1.1.3 1.0.0.3 2606:4700:4700::1113 2606:4700:4700::1003
-      DNSStubListener=yes
-      DNSOverTLS=yes
+      DNS={{ dns_servers | join(' ') }}
+      DNSStubListener={{ 'yes' if dns_stub_listener else 'no' }}
+      DNSOverTLS={{ 'yes' if dns_over_tls else 'no' }}
     mode: '0644'
+  when: configure_custom_dns
   notify: Restart resolved
+  tags:
+    - networking
+    - dns
 
+- name: Remove custom DNS configuration (when disabled)
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d/custom-dns.conf
+    state: absent
+  when: not configure_custom_dns
+  notify: Restart resolved
+  tags:
+    - networking
+    - dns
+
+- name: Remove old Cloudflare families configuration
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d/cloudflare-families.conf
+    state: absent
+  notify: Restart resolved
+  tags:
+    - networking
+    - dns
+    - cleanup

@@ -1,3 +1,20 @@
-git_name: Your name
-git_email: your email
-username: your system username
+---
+# Required variables
+git_name: Your Name
+git_email: your@email.com
+username: your-system-username
+
+# Optional: Networking configuration
+# Uncomment and set these variables to override default DNS settings
+# Default behavior: Uses Cloudflare for Families DNS with DNS over TLS
+
+# For VirtualBox VMs: Disable custom DNS (VirtualBox NAT doesn't support DNS over TLS)
+# configure_custom_dns: false
+
+# For custom DNS servers (example: Google DNS)
+# dns_servers:
+#   - 8.8.8.8
+#   - 8.8.4.4
+
+# To disable DNS over TLS but keep Cloudflare DNS
+# dns_over_tls: false

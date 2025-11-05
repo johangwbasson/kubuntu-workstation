@@ -9,7 +9,6 @@
   roles:
     - btrfs_optimize
     - home
-    - networking
     - remove_snap
     - ubuntu_drivers
     - kernel_module_blacklist

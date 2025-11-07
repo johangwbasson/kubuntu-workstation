@@ -67,6 +67,15 @@
     - shell
     - packages
 
+- name: Set Fish as default shell for user
+  ansible.builtin.user:
+    name: "{{ fish_user }}"
+    shell: /usr/bin/fish
+  tags:
+    - fish
+    - shell
+    - configuration
+
 - name: Install dependencies for nvm and sdkman
   ansible.builtin.apt:
     name:

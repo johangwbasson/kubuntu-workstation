@@ -256,6 +256,8 @@
     group: "{{ username }}"
     mode: '0644'
   loop:
+    - "direnv hook fish | source"
+    - ""
     - "# LS Aliases"
     - "alias ls='lsd'"
     - "alias l='ls -lha'"

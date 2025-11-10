@@ -128,11 +128,14 @@
     owner: "{{ fish_user }}"
     group: "{{ fish_user }}"
     mode: '0644'
+    force: true
   when: not fisher_installed.stat.exists
   tags:
     - fish
     - shell
     - fisher
+  # Note: GitHub raw content does not provide checksums. Security relies on HTTPS.
+  # Fisher is a single-file shell script that can be audited in the GitHub repository.
 
 - name: Install Fisher plugins
   become: true
@@ -178,20 +181,26 @@
     - tide
     - prompt
 
+- name: Download SDKMAN installer
+  ansible.builtin.get_url:
+    url: "https://get.sdkman.io?rcupdate=false"
+    dest: /tmp/sdkman-install.sh
+    mode: '0755'
+    force: true
+  tags:
+    - fish
+    - shell
+    - sdkman
+    - development
+
 - name: Install SDKMAN
   become: true
   become_user: "{{ fish_user }}"
-  ansible.builtin.shell: |
-    if not test -d {{ fish_user_home }}/.sdkman
-      curl -s "https://get.sdkman.io?rcupdate=false" | bash
-      echo "installed"
-    else
-      echo "already_installed"
-    end
-  args:
-    executable: /usr/bin/fish
-  register: sdkman_install
-  changed_when: "'installed' in sdkman_install.stdout"
+  ansible.builtin.command:
+    cmd: bash /tmp/sdkman-install.sh
+    creates: "{{ fish_user_home }}/.sdkman"
+  environment:
+    HOME: "{{ fish_user_home }}"
   tags:
     - fish
     - shell

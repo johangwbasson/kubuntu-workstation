@@ -78,10 +78,38 @@
     - development
     - vcs
 
+- name: Get lazygit checksums file
+  ansible.builtin.uri:
+    url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/checksums.txt"
+    return_content: true
+  register: lazygit_checksums
+  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
+  failed_when: false
+  tags:
+    - lazygit
+    - packages
+    - git
+    - development
+    - vcs
+
+- name: Extract checksum for Linux x86_64
+  ansible.builtin.set_fact:
+    lazygit_checksum: "{{ (lazygit_checksums.content | regex_search('([a-f0-9]{64})\\s+lazygit_' + lazygit_version + '_Linux_x86_64.tar.gz', '\\1')) }}"
+  when:
+    - lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
+    - lazygit_checksums.status == 200
+  tags:
+    - lazygit
+    - packages
+    - git
+    - development
+    - vcs
+
 - name: Download lazygit tarball
   ansible.builtin.get_url:
     url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
     dest: "/tmp/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
+    checksum: "{{ 'sha256:' + lazygit_checksum[0] if lazygit_checksum is defined and lazygit_checksum else omit }}"
     mode: '0644'
   when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:

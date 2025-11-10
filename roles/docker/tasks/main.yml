@@ -50,12 +50,9 @@
     - security
 
 - name: Convert and install Docker GPG key to keyring
-  ansible.builtin.shell: |
-    set -o pipefail
-    cat /tmp/docker-gpg-key.asc | gpg --dearmor --output {{ docker_gpg_keyring_path }}
-  args:
+  ansible.builtin.command:
+    cmd: gpg --dearmor --output "{{ docker_gpg_keyring_path }}" /tmp/docker-gpg-key.asc
     creates: "{{ docker_gpg_keyring_path }}"
-    executable: /bin/bash
   tags:
     - docker
     - packages

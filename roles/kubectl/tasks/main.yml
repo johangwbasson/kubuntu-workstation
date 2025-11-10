@@ -201,10 +201,10 @@
     fish -c "abbr --add --global k kubectl"
   args:
     executable: /usr/bin/fish
-  changed_when: true
   when:
     - fish_installed.rc == 0
     - kubectl_abbr_exists.rc != 0
+  changed_when: true  # Task only runs when abbreviation doesn't exist
   tags:
     - kubectl
     - kubernetes

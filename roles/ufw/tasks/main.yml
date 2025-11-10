@@ -5,12 +5,20 @@
     name: ufw
     state: present
 
+- name: Check UFW status
+  become: true
+  ansible.builtin.command: ufw status
+  register: ufw_status
+  changed_when: false
+  failed_when: false
+
 - name: Enable UFW (start on boot)
   become: true
   ansible.builtin.command:
     cmd: ufw --force enable
+  when: "'Status: inactive' in ufw_status.stdout"
+  changed_when: true  # Task only runs when UFW is inactive
   register: ufw_enable_result
-  changed_when: "'Firewall is active' in ufw_enable_result.stdout or 'Firewall already enabled' in ufw_enable_result.stdout"
 
 - name: Ensure UFW service is enabled and started
   become: true

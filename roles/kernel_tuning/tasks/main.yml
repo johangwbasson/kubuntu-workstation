@@ -44,7 +44,7 @@
     - sysctl
 
 - name: Set soft limit for open files
-  ansible.builtin.pam_limits:
+  community.general.pam_limits:
     domain: '*'
     limit_type: soft
     limit_item: nofile
@@ -54,7 +54,7 @@
     - limits
 
 - name: Set hard limit for open files
-  ansible.builtin.pam_limits:
+  community.general.pam_limits:
     domain: '*'
     limit_type: hard
     limit_item: nofile

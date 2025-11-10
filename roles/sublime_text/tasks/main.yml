@@ -43,12 +43,22 @@
     - editor
     - security
 
-- name: Download and convert Sublime HQ GPG key
-  ansible.builtin.shell: |
-    set -o pipefail
-    curl -fsSL "{{ sublime_gpg_key_url }}" | gpg --dearmor -o "{{ sublime_gpg_keyring_path }}"
-  args:
-    executable: /bin/bash
+- name: Download Sublime HQ GPG key
+  ansible.builtin.get_url:
+    url: "{{ sublime_gpg_key_url }}"
+    dest: /tmp/sublime-gpg-key.asc
+    mode: '0644'
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - security
+
+- name: Convert Sublime HQ GPG key to keyring format
+  ansible.builtin.command:
+    cmd: gpg --dearmor --output "{{ sublime_gpg_keyring_path }}" /tmp/sublime-gpg-key.asc
     creates: "{{ sublime_gpg_keyring_path }}"
   tags:
     - sublime-text

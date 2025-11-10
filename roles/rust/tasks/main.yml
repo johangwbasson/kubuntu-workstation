@@ -42,11 +42,14 @@
     url: "{{ rustup_init_url }}"
     dest: "/tmp/rustup-init.sh"
     mode: '0755'
+    force: true
   when: rustup_installed.rc != 0
   tags:
     - rust
     - rustup
     - download
+  # Note: Rustup does not publish checksums for sh.rustup.rs installer script.
+  # Security relies on HTTPS and the script's internal verification of rustup binary.
 
 - name: Install Rustup
   become: true
@@ -228,19 +231,34 @@
     - topgrade
     - tools
 
+- name: Check if additional cargo tools are installed
+  become: true
+  become_user: "{{ rust_user }}"
+  ansible.builtin.stat:
+    path: "{{ cargo_home }}/bin/{{ item }}"
+  loop: "{{ rust_additional_tools }}"
+  when: rust_additional_tools | length > 0
+  register: additional_tools_check
+  tags:
+    - rust
+    - cargo
+    - tools
+
 - name: Install additional cargo tools
   become: true
   become_user: "{{ rust_user }}"
   ansible.builtin.command:
-    cmd: "{{ cargo_home }}/bin/cargo install {{ item }}"
+    cmd: "{{ cargo_home }}/bin/cargo install {{ item.item }}"
   environment:
     CARGO_HOME: "{{ cargo_home }}"
     RUSTUP_HOME: "{{ rustup_home }}"
-  loop: "{{ rust_additional_tools }}"
-  when: rust_additional_tools | length > 0
-  register: additional_tools_install
-  changed_when: "'Installing' in additional_tools_install.stdout or 'Installed' in additional_tools_install.stdout"
-  failed_when: false
+  loop: "{{ additional_tools_check.results }}"
+  when:
+    - rust_additional_tools | length > 0
+    - not item.stat.exists
+  changed_when: true  # Task only runs when tool doesn't exist
+  loop_control:
+    label: "{{ item.item }}"
   tags:
     - rust
     - cargo

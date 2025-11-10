@@ -110,7 +110,7 @@
 - name: Rebuild font cache
   ansible.builtin.command: fc-cache -f -v
   register: fc_cache_result
-  changed_when: "'fc-cache' in fc_cache_result.stdout"
+  changed_when: fc_cache_result.stdout | length > 0
   tags:
     - fonts
     - font-cache

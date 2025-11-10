@@ -93,10 +93,38 @@
     - development
     - containers
 
+- name: Get lazydocker checksums file
+  ansible.builtin.uri:
+    url: "https://github.com/jesseduffield/lazydocker/releases/download/{{ lazydocker_version }}/lazydocker_{{ lazydocker_version | regex_replace('^v', '') }}_checksums.txt"
+    return_content: true
+  register: lazydocker_checksums
+  when: lazydocker_installed.rc != 0
+  failed_when: false
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+    - download
+
+- name: Extract checksum for our architecture
+  ansible.builtin.set_fact:
+    lazydocker_checksum: "{{ (lazydocker_checksums.content | regex_search('([a-f0-9]{64})\\s+lazydocker_' + (lazydocker_version | regex_replace('^v', '')) + '_Linux_' + lazydocker_arch + '.tar.gz', '\\1')) }}"
+  when:
+    - lazydocker_installed.rc != 0
+    - lazydocker_checksums.status == 200
+  tags:
+    - lazydocker
+    - docker
+    - development
+    - containers
+    - download
+
 - name: Download lazydocker archive
   ansible.builtin.get_url:
     url: "{{ lazydocker_download_url }}"
     dest: "{{ lazydocker_temp_dir }}/lazydocker.tar.gz"
+    checksum: "{{ 'sha256:' + lazydocker_checksum[0] if lazydocker_checksum is defined and lazydocker_checksum else omit }}"
     mode: '0644'
   when: lazydocker_installed.rc != 0
   tags:

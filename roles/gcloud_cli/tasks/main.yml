@@ -72,12 +72,21 @@
     - google_cloud
     - cloud
 
-- name: Download and import Google Cloud GPG key (official method)
-  ansible.builtin.shell: |
-    set -o pipefail
-    curl -fsSL "{{ gcloud_gpg_key_url }}" | gpg --dearmor -o "{{ gcloud_keyring_path }}"
-  args:
-    executable: /bin/bash
+- name: Download Google Cloud GPG key
+  ansible.builtin.get_url:
+    url: "{{ gcloud_gpg_key_url }}"
+    dest: /tmp/gcloud-gpg-key.asc
+    mode: '0644'
+  tags:
+    - gcloud_cli
+    - gcloud
+    - google_cloud
+    - cloud
+    - download
+
+- name: Convert Google Cloud GPG key to keyring format
+  ansible.builtin.command:
+    cmd: gpg --dearmor --output "{{ gcloud_keyring_path }}" /tmp/gcloud-gpg-key.asc
     creates: "{{ gcloud_keyring_path }}"
   tags:
     - gcloud_cli

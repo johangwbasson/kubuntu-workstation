@@ -21,10 +21,21 @@
     - codecs
     - packages
 
+- name: Check if libdvdcss2 is installed
+  ansible.builtin.command: dpkg-query -W -f='${Status}' libdvdcss2
+  register: libdvdcss_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - multimedia
+    - codecs
+    - dvd
+
 - name: Configure libdvd-pkg (DVD playback support)
   ansible.builtin.command:
     cmd: dpkg-reconfigure -f noninteractive libdvd-pkg
-    creates: /usr/lib/libdvdcss.so.2
+  when: libdvdcss_check.rc != 0 or 'install ok installed' not in libdvdcss_check.stdout
+  changed_when: true  # Task only runs when libdvdcss2 is not installed
   tags:
     - multimedia
     - codecs

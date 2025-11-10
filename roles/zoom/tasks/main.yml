@@ -24,6 +24,9 @@
     - communication
     - video-conferencing
     - download
+  # Note: Zoom does not publish checksums for the "latest" version URL.
+  # Security relies on HTTPS from zoom.us. For production environments,
+  # consider pinning to specific version with checksum if available.
 
 - name: Install Zoom from .deb package
   ansible.builtin.apt:

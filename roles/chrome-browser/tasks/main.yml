@@ -8,8 +8,8 @@
     - chrome
     - packages
 
-- name: Run Playbook
-  ansible.builtin.import_tasks: tasks.yml
+- name: Run Chrome installation tasks
+  ansible.builtin.include_tasks: tasks.yml
   when: not chrome.stat.exists
   tags:
     - chrome

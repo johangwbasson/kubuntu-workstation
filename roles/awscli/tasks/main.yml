@@ -58,6 +58,9 @@
     - aws
     - cloud
     - download
+  # Note: AWS does not publish SHA checksums for the "latest" version URL.
+  # AWS recommends PGP signature verification. Security relies on HTTPS from amazonaws.com.
+  # For production environments, consider pinning to specific version with checksum.
 
 - name: Extract AWS CLI installer
   ansible.builtin.unarchive:

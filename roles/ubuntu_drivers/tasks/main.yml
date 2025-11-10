@@ -53,7 +53,11 @@
     - ubuntu_drivers_mode == 'autoinstall'
     - ubuntu_drivers_devices.stdout | length > 0
   register: drivers_install
-  changed_when: "'installed' in drivers_install.stdout or drivers_install.rc == 0"
+  changed_when: >-
+    drivers_install.rc == 0 and
+    ('installed' in drivers_install.stdout or
+     'Installing' in drivers_install.stdout or
+     'Setting up' in drivers_install.stdout)
   notify: Reboot required for driver installation
   tags:
     - ubuntu-drivers

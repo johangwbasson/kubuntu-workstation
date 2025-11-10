@@ -75,11 +75,23 @@
     - zram
     - services
 
+- name: Check if swap is enabled
+  ansible.builtin.command: swapon --show
+  register: swap_status
+  changed_when: false
+  failed_when: false
+  when: zram_disable_disk_swap
+  tags:
+    - zram
+    - swap
+
 - name: Disable disk-based swap
   ansible.builtin.command:
     cmd: swapoff -a
-  when: zram_disable_disk_swap
-  changed_when: false
+  when:
+    - zram_disable_disk_swap
+    - swap_status.stdout | length > 0
+  changed_when: true  # Task only runs when swap is active
   tags:
     - zram
     - swap

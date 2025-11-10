@@ -6,15 +6,16 @@ cursor_user: "{{ username }}"
 cursor_user_home: "{{ user_home }}"
 
 # Installation method: 'appimage' or 'deb'
-cursor_install_method: appimage
+# Changed to 'deb' as default since it's more reliable
+cursor_install_method: deb
 
-# AppImage installation
-cursor_appimage_url: https://downloader.cursor.sh/linux/appImage/x64
+# AppImage installation (if using appimage method)
+cursor_appimage_url: https://api2.cursor.sh/updates/download/golden/linux-x64-appimage/cursor/2.0
 cursor_install_dir: "{{ cursor_user_home }}/.local/bin"
 cursor_appimage_path: "{{ cursor_install_dir }}/cursor.AppImage"
 
-# .deb installation (alternative method)
-cursor_deb_url: https://downloader.cursor.sh/linux/deb/x64
+# .deb installation (recommended method)
+cursor_deb_url: https://api2.cursor.sh/updates/download/golden/linux-x64-deb/cursor/2.0
 cursor_deb_path: /tmp/cursor.deb
 
 # Desktop integration

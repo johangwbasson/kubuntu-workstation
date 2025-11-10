@@ -195,7 +195,7 @@
       Cursor AI has been installed successfully!
 
       Installation details:
-      - Method: {{ cursor_install_method }}
+      - Method: {{ cursor_install_method | upper }} (recommended)
       {% if cursor_install_method == 'appimage' %}
       - AppImage location: {{ cursor_appimage_path }}
       - Desktop entry: {{ cursor_desktop_file_path }}
@@ -203,7 +203,9 @@
       {% else %}
       - Installed via .deb package
       - Binary location: /usr/bin/cursor
+      - Managed by apt package manager
       {% endif %}
+      - Download source: api2.cursor.sh
 
       Features:
       - AI-powered code completion

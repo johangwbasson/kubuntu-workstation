@@ -13,6 +13,7 @@
     - ubuntu_drivers
     - kernel_module_blacklist
     - kernel_tuning
+    - unattended_upgrades
     - fonts
     - multimedia_codecs
     - cli_tools

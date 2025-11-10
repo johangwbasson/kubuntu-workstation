@@ -1,0 +1,86 @@
+// {{ ansible_managed }}
+// Unattended-Upgrades configuration
+// This file controls which packages are automatically upgraded
+
+// Allowed origins for automatic upgrades
+Unattended-Upgrade::Allowed-Origins {
+{% if unattended_upgrades_update_level == 'security_only' %}
+    // Security updates only
+{% for origin in unattended_upgrades_origins_patterns %}
+    "{{ origin }}";
+{% endfor %}
+{% elif unattended_upgrades_update_level == 'all' %}
+    // Security and regular updates
+{% for origin in unattended_upgrades_origins_patterns %}
+    "{{ origin }}";
+{% endfor %}
+{% for origin in unattended_upgrades_additional_origins %}
+    "{{ origin }}";
+{% endfor %}
+{% else %}
+    // Custom origins
+{% for origin in unattended_upgrades_origins_patterns %}
+    "{{ origin }}";
+{% endfor %}
+{% endif %}
+};
+
+// Packages that should NOT be automatically upgraded
+Unattended-Upgrade::Package-Blacklist {
+{% for package in unattended_upgrades_package_blacklist %}
+    "{{ package }}";
+{% endfor %}
+};
+
+// Automatically reboot if necessary
+Unattended-Upgrade::Automatic-Reboot "{{ 'true' if unattended_upgrades_automatic_reboot else 'false' }}";
+
+// Automatically reboot even if users are logged in
+Unattended-Upgrade::Automatic-Reboot-WithUsers "{{ 'true' if unattended_upgrades_automatic_reboot_with_users else 'false' }}";
+
+// Time for automatic reboot (24-hour format)
+{% if unattended_upgrades_automatic_reboot %}
+Unattended-Upgrade::Automatic-Reboot-Time "{{ unattended_upgrades_automatic_reboot_time }}";
+{% endif %}
+
+// Remove unused automatically installed kernel-related packages
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "{{ 'true' if unattended_upgrades_autoremove else 'false' }}";
+
+// Remove unused dependencies
+Unattended-Upgrade::Remove-Unused-Dependencies "{{ 'true' if unattended_upgrades_remove_unused_dependencies else 'false' }}";
+
+// Split the upgrade into the smallest possible chunks
+Unattended-Upgrade::MinimalSteps "{{ 'true' if unattended_upgrades_minimal_steps else 'false' }}";
+
+// Install updates on shutdown instead of background
+Unattended-Upgrade::InstallOnShutdown "{{ 'true' if unattended_upgrades_install_on_shutdown else 'false' }}";
+
+{% if unattended_upgrades_mail_enabled and unattended_upgrades_mail_to %}
+// Email notifications
+Unattended-Upgrade::Mail "{{ unattended_upgrades_mail_to }}";
+Unattended-Upgrade::MailReport "{{ 'only-on-error' if unattended_upgrades_mail_on_error_only else 'on-change' }}";
+{% else %}
+// Email notifications disabled
+// Unattended-Upgrade::Mail "";
+{% endif %}
+
+// Logging
+Unattended-Upgrade::SyslogEnable "{{ 'true' if unattended_upgrades_syslog_enabled else 'false' }}";
+Unattended-Upgrade::SyslogFacility "{{ unattended_upgrades_syslog_facility }}";
+
+{% if unattended_upgrades_bandwidth_limit > 0 %}
+// Bandwidth limit (in kb/s)
+Acquire::http::Dl-Limit "{{ unattended_upgrades_bandwidth_limit }}";
+{% endif %}
+
+// Automatically clean the apt cache
+APT::Periodic::AutocleanInterval "{{ '7' if unattended_upgrades_clean_cache else '0' }}";
+
+// Enable verbose logging
+Unattended-Upgrade::Verbose "{{ 'true' if unattended_upgrades_verbose else 'false' }}";
+
+// Only upgrade packages that can be upgraded without installing new packages
+Unattended-Upgrade::OnlyOnACPower "false";
+
+// Abort the update if the download size exceeds this threshold (in MB)
+// Unattended-Upgrade::MaxAutomaticSizeMB "512";

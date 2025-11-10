@@ -1,0 +1,69 @@
+---
+# defaults file for unattended_upgrades
+
+# Automatic update configuration
+unattended_upgrades_enabled: true
+
+# Which updates to automatically install
+# Options: security_only, all, custom
+unattended_upgrades_update_level: security_only
+
+# Origins to automatically upgrade from (used when update_level is 'custom')
+# Format: "origin:archive" or "${distro_id}:${distro_codename}-security"
+unattended_upgrades_origins_patterns:
+  - origin=Ubuntu,archive=${distro_codename}-security,label=Ubuntu
+  - origin=Ubuntu,archive=${distro_codename}-security,label=Ubuntu ESM
+
+# Additional origins (for update_level: all)
+unattended_upgrades_additional_origins:
+  - origin=Ubuntu,archive=${distro_codename}-updates
+
+# Packages to exclude from automatic updates (regex patterns)
+unattended_upgrades_package_blacklist: []
+# Examples:
+# - linux-.*
+# - postgresql-.*
+# - nginx
+
+# Automatically remove unused kernel packages
+unattended_upgrades_autoremove: true
+
+# Automatically remove unused dependencies
+unattended_upgrades_remove_unused_dependencies: true
+
+# Split the upgrade into the smallest possible chunks
+unattended_upgrades_minimal_steps: true
+
+# Install updates on shutdown instead of in the background
+unattended_upgrades_install_on_shutdown: false
+
+# Automatic reboot configuration
+unattended_upgrades_automatic_reboot: false
+unattended_upgrades_automatic_reboot_with_users: false
+unattended_upgrades_automatic_reboot_time: "03:00"  # Time to reboot (24-hour format)
+
+# Email notifications
+unattended_upgrades_mail_enabled: false
+unattended_upgrades_mail_to: ""  # Email address for notifications
+unattended_upgrades_mail_on_error_only: true
+
+# Update frequency
+# How often to download and apply updates
+unattended_upgrades_update_frequency: 1  # Days between updates (1 = daily)
+unattended_upgrades_download_frequency: 1  # Days between checking for updates
+
+# Logging
+unattended_upgrades_syslog_enabled: true
+unattended_upgrades_syslog_facility: daemon
+
+# Bandwidth limit (in kb/s, 0 = unlimited)
+unattended_upgrades_bandwidth_limit: 0
+
+# Only upgrade packages that require no new packages
+unattended_upgrades_minimal_steps_only: false
+
+# Whether to clean the apt cache
+unattended_upgrades_clean_cache: true
+
+# Show package changes in logs
+unattended_upgrades_verbose: false

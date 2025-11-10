@@ -166,3 +166,76 @@
   tags:
     - clamav
     - services
+
+- name: Display ClamAV installation and usage info
+  ansible.builtin.debug:
+    msg: |
+      ClamAV has been installed and configured successfully!
+
+      Services running:
+      - clamav-daemon: Antivirus scanning engine
+      - clamav-freshclam: Automatic virus definition updates (runs in background)
+      - clamonacc: On-access scanning for Downloads directory
+
+      Virus definitions are updated automatically every hour.
+
+      IMPORTANT - About freshclam:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      The freshclam daemon is running automatically in the background.
+      You do NOT need to run 'freshclam' manually.
+
+      If you see "Failed to lock log file" error when running freshclam,
+      this is NORMAL - it means automatic updates are already running.
+
+      To check update status:
+        systemctl status clamav-freshclam
+        sudo tail -f /var/log/clamav/freshclam.log
+
+      To force manual update (if needed):
+        sudo systemctl stop clamav-freshclam
+        sudo freshclam
+        sudo systemctl start clamav-freshclam
+
+      Or simply:
+        sudo freshclam
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+      Useful commands:
+      - clamscan <file/dir>       : Scan files or directories
+      - clamscan -r ~             : Scan home directory recursively
+      - clamscan -i -r ~/Downloads: Scan Downloads (infected files only)
+      - clamdscan <file>          : Fast scan using daemon
+      - systemctl status clamav-daemon : Check antivirus service
+      - systemctl status clamonacc    : Check on-access scanning
+
+      Configuration:
+      - Daemon config: /etc/clamav/clamd.conf
+      - Update config: /etc/clamav/freshclam.conf
+      - Virus DB: /var/lib/clamav/
+      - Logs: /var/log/clamav/
+      - Quarantine: {{ clamav_quarantine_dir }}
+
+      On-access scanning:
+      - Monitors: /home/{{ username }}/Downloads
+      - Infected files are automatically quarantined
+      - Check logs: sudo tail -f /var/log/clamav/clamonacc.log
+
+      Testing:
+      - Download EICAR test file: wget https://secure.eicar.org/eicar.com.txt
+      - Should be detected and quarantined automatically
+      - Or scan manually: clamscan eicar.com.txt
+
+      Health check:
+      - Run: sudo /usr/local/bin/clamav-verify.sh
+      - Verifies all ClamAV services are running
+
+      Performance note:
+      - First scan may be slow (building cache)
+      - Subsequent scans are much faster
+      - ClamAV uses ~200MB RAM when idle
+
+      Your user has been added to the 'clamav' group for better integration.
+      Log out and back in for group membership to take effect.
+  when: lookup('env', 'CI') != 'true'
+  tags:
+    - clamav

@@ -1,0 +1,13 @@
+// {{ ansible_managed }}
+// Automatic update configuration for unattended-upgrades
+// This file controls when and how often updates are checked and applied
+
+APT::Periodic::Update-Package-Lists "{{ unattended_upgrades_download_frequency }}";
+APT::Periodic::Download-Upgradeable-Packages "{{ unattended_upgrades_download_frequency }}";
+APT::Periodic::Unattended-Upgrade "{{ unattended_upgrades_update_frequency }}";
+APT::Periodic::AutocleanInterval "7";
+{% if unattended_upgrades_verbose %}
+APT::Periodic::Verbose "1";
+{% else %}
+APT::Periodic::Verbose "0";
+{% endif %}

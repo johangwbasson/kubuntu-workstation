@@ -1,0 +1,231 @@
+---
+# tasks file for unattended_upgrades
+
+- name: Install unattended-upgrades package
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+      - apt-listchanges
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - unattended_upgrades
+    - packages
+    - security
+
+- name: Ensure update-notifier-common is installed (for update checking)
+  ansible.builtin.apt:
+    name: update-notifier-common
+    state: present
+  tags:
+    - unattended_upgrades
+    - packages
+
+- name: Configure automatic updates frequency (20auto-upgrades)
+  ansible.builtin.template:
+    src: 20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - unattended_upgrades
+    - configuration
+    - security
+
+- name: Configure unattended-upgrades settings (50unattended-upgrades)
+  ansible.builtin.template:
+    src: 50unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+  tags:
+    - unattended_upgrades
+    - configuration
+    - security
+
+- name: Ensure apt daily service is enabled
+  ansible.builtin.systemd:
+    name: apt-daily.timer
+    enabled: "{{ unattended_upgrades_enabled }}"
+    state: "{{ 'started' if unattended_upgrades_enabled else 'stopped' }}"
+  tags:
+    - unattended_upgrades
+    - services
+
+- name: Ensure apt daily upgrade service is enabled
+  ansible.builtin.systemd:
+    name: apt-daily-upgrade.timer
+    enabled: "{{ unattended_upgrades_enabled }}"
+    state: "{{ 'started' if unattended_upgrades_enabled else 'stopped' }}"
+  tags:
+    - unattended_upgrades
+    - services
+
+- name: Get system codename for display
+  ansible.builtin.command: lsb_release -cs
+  register: system_codename
+  changed_when: false
+  tags:
+    - unattended_upgrades
+
+- name: Check if mail transport is configured (for email notifications)
+  ansible.builtin.stat:
+    path: /usr/sbin/sendmail
+  register: sendmail_installed
+  when: unattended_upgrades_mail_enabled
+  tags:
+    - unattended_upgrades
+    - mail
+
+- name: Display unattended-upgrades configuration info
+  ansible.builtin.debug:
+    msg: |
+      Automatic Security Updates have been configured successfully!
+
+      Configuration Summary:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      Status: {{ 'ENABLED' if unattended_upgrades_enabled else 'DISABLED' }}
+      Update Level: {{ unattended_upgrades_update_level | upper }}
+      Update Frequency: Every {{ unattended_upgrades_update_frequency }} day(s)
+      Automatic Reboot: {{ 'YES' if unattended_upgrades_automatic_reboot else 'NO' }}
+      {% if unattended_upgrades_automatic_reboot %}
+      Reboot Time: {{ unattended_upgrades_automatic_reboot_time }}
+      {% endif %}
+      Auto-remove Old Packages: {{ 'YES' if unattended_upgrades_autoremove else 'NO' }}
+      Email Notifications: {{ 'YES' if unattended_upgrades_mail_enabled else 'NO' }}
+      {% if unattended_upgrades_mail_enabled %}
+      Email Address: {{ unattended_upgrades_mail_to if unattended_upgrades_mail_to else 'NOT CONFIGURED' }}
+      {% if not sendmail_installed.stat.exists %}
+      ⚠️  WARNING: Email notifications enabled but sendmail not installed!
+      {% endif %}
+      {% endif %}
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+      What gets updated automatically:
+      {% if unattended_upgrades_update_level == 'security_only' %}
+      ✓ Security updates from Ubuntu Security repository
+      ✓ Ubuntu ESM (Extended Security Maintenance) updates
+      ✗ Regular package updates (manual update required)
+      {% elif unattended_upgrades_update_level == 'all' %}
+      ✓ Security updates
+      ✓ Regular package updates
+      ✓ All available updates
+      {% else %}
+      ✓ Custom update sources (see configuration)
+      {% endif %}
+
+      {% if unattended_upgrades_package_blacklist %}
+      Excluded packages (will NOT auto-update):
+      {% for package in unattended_upgrades_package_blacklist %}
+      - {{ package }}
+      {% endfor %}
+      {% endif %}
+
+      System Information:
+      - Distribution: Ubuntu
+      - Codename: {{ system_codename.stdout }}
+      - Configuration: /etc/apt/apt.conf.d/50unattended-upgrades
+      - Auto-update config: /etc/apt/apt.conf.d/20auto-upgrades
+      - Log location: /var/log/unattended-upgrades/
+
+      Useful Commands:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Check for available updates
+      sudo apt update && apt list --upgradable
+
+      # View unattended-upgrades logs
+      sudo tail -f /var/log/unattended-upgrades/unattended-upgrades.log
+
+      # View detailed logs
+      sudo cat /var/log/unattended-upgrades/unattended-upgrades-dpkg.log
+
+      # Check when last update ran
+      systemctl status apt-daily-upgrade.service
+
+      # Check update timer status
+      systemctl status apt-daily-upgrade.timer
+      systemctl list-timers apt-daily*
+
+      # Manually trigger unattended-upgrades (dry-run)
+      sudo unattended-upgrades --dry-run --debug
+
+      # Manually trigger unattended-upgrades (actual update)
+      sudo unattended-upgrades --debug
+
+      # Check if reboot is required
+      [ -f /var/run/reboot-required ] && cat /var/run/reboot-required
+
+      # View packages that will be auto-updated
+      sudo unattended-upgrade --dry-run
+
+      # Test email notifications (if configured)
+      echo "Test" | mail -s "Test from $(hostname)" {{ unattended_upgrades_mail_to }}
+
+      Security Best Practices:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      ✓ Security updates are applied automatically
+      ✓ System stays protected against known vulnerabilities
+      ✓ Updates run in the background without user intervention
+      {% if unattended_upgrades_automatic_reboot %}
+      ✓ System will auto-reboot when needed at {{ unattended_upgrades_automatic_reboot_time }}
+      {% else %}
+      ⚠️  Manual reboot required when kernel updates are installed
+      {% endif %}
+      ✓ Old packages are automatically cleaned up
+      ✓ Logs maintained for audit trail
+
+      Update Schedule:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - Check for updates: Daily
+      - Download updates: Daily
+      - Install updates: Daily (between 06:00-07:00 local time)
+      - Clean old packages: Weekly
+
+      Important Notes:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      1. Security updates are installed automatically - this is GOOD!
+      2. System may occasionally require a reboot after kernel updates
+      3. Check /var/run/reboot-required to see if reboot is needed
+      4. Major version upgrades (e.g., 22.04 → 24.04) are NOT automatic
+      5. You can still manually run: sudo apt update && sudo apt upgrade
+      {% if unattended_upgrades_package_blacklist %}
+      6. Some packages are excluded from auto-updates (see above)
+      {% endif %}
+
+      Monitoring:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      Watch for updates in real-time:
+        sudo tail -f /var/log/unattended-upgrades/unattended-upgrades.log
+
+      Check update history:
+        grep "Packages that will be upgraded" /var/log/unattended-upgrades/unattended-upgrades.log
+
+      {% if unattended_upgrades_mail_enabled %}
+      Email notifications will be sent to: {{ unattended_upgrades_mail_to }}
+      {% if unattended_upgrades_mail_on_error_only %}
+      (Only on errors - no emails for successful updates)
+      {% else %}
+      (You'll receive emails for all updates)
+      {% endif %}
+      {% else %}
+      Email notifications are disabled. Enable them by setting:
+        unattended_upgrades_mail_enabled: true
+        unattended_upgrades_mail_to: "your.email@example.com"
+      {% endif %}
+
+      Configuration Files:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      Main config: /etc/apt/apt.conf.d/50unattended-upgrades
+      Auto-update: /etc/apt/apt.conf.d/20auto-upgrades
+      Logs: /var/log/unattended-upgrades/
+      Service: apt-daily-upgrade.service
+
+      To modify settings, update defaults in your playbook and re-run:
+        ansible-playbook workstation.yml --tags unattended_upgrades
+
+      Your system is now protected with automatic security updates! 🛡️
+  tags:
+    - unattended_upgrades

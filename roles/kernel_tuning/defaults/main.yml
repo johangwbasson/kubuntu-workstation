@@ -1,0 +1,12 @@
+---
+# File system limits for Java/Kotlin development
+kernel_tuning_fs_file_max: 2097152  # System-wide maximum file handles (2M)
+
+# Inotify limits for IDE file watching
+kernel_tuning_inotify_max_user_watches: 524288  # Max files to watch per user (512K)
+kernel_tuning_inotify_max_user_instances: 512   # Max inotify instances per user
+kernel_tuning_inotify_max_queued_events: 32768  # Max queued events
+
+# Per-user file descriptor limits
+kernel_tuning_nofile_soft: 65536  # Soft limit for open files per process
+kernel_tuning_nofile_hard: 65536  # Hard limit for open files per process

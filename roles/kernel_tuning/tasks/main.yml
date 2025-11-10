@@ -1,0 +1,64 @@
+---
+- name: Configure system-wide file handle limit
+  ansible.posix.sysctl:
+    name: fs.file-max
+    value: "{{ kernel_tuning_fs_file_max }}"
+    state: present
+    sysctl_set: true
+    reload: true
+  tags:
+    - kernel_tuning
+    - sysctl
+
+- name: Configure inotify max user watches
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_watches
+    value: "{{ kernel_tuning_inotify_max_user_watches }}"
+    state: present
+    sysctl_set: true
+    reload: true
+  tags:
+    - kernel_tuning
+    - sysctl
+
+- name: Configure inotify max user instances
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_instances
+    value: "{{ kernel_tuning_inotify_max_user_instances }}"
+    state: present
+    sysctl_set: true
+    reload: true
+  tags:
+    - kernel_tuning
+    - sysctl
+
+- name: Configure inotify max queued events
+  ansible.posix.sysctl:
+    name: fs.inotify.max_queued_events
+    value: "{{ kernel_tuning_inotify_max_queued_events }}"
+    state: present
+    sysctl_set: true
+    reload: true
+  tags:
+    - kernel_tuning
+    - sysctl
+
+- name: Set soft limit for open files
+  ansible.builtin.pam_limits:
+    domain: '*'
+    limit_type: soft
+    limit_item: nofile
+    value: "{{ kernel_tuning_nofile_soft }}"
+  tags:
+    - kernel_tuning
+    - limits
+
+- name: Set hard limit for open files
+  ansible.builtin.pam_limits:
+    domain: '*'
+    limit_type: hard
+    limit_item: nofile
+    value: "{{ kernel_tuning_nofile_hard }}"
+  tags:
+    - kernel_tuning
+    - limits

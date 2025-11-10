@@ -48,7 +48,7 @@
     - chrome
     - configuration
 
-- name: Configure Chrome managed policies
+- name: Configure Chrome managed policies (browser extensions)
   ansible.builtin.copy:
     src: managed.json
     dest: /etc/opt/chrome/policies/managed/prefs.json
@@ -58,3 +58,7 @@
   tags:
     - chrome
     - configuration
+    - extensions
+  # Managed extensions configured:
+  # - aeblfdkhhhdcdjpifhhbdiojplfjncoa: 1Password Password Manager
+  # - nngceckbapebfimnlniiiahkandclblb: Bitwarden Password Manager

@@ -1,0 +1,29 @@
+---
+# defaults file for zsh
+
+# User to configure zsh for (from vars.yml)
+zsh_user: "{{ username }}"
+zsh_user_home: "{{ user_home }}"
+
+# Oh My Zsh configuration
+ohmyzsh_install_url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+ohmyzsh_dir: "{{ zsh_user_home }}/.oh-my-zsh"
+
+# Powerlevel10k theme
+p10k_repo: https://github.com/romkatv/powerlevel10k.git
+p10k_dir: "{{ ohmyzsh_dir }}/custom/themes/powerlevel10k"
+p10k_version: master  # Can be pinned to a specific tag
+
+# Plugins to enable
+zsh_plugins:
+  - git
+  - docker
+  - kubectl
+  - terraform
+  - sudo
+  - history
+  - direnv
+  - fzf
+
+# Additional configuration
+zsh_set_as_default_shell: true

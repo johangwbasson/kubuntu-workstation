@@ -26,6 +26,7 @@
     - java
     - rust
     - fish_shell
+    - zsh
     - vscode
     - sublime_text
     - neovim

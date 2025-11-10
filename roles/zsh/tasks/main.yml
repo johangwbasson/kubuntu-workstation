@@ -1,0 +1,271 @@
+---
+# tasks file for zsh
+
+- name: Install zsh package
+  ansible.builtin.apt:
+    name: zsh
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - zsh
+    - packages
+    - shell
+
+- name: Check if Oh My Zsh is already installed
+  ansible.builtin.stat:
+    path: "{{ ohmyzsh_dir }}"
+  register: ohmyzsh_installed
+  tags:
+    - zsh
+    - ohmyzsh
+
+- name: Download Oh My Zsh installer
+  ansible.builtin.get_url:
+    url: "{{ ohmyzsh_install_url }}"
+    dest: /tmp/ohmyzsh-install.sh
+    mode: '0755'
+    force: true
+  when: not ohmyzsh_installed.stat.exists
+  tags:
+    - zsh
+    - ohmyzsh
+    - download
+  # Note: Oh My Zsh installer is downloaded from GitHub. Security relies on HTTPS.
+
+- name: Install Oh My Zsh
+  become: true
+  become_user: "{{ zsh_user }}"
+  ansible.builtin.command:
+    cmd: sh /tmp/ohmyzsh-install.sh --unattended
+  environment:
+    HOME: "{{ zsh_user_home }}"
+  when: not ohmyzsh_installed.stat.exists
+  changed_when: true  # Task only runs when Oh My Zsh directory doesn't exist
+  tags:
+    - zsh
+    - ohmyzsh
+
+- name: Ensure Oh My Zsh custom themes directory exists
+  ansible.builtin.file:
+    path: "{{ ohmyzsh_dir }}/custom/themes"
+    state: directory
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0755'
+  tags:
+    - zsh
+    - ohmyzsh
+    - themes
+
+- name: Clone Powerlevel10k theme
+  become: true
+  become_user: "{{ zsh_user }}"
+  ansible.builtin.git:
+    repo: "{{ p10k_repo }}"
+    dest: "{{ p10k_dir }}"
+    version: "{{ p10k_version }}"
+    update: false
+  tags:
+    - zsh
+    - ohmyzsh
+    - themes
+    - powerlevel10k
+
+- name: Ensure .zshrc exists
+  ansible.builtin.file:
+    path: "{{ zsh_user_home }}/.zshrc"
+    state: touch
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0644'
+    modification_time: preserve
+    access_time: preserve
+  tags:
+    - zsh
+    - configuration
+
+- name: Configure Powerlevel10k theme in .zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ zsh_user_home }}/.zshrc"
+    regexp: '^ZSH_THEME='
+    line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0644'
+  tags:
+    - zsh
+    - configuration
+    - themes
+    - powerlevel10k
+
+- name: Configure Oh My Zsh plugins in .zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ zsh_user_home }}/.zshrc"
+    regexp: '^plugins='
+    line: "plugins=({{ zsh_plugins | join(' ') }})"
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0644'
+  tags:
+    - zsh
+    - configuration
+    - plugins
+
+- name: Add direnv hook to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ zsh_user_home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - DIRENV"
+    block: |
+      # direnv hook
+      if command -v direnv &> /dev/null; then
+        eval "$(direnv hook zsh)"
+      fi
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0644'
+    create: false
+  tags:
+    - zsh
+    - configuration
+    - direnv
+
+- name: Add fzf configuration to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ zsh_user_home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - FZF"
+    block: |
+      # fzf configuration
+      if [ -f ~/.fzf.zsh ]; then
+        source ~/.fzf.zsh
+      fi
+
+      # fzf options
+      export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+      export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+      export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0644'
+    create: false
+  tags:
+    - zsh
+    - configuration
+    - fzf
+
+- name: Add custom aliases to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ zsh_user_home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - ALIASES"
+    block: |
+      # ---- ALIASES ----
+
+      # File listing aliases (lsd)
+      unalias ls 2>/dev/null || true
+      alias ls='lsd'
+      alias l='ls -lha'
+      alias la='ls -lhA'
+      alias ll='ls -lAFh'
+      alias lla='lsd -la'
+      alias lsa='ls -lha'
+      alias lt='lsd --tree'
+      alias c=clear
+
+      # Build tool aliases
+      alias mcb='mvn clean build'
+      alias gcb='./gradlew clean build'
+      alias m='make'
+
+      # System update and container aliases
+      alias tg='topgrade'
+      alias dcu="docker-compose up"
+
+      # GitHub Copilot aliases
+      alias copilot="gh copilot"
+      alias gcs="gh copilot suggest"
+      alias gce="gh copilot explain"
+
+      # Git workflow aliases
+      alias gc="git commit"
+      alias gs="git status"
+      alias gp="git push"
+      alias gl="git pull"
+      alias gco="git checkout"
+      alias gd="git diff"
+      alias gb="git branch"
+      alias ga="git add"
+      alias glo="git log --oneline --decorate --color"
+
+      # Node development aliases
+      alias ni="npm install"
+      alias nid="npm install --save-dev"
+      alias nig="npm install -g"
+      alias nr="npm run"
+      alias ns="npm start"
+      alias nt="npm test"
+      alias nb="npm run build"
+
+      # Vim/Neovim aliases
+      alias v='nvim'
+      alias vi='nvim'
+      alias vim='nvim'
+
+      # Gradle aliases
+      alias spot='./gradlew spotlessApply'
+
+      # Docker aliases
+      alias lad=lazydocker
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0644'
+    create: false
+  tags:
+    - zsh
+    - configuration
+    - aliases
+
+- name: Check current shell for user
+  ansible.builtin.command: "getent passwd {{ zsh_user }}"
+  register: user_shell_info
+  changed_when: false
+  tags:
+    - zsh
+    - shell
+
+- name: Set zsh as default shell for user
+  ansible.builtin.user:
+    name: "{{ zsh_user }}"
+    shell: /usr/bin/zsh
+  when:
+    - zsh_set_as_default_shell
+    - "'/usr/bin/zsh' not in user_shell_info.stdout"
+  tags:
+    - zsh
+    - shell
+
+- name: Display zsh installation info
+  ansible.builtin.debug:
+    msg: |
+      Zsh has been installed and configured successfully!
+
+      Configuration:
+      - Oh My Zsh: {{ ohmyzsh_dir }}
+      - Theme: Powerlevel10k
+      - Plugins: {{ zsh_plugins | join(', ') }}
+      - Default shell: {{ 'Yes' if zsh_set_as_default_shell else 'No' }}
+
+      Next steps:
+      1. Log out and log back in for shell change to take effect
+      2. Run 'p10k configure' to customize Powerlevel10k theme
+      3. All custom aliases have been added to ~/.zshrc
+
+      Aliases configured:
+      - File listing: ls, l, la, ll, lla, lsa, lt, c
+      - Build tools: mcb, gcb, m, spot
+      - System: tg, dcu, lad
+      - Git: gc, gs, gp, gl, gco, gd, gb, ga, glo
+      - Node: ni, nid, nig, nr, ns, nt, nb
+      - Editor: v, vi, vim
+      - Copilot: copilot, gcs, gce
+  tags:
+    - zsh

@@ -1,0 +1,256 @@
+---
+# tasks file for cursor
+
+- name: Install dependencies for Cursor
+  ansible.builtin.apt:
+    name:
+      - fuse
+      - libfuse2
+      - wget
+      - desktop-file-utils
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - cursor
+    - packages
+    - dependencies
+
+# AppImage Installation Method
+- name: Ensure installation directory exists
+  ansible.builtin.file:
+    path: "{{ cursor_install_dir }}"
+    state: directory
+    owner: "{{ cursor_user }}"
+    group: "{{ cursor_user }}"
+    mode: '0755'
+  when: cursor_install_method == 'appimage'
+  tags:
+    - cursor
+    - appimage
+
+- name: Check if Cursor AppImage already exists
+  ansible.builtin.stat:
+    path: "{{ cursor_appimage_path }}"
+  register: cursor_appimage_exists
+  when: cursor_install_method == 'appimage'
+  tags:
+    - cursor
+    - appimage
+
+- name: Download Cursor AppImage
+  ansible.builtin.get_url:
+    url: "{{ cursor_appimage_url }}"
+    dest: "{{ cursor_appimage_path }}"
+    owner: "{{ cursor_user }}"
+    group: "{{ cursor_user }}"
+    mode: '0755'
+    force: false
+  when:
+    - cursor_install_method == 'appimage'
+    - not cursor_appimage_exists.stat.exists
+  tags:
+    - cursor
+    - appimage
+    - download
+  # Note: Cursor AppImage downloaded from official source. Security relies on HTTPS.
+  # Cursor doesn't publish checksums for the latest version URL.
+
+- name: Ensure Cursor AppImage is executable
+  ansible.builtin.file:
+    path: "{{ cursor_appimage_path }}"
+    mode: '0755'
+    owner: "{{ cursor_user }}"
+    group: "{{ cursor_user }}"
+  when: cursor_install_method == 'appimage'
+  tags:
+    - cursor
+    - appimage
+
+# .deb Installation Method (alternative)
+- name: Check if Cursor is already installed (deb method)
+  ansible.builtin.command: dpkg-query -W -f='${Status}' cursor
+  register: cursor_deb_installed
+  changed_when: false
+  failed_when: false
+  when: cursor_install_method == 'deb'
+  tags:
+    - cursor
+    - deb
+
+- name: Download Cursor .deb package
+  ansible.builtin.get_url:
+    url: "{{ cursor_deb_url }}"
+    dest: "{{ cursor_deb_path }}"
+    mode: '0644'
+    force: false
+  when:
+    - cursor_install_method == 'deb'
+    - cursor_deb_installed.rc != 0 or 'install ok installed' not in cursor_deb_installed.stdout
+  tags:
+    - cursor
+    - deb
+    - download
+  # Note: Cursor .deb package downloaded from official source. Security relies on HTTPS.
+
+- name: Install Cursor from .deb package
+  ansible.builtin.apt:
+    deb: "{{ cursor_deb_path }}"
+    state: present
+  when:
+    - cursor_install_method == 'deb'
+    - cursor_deb_installed.rc != 0 or 'install ok installed' not in cursor_deb_installed.stdout
+  tags:
+    - cursor
+    - deb
+
+- name: Remove Cursor .deb package after installation
+  ansible.builtin.file:
+    path: "{{ cursor_deb_path }}"
+    state: absent
+  when: cursor_install_method == 'deb'
+  tags:
+    - cursor
+    - deb
+    - cleanup
+
+# Desktop Integration (for AppImage method)
+- name: Ensure applications directory exists
+  ansible.builtin.file:
+    path: "{{ cursor_user_home }}/.local/share/applications"
+    state: directory
+    owner: "{{ cursor_user }}"
+    group: "{{ cursor_user }}"
+    mode: '0755'
+  when: cursor_install_method == 'appimage'
+  tags:
+    - cursor
+    - desktop
+
+- name: Ensure icons directory exists
+  ansible.builtin.file:
+    path: "{{ cursor_user_home }}/.local/share/icons"
+    state: directory
+    owner: "{{ cursor_user }}"
+    group: "{{ cursor_user }}"
+    mode: '0755'
+  when: cursor_install_method == 'appimage'
+  tags:
+    - cursor
+    - desktop
+
+- name: Download Cursor icon
+  ansible.builtin.get_url:
+    url: "{{ cursor_icon_url }}"
+    dest: "{{ cursor_icon_path }}"
+    owner: "{{ cursor_user }}"
+    group: "{{ cursor_user }}"
+    mode: '0644'
+    force: false
+  when: cursor_install_method == 'appimage'
+  failed_when: false
+  tags:
+    - cursor
+    - desktop
+    - icon
+
+- name: Create Cursor desktop entry
+  ansible.builtin.copy:
+    dest: "{{ cursor_desktop_file_path }}"
+    owner: "{{ cursor_user }}"
+    group: "{{ cursor_user }}"
+    mode: '0644'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name={{ cursor_app_name }}
+      Comment={{ cursor_app_comment }}
+      Exec={{ cursor_appimage_path }} %F
+      Icon={{ cursor_icon_path }}
+      Terminal=false
+      Categories={{ cursor_app_categories }}
+      Keywords={{ cursor_app_keywords }}
+      StartupWMClass=cursor
+      StartupNotify=true
+      MimeType=text/plain;inode/directory;
+  when: cursor_install_method == 'appimage'
+  tags:
+    - cursor
+    - desktop
+
+- name: Update desktop database
+  ansible.builtin.command: update-desktop-database "{{ cursor_user_home }}/.local/share/applications"
+  become: true
+  become_user: "{{ cursor_user }}"
+  changed_when: false
+  when: cursor_install_method == 'appimage'
+  tags:
+    - cursor
+    - desktop
+
+- name: Display Cursor installation info
+  ansible.builtin.debug:
+    msg: |
+      Cursor AI has been installed successfully!
+
+      Installation details:
+      - Method: {{ cursor_install_method }}
+      {% if cursor_install_method == 'appimage' %}
+      - AppImage location: {{ cursor_appimage_path }}
+      - Desktop entry: {{ cursor_desktop_file_path }}
+      - Icon: {{ cursor_icon_path }}
+      {% else %}
+      - Installed via .deb package
+      - Binary location: /usr/bin/cursor
+      {% endif %}
+
+      Features:
+      - AI-powered code completion
+      - Chat with your codebase
+      - Natural language code editing
+      - Multi-file editing
+      - Terminal integration
+      - Git integration
+      - Built on VS Code architecture
+
+      Getting started:
+      {% if cursor_install_method == 'appimage' %}
+      1. Launch from application menu: Search for "Cursor"
+      2. Or run from terminal: {{ cursor_appimage_path }}
+      3. Or create an alias: alias cursor="{{ cursor_appimage_path }}"
+      {% else %}
+      1. Launch from application menu: Search for "Cursor"
+      2. Or run from terminal: cursor
+      {% endif %}
+
+      First-time setup:
+      1. Sign in with your Cursor account
+      2. Configure AI settings in Preferences
+      3. Set up your API keys if using custom models
+      4. Explore AI features: Cmd/Ctrl+K for AI commands
+
+      Useful keyboard shortcuts:
+      - Ctrl+K          : Open AI command palette
+      - Ctrl+L          : Chat with AI
+      - Ctrl+Shift+L    : Open chat sidebar
+      - Ctrl+I          : AI inline completion
+      - Ctrl+Shift+I    : AI code generation
+
+      Tips:
+      - Use natural language to describe what you want
+      - Ask questions about your codebase
+      - Request code explanations or refactoring
+      - Generate tests and documentation
+
+      {% if cursor_install_method == 'appimage' %}
+      Adding to PATH (optional):
+      Add this to your ~/.bashrc or ~/.zshrc:
+      export PATH="{{ cursor_install_dir }}:$PATH"
+      alias cursor="{{ cursor_appimage_path }}"
+      {% endif %}
+
+      Documentation: https://cursor.sh/docs
+      Community: https://forum.cursor.sh
+  tags:
+    - cursor

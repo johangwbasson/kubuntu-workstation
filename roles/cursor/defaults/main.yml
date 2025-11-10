@@ -1,0 +1,31 @@
+---
+# defaults file for cursor
+
+# User configuration
+cursor_user: "{{ username }}"
+cursor_user_home: "{{ user_home }}"
+
+# Installation method: 'appimage' or 'deb'
+cursor_install_method: appimage
+
+# AppImage installation
+cursor_appimage_url: https://downloader.cursor.sh/linux/appImage/x64
+cursor_install_dir: "{{ cursor_user_home }}/.local/bin"
+cursor_appimage_path: "{{ cursor_install_dir }}/cursor.AppImage"
+
+# .deb installation (alternative method)
+cursor_deb_url: https://downloader.cursor.sh/linux/deb/x64
+cursor_deb_path: /tmp/cursor.deb
+
+# Desktop integration
+cursor_desktop_file_path: "{{ cursor_user_home }}/.local/share/applications/cursor.desktop"
+cursor_icon_path: "{{ cursor_user_home }}/.local/share/icons/cursor.png"
+
+# Application details
+cursor_app_name: Cursor
+cursor_app_comment: AI-powered code editor
+cursor_app_categories: Development;IDE;TextEditor;
+cursor_app_keywords: cursor;ai;code;editor;ide;
+
+# Icon URL (Cursor's official icon)
+cursor_icon_url: https://cursor.sh/brand/icon.png

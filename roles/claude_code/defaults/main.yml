@@ -1,0 +1,22 @@
+---
+# defaults file for claude_code
+
+# User to install for (from vars.yml)
+claude_code_user: "{{ username }}"
+claude_code_user_home: "{{ user_home }}"
+
+# NVM configuration
+nvm_version: v0.40.1  # Pinned version for reproducibility
+nvm_install_url: "https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh"
+nvm_dir: "{{ claude_code_user_home }}/.nvm"
+
+# Node.js configuration
+nodejs_version: lts  # Can be: lts, stable, or specific version like "20.11.0"
+
+# Claude Code configuration
+claude_code_package: "@anthropic-ai/claude-code"
+claude_code_install_globally: true
+
+# Shell integration
+claude_code_configure_fish: true
+claude_code_configure_zsh: true

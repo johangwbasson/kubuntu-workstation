@@ -1,0 +1,237 @@
+---
+# tasks file for claude_code
+
+- name: Check if nvm is already installed
+  ansible.builtin.stat:
+    path: "{{ nvm_dir }}/nvm.sh"
+  register: nvm_installed
+  tags:
+    - claude_code
+    - nvm
+    - nodejs
+
+- name: Download nvm installer
+  ansible.builtin.get_url:
+    url: "{{ nvm_install_url }}"
+    dest: /tmp/nvm-install.sh
+    mode: '0755'
+    force: true
+  when: not nvm_installed.stat.exists
+  tags:
+    - claude_code
+    - nvm
+    - download
+  # Note: NVM installer is downloaded from GitHub official repository. Security relies on HTTPS.
+
+- name: Install nvm
+  become: true
+  become_user: "{{ claude_code_user }}"
+  ansible.builtin.command:
+    cmd: bash /tmp/nvm-install.sh
+  environment:
+    HOME: "{{ claude_code_user_home }}"
+  when: not nvm_installed.stat.exists
+  changed_when: true  # Task only runs when nvm directory doesn't exist
+  tags:
+    - claude_code
+    - nvm
+
+- name: Check if Node.js is installed via nvm
+  become: true
+  become_user: "{{ claude_code_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    source {{ nvm_dir }}/nvm.sh && nvm list
+  args:
+    executable: /bin/bash
+  register: nvm_node_list
+  changed_when: false
+  failed_when: false
+  tags:
+    - claude_code
+    - nodejs
+
+- name: Install Node.js LTS via nvm
+  become: true
+  become_user: "{{ claude_code_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    source {{ nvm_dir }}/nvm.sh && nvm install --lts && nvm use --lts && nvm alias default 'lts/*'
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "{{ claude_code_user_home }}"
+  when: "'lts' not in nvm_node_list.stdout"
+  register: node_install
+  changed_when: node_install.rc == 0
+  tags:
+    - claude_code
+    - nodejs
+
+- name: Get Node.js version
+  become: true
+  become_user: "{{ claude_code_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    source {{ nvm_dir }}/nvm.sh && node --version
+  args:
+    executable: /bin/bash
+  register: node_version
+  changed_when: false
+  tags:
+    - claude_code
+    - nodejs
+
+- name: Check if Claude Code is already installed
+  become: true
+  become_user: "{{ claude_code_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    source {{ nvm_dir }}/nvm.sh && npm list -g {{ claude_code_package }}
+  args:
+    executable: /bin/bash
+  register: claude_code_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - claude_code
+
+- name: Install Claude Code via npm
+  become: true
+  become_user: "{{ claude_code_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    source {{ nvm_dir }}/nvm.sh && npm install -g {{ claude_code_package }}
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "{{ claude_code_user_home }}"
+  when: claude_code_check.rc != 0
+  register: claude_code_install
+  changed_when: claude_code_install.rc == 0
+  tags:
+    - claude_code
+
+- name: Check if Fish shell is installed
+  ansible.builtin.command: which fish
+  register: fish_installed
+  changed_when: false
+  failed_when: false
+  when: claude_code_configure_fish
+  tags:
+    - claude_code
+    - fish
+    - shell
+
+- name: Configure nvm for Fish shell
+  ansible.builtin.blockinfile:
+    path: "{{ claude_code_user_home }}/.config/fish/config.fish"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - NVM"
+    block: |
+      # NVM configuration for Fish
+      set -gx NVM_DIR {{ nvm_dir }}
+
+      # Load nvm via bass (if available)
+      if type -q bass
+        function nvm
+          bass source {{ nvm_dir }}/nvm.sh --no-use ';' nvm $argv
+        end
+      end
+
+      # Add nvm's default node to PATH
+      if test -d {{ nvm_dir }}/versions/node
+        set -gx PATH {{ nvm_dir }}/versions/node/(ls {{ nvm_dir }}/versions/node | tail -1)/bin $PATH
+      end
+    owner: "{{ claude_code_user }}"
+    group: "{{ claude_code_user }}"
+    mode: '0644'
+    create: true
+  when:
+    - claude_code_configure_fish
+    - fish_installed.rc == 0
+  tags:
+    - claude_code
+    - fish
+    - shell
+
+- name: Check if Zsh is installed
+  ansible.builtin.command: which zsh
+  register: zsh_installed
+  changed_when: false
+  failed_when: false
+  when: claude_code_configure_zsh
+  tags:
+    - claude_code
+    - zsh
+    - shell
+
+- name: Configure nvm for Zsh shell
+  ansible.builtin.blockinfile:
+    path: "{{ claude_code_user_home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - NVM"
+    block: |
+      # NVM configuration
+      export NVM_DIR="{{ nvm_dir }}"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+    owner: "{{ claude_code_user }}"
+    group: "{{ claude_code_user }}"
+    mode: '0644'
+    create: false
+  when:
+    - claude_code_configure_zsh
+    - zsh_installed.rc == 0
+  tags:
+    - claude_code
+    - zsh
+    - shell
+
+- name: Display Claude Code installation info
+  ansible.builtin.debug:
+    msg: |
+      Claude Code has been installed successfully!
+
+      Installation details:
+      - NVM directory: {{ nvm_dir }}
+      - Node.js version: {{ node_version.stdout }}
+      - Claude Code package: {{ claude_code_package }}
+      - Installed globally: Yes
+
+      Shell configuration:
+      {% if claude_code_configure_fish and fish_installed.rc == 0 %}
+      - Fish: Configured in ~/.config/fish/config.fish
+      {% endif %}
+      {% if claude_code_configure_zsh and zsh_installed.rc == 0 %}
+      - Zsh: Configured in ~/.zshrc
+      {% endif %}
+
+      Getting started with Claude Code:
+      1. Open a new terminal session (to load nvm environment)
+      2. Verify installation: claude --version
+      3. Login to Claude: claude auth login
+      4. Start using Claude Code!
+
+      Useful commands:
+      - claude --help              : Show all available commands
+      - claude auth login          : Authenticate with Anthropic
+      - claude auth logout         : Sign out
+      - claude auth whoami         : Show current user
+      - node --version             : Show Node.js version
+      - npm --version              : Show npm version
+      - nvm list                   : List installed Node.js versions
+      - nvm use lts                : Switch to LTS version
+
+      Managing Node.js versions:
+      - nvm install <version>      : Install specific Node.js version
+      - nvm use <version>          : Use specific version
+      - nvm alias default <version>: Set default version
+
+      Note: You may need to restart your shell or run:
+      {% if claude_code_configure_fish and fish_installed.rc == 0 %}
+      - Fish: source ~/.config/fish/config.fish
+      {% endif %}
+      {% if claude_code_configure_zsh and zsh_installed.rc == 0 %}
+      - Zsh: source ~/.zshrc
+      {% endif %}
+  tags:
+    - claude_code

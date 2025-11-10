@@ -27,6 +27,7 @@
     - rust
     - fish_shell
     - zsh
+    - claude_code
     - vscode
     - sublime_text
     - neovim

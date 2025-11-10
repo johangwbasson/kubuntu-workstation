@@ -4,3 +4,27 @@ vscode_gpg_key_url: https://packages.microsoft.com/keys/microsoft.asc
 vscode_gpg_keyring_path: /usr/share/keyrings/packages.microsoft.gpg
 vscode_repo_url: https://packages.microsoft.com/repos/code
 vscode_package_state: present
+
+# User to install extensions for (from vars.yml)
+vscode_user: "{{ username }}"
+vscode_user_home: "{{ user_home }}"
+
+# Extensions to install
+vscode_extensions:
+  # AI Coding Assistants
+  - rooveterinaryinc.roo-cline  # Roo Code - AI coding assistant
+
+  # Keybindings
+  - k--kato.intellij-idea-keybindings  # IntelliJ IDEA Keybindings
+
+  # Language Support
+  - vscjava.vscode-java-pack  # Extension Pack for Java (includes multiple Java extensions)
+
+  # Additional recommended extensions (optional - can be disabled by setting vscode_install_recommended: false)
+  - eamodio.gitlens  # Enhanced Git integration
+  - hashicorp.terraform  # Terraform support
+  - ms-azuretools.vscode-docker  # Docker support
+  - ms-kubernetes-tools.vscode-kubernetes-tools  # Kubernetes support
+
+# Control whether to install recommended extensions
+vscode_install_recommended: true

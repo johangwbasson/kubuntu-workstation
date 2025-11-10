@@ -74,11 +74,8 @@
     - security
 
 - name: Convert and install Microsoft GPG key to keyring
-  ansible.builtin.shell: |
-    set -o pipefail
-    cat /tmp/microsoft-gpg-key.asc | gpg --dearmor --output {{ vscode_gpg_keyring_path }}
-  args:
-    executable: /bin/bash
+  ansible.builtin.command:
+    cmd: gpg --dearmor --output "{{ vscode_gpg_keyring_path }}" /tmp/microsoft-gpg-key.asc
     creates: "{{ vscode_gpg_keyring_path }}"
   tags:
     - vscode
@@ -134,6 +131,32 @@
     - development
     - editor
 
+- name: Get list of installed VS Code extensions
+  become: true
+  become_user: "{{ vscode_user }}"
+  ansible.builtin.command: code --list-extensions
+  register: vscode_installed_extensions
+  changed_when: false
+  failed_when: false
+  tags:
+    - vscode
+    - extensions
+
+- name: Install VS Code extensions
+  become: true
+  become_user: "{{ vscode_user }}"
+  ansible.builtin.command:
+    cmd: code --install-extension "{{ item }}" --force
+  loop: "{{ vscode_extensions }}"
+  when:
+    - vscode_install_recommended or item in ['rooveterinaryinc.roo-cline', 'k--kato.intellij-idea-keybindings', 'vscjava.vscode-java-pack']
+    - item not in vscode_installed_extensions.stdout_lines
+  register: vscode_extension_install
+  changed_when: "'was successfully installed' in vscode_extension_install.stdout or 'is already installed' not in vscode_extension_install.stdout"
+  tags:
+    - vscode
+    - extensions
+
 - name: Display VS Code installation info
   ansible.builtin.debug:
     msg: |
@@ -145,6 +168,17 @@
       - Git integration
       - Extension marketplace
 
+      Extensions automatically installed:
+      - Roo Code (rooveterinaryinc.roo-cline) - AI coding assistant
+      - IntelliJ IDEA Keybindings (k--kato.intellij-idea-keybindings)
+      - Extension Pack for Java (vscjava.vscode-java-pack)
+      {% if vscode_install_recommended %}
+      - GitLens (eamodio.gitlens) - Enhanced Git integration
+      - Terraform (hashicorp.terraform)
+      - Docker (ms-azuretools.vscode-docker)
+      - Kubernetes Tools (ms-kubernetes-tools.vscode-kubernetes-tools)
+      {% endif %}
+
       Useful commands:
       - code                      : Launch VS Code
       - code <file>               : Open file in VS Code
@@ -155,23 +189,21 @@
 
       Recommended first steps:
       1. Launch VS Code: code
-      2. Install extensions: Ctrl+Shift+X
+      2. Browse extensions: Ctrl+Shift+X
       3. Open settings: Ctrl+,
+      4. Configure Roo Code AI assistant
+      5. Java Development Kit detected automatically via Extension Pack
 
-      Popular extensions for your setup:
-      - ms-python.python                    : Python support
-      - ms-vscode.cpptools                  : C/C++ support
-      - redhat.java                         : Java support
-      - HashiCorp.terraform                 : Terraform support
-      - ms-kubernetes-tools.vscode-kubernetes-tools : Kubernetes
-      - ms-azuretools.vscode-docker         : Docker support
-      - eamodio.gitlens                     : Enhanced Git
-      - vscodevim.vim                       : Vim keybindings
-      - GitHub.copilot                      : AI pair programmer
+      Additional useful extensions:
+      - ms-python.python          : Python support
+      - ms-vscode.cpptools        : C/C++ support
+      - GitHub.copilot            : GitHub Copilot AI
+      - vscodevim.vim             : Vim keybindings
 
-      Install extensions from command line:
-      code --install-extension ms-python.python
-      code --install-extension HashiCorp.terraform
+      Manage extensions:
+      code --install-extension <extension-id>
+      code --uninstall-extension <extension-id>
+      code --list-extensions
 
       VS Code will receive automatic updates through APT!
   tags:

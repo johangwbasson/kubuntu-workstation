@@ -71,6 +71,14 @@ kde_applications:
     description: "RSS/Atom feed reader"
     category: productivity
 
+  - name: timeshift
+    description: "BTRFS Snapshosts"
+    category: productivity
+
+  - name: synaptic
+    description: "Package manager"
+    category: productivity
+
 # Package state
 kde_package_state: present
 

@@ -58,6 +58,7 @@ build_tools:
 
 package_management_tools:
   - flatpak
+  - apt-btrfs-snapshot
   # Note: dnf-plugins-core is Fedora-specific, not needed on Ubuntu
 
 core_utilities:

@@ -158,6 +158,9 @@
     path: "{{ zsh_user_home }}/.zshrc"
     marker: "# {mark} ANSIBLE MANAGED BLOCK - ALIASES"
     block: |
+
+      export PATH=$PATH:$HOME/.cargo/bin
+
       # ---- ALIASES ----
 
       # File listing aliases (lsd)

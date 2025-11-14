@@ -4,3 +4,12 @@ ollama_models:
   - qwen2.5-coder:latest  # Qwen 2.5 Coder model for code generation
 ollama_service_state: started
 ollama_service_enabled: true
+ollama_host: 0.0.0.0:11434  # Listen on all interfaces
+
+# Open WebUI configuration
+open_webui_enabled: true
+open_webui_image: ghcr.io/open-webui/open-webui:latest
+open_webui_container_name: open-webui
+open_webui_port: 7000
+open_webui_internal_port: 8080
+ollama_api_base_url: http://host.docker.internal:11434

@@ -47,7 +47,7 @@
     - snap_installed.rc == 0
     - snap_list.stdout_lines | length > 0
   register: snap_remove
-  changed_when: snap_remove.rc == 0
+  changed_when: snap_remove.rc == 0 and (snap_remove.stdout | length > 0 or snap_remove.stderr | length > 0)
   tags:
     - snap
     - remove-snap

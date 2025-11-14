@@ -81,13 +81,14 @@
     HOME: "{{ user_home }}"
   become: false
   register: xdg_update_result
-  changed_when: xdg_update_result.rc == 0
+  changed_when: false
   failed_when: xdg_update_result.rc not in [0, 1]
   tags:
     - home
     - xdg
-  # Note: xdg-user-dirs-update is idempotent but doesn't clearly indicate
-  # when changes are made. We mark it as changed when successful.
+  # Note: xdg-user-dirs-update is idempotent and doesn't provide output
+  # to indicate when changes are made. The directory creation tasks above
+  # already track meaningful changes, so we mark this as unchanged.
 
 - name: Display home directory setup info
   ansible.builtin.debug:

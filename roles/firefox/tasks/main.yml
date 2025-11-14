@@ -88,9 +88,19 @@
     - security
 
 - name: Download Mozilla Team PPA GPG key
-  ansible.builtin.shell: |
-    gpg --no-default-keyring --keyring "{{ firefox_ppa_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 0AB215679C571D1C8325275B9BDB3D89CE49EC21
-  args:
+  ansible.builtin.get_url:
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0AB215679C571D1C8325275B9BDB3D89CE49EC21
+    dest: /tmp/mozilla-ppa-key.asc
+    mode: '0644'
+  tags:
+    - packages
+    - firefox
+    - browser
+    - security
+
+- name: Convert and install Mozilla Team GPG key to keyring
+  ansible.builtin.command:
+    cmd: gpg --dearmor --output "{{ firefox_ppa_keyring_path }}" /tmp/mozilla-ppa-key.asc
     creates: "{{ firefox_ppa_keyring_path }}"
   tags:
     - packages
@@ -109,6 +119,16 @@
     - firefox
     - browser
     - security
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/mozilla-ppa-key.asc
+    state: absent
+  tags:
+    - packages
+    - firefox
+    - browser
+    - cleanup
 
 - name: Add Mozilla Team PPA with signed-by
   ansible.builtin.apt_repository:

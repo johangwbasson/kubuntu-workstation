@@ -177,36 +177,11 @@
     - llm
     - models
 
-- name: Check if Open WebUI container exists
-  ansible.builtin.command: docker ps -a -q -f name={{ open_webui_container_name }}
-  register: open_webui_container_exists
-  changed_when: false
-  failed_when: false
-  when: open_webui_enabled
-  tags:
-    - ollama
-    - ai
-    - llm
-    - docker
-    - open-webui
-
-- name: Check if Open WebUI container is running
-  ansible.builtin.command: docker ps -q -f name={{ open_webui_container_name }}
-  register: open_webui_container_running
-  changed_when: false
-  failed_when: false
-  when: open_webui_enabled
-  tags:
-    - ollama
-    - ai
-    - llm
-    - docker
-    - open-webui
-
 - name: Pull Open WebUI Docker image
-  ansible.builtin.command: docker pull {{ open_webui_image }}
-  register: open_webui_pull_result
-  changed_when: "'Downloaded newer image' in open_webui_pull_result.stdout or 'Pulling from' in open_webui_pull_result.stdout"
+  community.docker.docker_image:
+    name: "{{ open_webui_image }}"
+    source: pull
+    state: present
   when: open_webui_enabled
   tags:
     - ollama
@@ -215,43 +190,23 @@
     - docker
     - open-webui
 
-- name: Stop existing Open WebUI container if running
-  ansible.builtin.command: docker stop {{ open_webui_container_name }}
-  when:
-    - open_webui_enabled
-    - open_webui_container_running.stdout != ""
-  changed_when: true
-  tags:
-    - ollama
-    - ai
-    - llm
-    - docker
-    - open-webui
-
-- name: Remove existing Open WebUI container
-  ansible.builtin.command: docker rm {{ open_webui_container_name }}
-  when:
-    - open_webui_enabled
-    - open_webui_container_exists.stdout != ""
-  changed_when: true
-  tags:
-    - ollama
-    - ai
-    - llm
-    - docker
-    - open-webui
-
-- name: Run Open WebUI Docker container
-  ansible.builtin.command: >
-    docker run -d
-    -p {{ open_webui_port }}:{{ open_webui_internal_port }}
-    --name {{ open_webui_container_name }}
-    --add-host=host.docker.internal:host-gateway
-    -e OLLAMA_API_BASE_URL={{ ollama_api_base_url }}
-    --restart unless-stopped
-    {{ open_webui_image }}
+- name: Manage Open WebUI Docker container
+  community.docker.docker_container:
+    name: "{{ open_webui_container_name }}"
+    image: "{{ open_webui_image }}"
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "{{ open_webui_port }}:{{ open_webui_internal_port }}"
+    env:
+      OLLAMA_API_BASE_URL: "{{ ollama_api_base_url }}"
+    etc_hosts:
+      host.docker.internal: host-gateway
+    comparisons:
+      image: strict
+      env: strict
+      ports: strict
   when: open_webui_enabled
-  changed_when: true
   tags:
     - ollama
     - ai

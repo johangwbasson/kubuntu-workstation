@@ -1,0 +1,203 @@
+---
+# tasks file for ollama
+
+- name: Install dependencies for Ollama
+  ansible.builtin.apt:
+    name:
+      - curl
+      - systemd
+    state: present
+    update_cache: true
+  tags:
+    - ollama
+    - packages
+    - ai
+    - llm
+    - dependencies
+
+- name: Check if Ollama is already installed
+  ansible.builtin.command: ollama --version
+  register: ollama_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - ollama
+    - ai
+    - llm
+
+- name: Display current Ollama version if installed
+  ansible.builtin.debug:
+    msg: "Ollama already installed: {{ ollama_installed.stdout }}"
+  when: ollama_installed.rc == 0
+  tags:
+    - ollama
+    - ai
+    - llm
+
+- name: Download Ollama installation script
+  ansible.builtin.get_url:
+    url: https://ollama.com/install.sh
+    dest: /tmp/ollama_install.sh
+    mode: '0755'
+  when: ollama_installed.rc != 0
+  tags:
+    - ollama
+    - packages
+    - ai
+    - llm
+
+- name: Install Ollama
+  ansible.builtin.shell: |
+    set -o pipefail
+    /tmp/ollama_install.sh
+  args:
+    executable: /bin/bash
+    creates: /usr/local/bin/ollama
+  when: ollama_installed.rc != 0
+  tags:
+    - ollama
+    - packages
+    - ai
+    - llm
+
+- name: Clean up installation script
+  ansible.builtin.file:
+    path: /tmp/ollama_install.sh
+    state: absent
+  when: ollama_installed.rc != 0
+  tags:
+    - ollama
+    - packages
+    - ai
+    - llm
+    - cleanup
+
+- name: Ensure Ollama service is enabled and started
+  ansible.builtin.systemd:
+    name: ollama
+    state: "{{ ollama_service_state }}"
+    enabled: "{{ ollama_service_enabled }}"
+  tags:
+    - ollama
+    - ai
+    - llm
+    - service
+
+- name: Wait for Ollama service to be ready
+  ansible.builtin.wait_for:
+    host: localhost
+    port: 11434
+    delay: 2
+    timeout: 30
+  tags:
+    - ollama
+    - ai
+    - llm
+    - service
+
+- name: Check if models are already pulled
+  ansible.builtin.command: ollama list
+  register: ollama_list
+  changed_when: false
+  failed_when: false
+  tags:
+    - ollama
+    - ai
+    - llm
+    - models
+
+- name: Pull Ollama models
+  ansible.builtin.command: "ollama pull {{ item }}"
+  loop: "{{ ollama_models }}"
+  when: item not in ollama_list.stdout
+  register: ollama_pull_result
+  changed_when: "'success' in ollama_pull_result.stdout or ollama_pull_result.rc == 0"
+  tags:
+    - ollama
+    - ai
+    - llm
+    - models
+
+- name: Verify Ollama installation
+  ansible.builtin.command: ollama --version
+  register: ollama_version_output
+  changed_when: false
+  tags:
+    - ollama
+    - ai
+    - llm
+
+- name: List installed Ollama models
+  ansible.builtin.command: ollama list
+  register: ollama_models_list
+  changed_when: false
+  tags:
+    - ollama
+    - ai
+    - llm
+    - models
+
+- name: Display Ollama installation info
+  ansible.builtin.debug:
+    msg: |
+      Ollama has been installed successfully!
+
+      Version: {{ ollama_version_output.stdout }}
+
+      Installed models:
+      {{ ollama_models_list.stdout }}
+
+      Useful commands:
+      - ollama --version       : Show Ollama version
+      - ollama list            : List installed models
+      - ollama pull <model>    : Download a model
+      - ollama run <model>     : Run a model interactively
+      - ollama serve           : Start Ollama service
+      - ollama ps              : List running models
+      - ollama rm <model>      : Remove a model
+
+      Getting started:
+      1. Run a model interactively:
+         ollama run qwen2.5-coder:latest
+
+      2. Use Ollama with API (service running on port 11434):
+         curl http://localhost:11434/api/generate -d '{
+           "model": "qwen2.5-coder:latest",
+           "prompt": "Write a hello world function in Python"
+         }'
+
+      3. Pull additional models:
+         ollama pull llama3.2
+         ollama pull codellama
+         ollama pull mistral
+         ollama pull deepseek-coder
+
+      Available popular models:
+      - qwen2.5-coder       : Optimized for code generation
+      - codellama           : Meta's code-specialized model
+      - deepseek-coder      : DeepSeek's code model
+      - llama3.2            : Latest Llama model
+      - mistral             : Mistral AI's model
+      - phi3                : Microsoft's efficient model
+
+      Configuration:
+      - Service: systemctl status ollama
+      - Data directory: ~/.ollama
+      - API endpoint: http://localhost:11434
+
+      Tips:
+      - Use 'ollama run <model>' for interactive chat
+      - Press Ctrl+D to exit interactive mode
+      - Models are cached locally after first pull
+      - Check available models at https://ollama.com/library
+      - Integrate with your IDE using continue.dev or other extensions
+
+      Documentation:
+      - Official site: https://ollama.com
+      - GitHub: https://github.com/ollama/ollama
+      - Model library: https://ollama.com/library
+      - API docs: https://github.com/ollama/ollama/blob/main/docs/api.md
+  tags:
+    - ollama
+    - ai
+    - llm

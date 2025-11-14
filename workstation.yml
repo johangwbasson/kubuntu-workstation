@@ -56,3 +56,4 @@
     - clamav
     - ufw
     - zram
+    - ollama

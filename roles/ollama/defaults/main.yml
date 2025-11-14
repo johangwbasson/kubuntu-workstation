@@ -1,0 +1,6 @@
+---
+# defaults file for ollama
+ollama_models:
+  - qwen2.5-coder:latest  # Qwen 2.5 Coder model for code generation
+ollama_service_state: started
+ollama_service_enabled: true

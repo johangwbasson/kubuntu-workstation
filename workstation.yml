@@ -19,7 +19,10 @@
     - cli_tools
     - docker
     - lazydocker
+    - dbeaver
     - kubectl
+    - k9s
+    - helm
     - terraform
     - awscli
     - azure_cli

@@ -1,0 +1,16 @@
+---
+# defaults file for k9s
+
+# k9s version and download configuration
+# Using 'latest' will download the most recent release from GitHub
+k9s_version: latest
+k9s_github_repo: derailed/k9s
+k9s_download_url: "https://github.com/{{ k9s_github_repo }}/releases/latest/download/k9s_Linux_amd64.tar.gz"
+k9s_install_dir: /usr/local/bin
+k9s_binary_path: "{{ k9s_install_dir }}/k9s"
+k9s_download_path: /tmp/k9s.tar.gz
+k9s_extract_path: /tmp/k9s-extract
+
+# User configuration
+k9s_user: "{{ username }}"
+k9s_user_home: "{{ user_home }}"

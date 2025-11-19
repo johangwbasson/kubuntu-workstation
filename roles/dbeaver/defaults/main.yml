@@ -1,0 +1,13 @@
+---
+# defaults file for dbeaver
+
+# DBeaver repository configuration
+dbeaver_gpg_key_url: https://dbeaver.io/debs/dbeaver.gpg.key
+dbeaver_gpg_keyring_path: /usr/share/keyrings/dbeaver.gpg
+dbeaver_repo_url: https://dbeaver.io/debs/dbeaver-ce
+dbeaver_package_name: dbeaver-ce
+dbeaver_package_state: present
+
+# User configuration
+dbeaver_user: "{{ username }}"
+dbeaver_user_home: "{{ user_home }}"

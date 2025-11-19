@@ -1,0 +1,204 @@
+---
+# tasks file for k9s
+
+- name: Check if k9s is already installed
+  ansible.builtin.stat:
+    path: "{{ k9s_binary_path }}"
+  register: k9s_installed
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+
+- name: Create temporary extraction directory
+  ansible.builtin.file:
+    path: "{{ k9s_extract_path }}"
+    state: directory
+    mode: '0755'
+  when: not k9s_installed.stat.exists
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+
+- name: Download k9s latest release
+  ansible.builtin.get_url:
+    url: "{{ k9s_download_url }}"
+    dest: "{{ k9s_download_path }}"
+    mode: '0644'
+    force: false
+  when: not k9s_installed.stat.exists
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+    - download
+  # Note: k9s downloaded from official GitHub releases. Security relies on HTTPS.
+  # k9s doesn't publish checksums for the "latest" download URL.
+
+- name: Extract k9s archive
+  ansible.builtin.unarchive:
+    src: "{{ k9s_download_path }}"
+    dest: "{{ k9s_extract_path }}"
+    remote_src: true
+    creates: "{{ k9s_extract_path }}/k9s"
+  when: not k9s_installed.stat.exists
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+    - extract
+
+- name: Install k9s binary to system path
+  ansible.builtin.copy:
+    src: "{{ k9s_extract_path }}/k9s"
+    dest: "{{ k9s_binary_path }}"
+    mode: '0755'
+    owner: root
+    group: root
+    remote_src: true
+  when: not k9s_installed.stat.exists
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+
+- name: Remove k9s download archive
+  ansible.builtin.file:
+    path: "{{ k9s_download_path }}"
+    state: absent
+  when: not k9s_installed.stat.exists
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+    - cleanup
+
+- name: Remove k9s extraction directory
+  ansible.builtin.file:
+    path: "{{ k9s_extract_path }}"
+    state: absent
+  when: not k9s_installed.stat.exists
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+    - cleanup
+
+- name: Get k9s version
+  ansible.builtin.command: k9s version --short
+  register: k9s_version_output
+  changed_when: false
+  failed_when: false
+  tags:
+    - k9s
+    - kubernetes
+    - tools
+
+- name: Display k9s installation info
+  ansible.builtin.debug:
+    msg: |
+      k9s - Kubernetes CLI TUI has been installed successfully!
+
+      Installation details:
+      - Binary location: {{ k9s_binary_path }}
+      - Version: {{ k9s_version_output.stdout | default('N/A') }}
+      - Source: GitHub {{ k9s_github_repo }}
+
+      Features:
+      - Terminal UI for Kubernetes clusters
+      - Real-time monitoring of pods, deployments, services
+      - Interactive shell into pods
+      - View logs with live updates
+      - Port forwarding
+      - Resource editing
+      - YAML manifest viewing
+      - Context switching
+      - Namespace filtering
+      - Custom resource support
+
+      Prerequisites:
+      - kubectl must be installed (already installed via kubectl role)
+      - Valid kubeconfig file (~/.kube/config)
+      - Access to a Kubernetes cluster
+
+      Getting started:
+      1. Ensure you have a kubeconfig: kubectl config view
+      2. Launch k9s: k9s
+      3. Navigate using arrow keys and vim-style keys (h/j/k/l)
+      4. Press ? for help and keyboard shortcuts
+
+      Basic keyboard shortcuts:
+      - ?               : Show help
+      - Ctrl+A          : Show all available resources
+      - /               : Filter/search
+      - Esc             : Go back / clear filter
+      - d               : Describe selected resource
+      - e               : Edit selected resource
+      - l               : View logs
+      - s               : Shell into pod
+      - Ctrl+D          : Delete resource
+      - Ctrl+K          : Kill process
+      - :ctx            : Switch context
+      - :ns             : Switch namespace
+      - :po             : View pods
+      - :svc            : View services
+      - :deploy         : View deployments
+      - :q or Ctrl+C    : Quit
+
+      Common workflows:
+
+      View all pods:
+      1. Launch: k9s
+      2. Type: :po
+      3. Press Enter
+
+      View logs:
+      1. Navigate to a pod
+      2. Press: l
+      3. Use arrow keys to scroll
+
+      Shell into pod:
+      1. Navigate to a pod
+      2. Press: s
+      3. Select container if multiple
+
+      Port forwarding:
+      1. Navigate to a pod
+      2. Press: Shift+F
+      3. Enter local:remote ports
+
+      Integration with kubectl:
+      - k9s uses the same kubeconfig as kubectl
+      - Context and namespace are shared
+      - Switch context: kubectl config use-context <name>
+      - Or use k9s context switcher: :ctx
+
+      Connecting to clusters:
+      - Local (minikube): minikube start && k9s
+      - Local (kind): kind create cluster && k9s
+      - Cloud (AWS EKS): aws eks update-kubeconfig --name <cluster> && k9s
+      - Cloud (GKE): gcloud container clusters get-credentials <cluster> && k9s
+      - Cloud (AKS): az aks get-credentials --name <cluster> --resource-group <rg> && k9s
+
+      Configuration:
+      - Config file: ~/.config/k9s/config.yaml
+      - Customize with: k9s info
+      - Set refresh rate, colors, shortcuts
+
+      Tips:
+      - Use :pulse to monitor cluster health
+      - Use :xray to visualize pod relationships
+      - Use Ctrl+W to toggle wide output
+      - Use Ctrl+Z to show/hide zero-count resources
+
+      Documentation: https://k9scli.io/
+      GitHub: https://github.com/{{ k9s_github_repo }}
+      Cheat Sheet: https://k9scli.io/topics/commands/
+
+      Update k9s:
+      Re-run this role with: ansible-playbook workstation.yml --tags k9s
+  tags:
+    - k9s
+    - kubernetes
+    - tools

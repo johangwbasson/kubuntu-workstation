@@ -6,10 +6,139 @@
     src: files/.gitconfig.j2
     dest: '{{ user_home }}/.gitconfig'
     mode: '0644'
+  tags:
+    - git
+    - configuration
 
-- name: Enable cli completion
+- name: Enable bash completion
   ansible.builtin.blockinfile:
     path: '{{ user_bashrc }}'
     marker: '# {mark} ANSIBLE_GIT'
     block: |
       source /usr/share/bash-completion/completions/git
+  tags:
+    - git
+    - bash
+    - completion
+
+- name: Check if fish config file exists
+  ansible.builtin.stat:
+    path: "{{ user_home }}/.config/fish/config.fish"
+  register: fish_config_exists
+  tags:
+    - git
+    - fish
+    - completion
+
+- name: Enable fish git completion (built-in)
+  ansible.builtin.blockinfile:
+    path: "{{ user_home }}/.config/fish/config.fish"
+    marker: '# {mark} ANSIBLE_GIT_COMPLETION'
+    block: |
+      # Git completion is built-in for fish shell - no additional configuration needed
+      # Fish automatically loads completions from /usr/share/fish/vendor_completions.d/
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+    create: false
+  when: fish_config_exists.stat.exists
+  tags:
+    - git
+    - fish
+    - completion
+
+- name: Check if zsh is installed and configured
+  ansible.builtin.stat:
+    path: "{{ user_home }}/.zshrc"
+  register: zsh_config_exists
+  tags:
+    - git
+    - zsh
+    - completion
+
+- name: Check if oh-my-zsh is installed
+  ansible.builtin.stat:
+    path: "{{ user_home }}/.oh-my-zsh"
+  register: ohmyzsh_installed
+  tags:
+    - git
+    - zsh
+    - completion
+
+- name: Add note about git completion in zsh (oh-my-zsh)
+  ansible.builtin.blockinfile:
+    path: "{{ user_home }}/.zshrc"
+    marker: '# {mark} ANSIBLE_GIT_COMPLETION'
+    block: |
+      # Git completion and aliases are provided by oh-my-zsh git plugin
+      # The git plugin is enabled in the plugins=() line above
+      # See: https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/git
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+    create: false
+  when:
+    - zsh_config_exists.stat.exists
+    - ohmyzsh_installed.stat.exists
+  tags:
+    - git
+    - zsh
+    - completion
+
+- name: Enable zsh git completion (without oh-my-zsh)
+  ansible.builtin.blockinfile:
+    path: "{{ user_home }}/.zshrc"
+    marker: '# {mark} ANSIBLE_GIT_COMPLETION'
+    block: |
+      # Enable git completion for zsh (built-in)
+      autoload -Uz compinit && compinit
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+    create: false
+  when:
+    - zsh_config_exists.stat.exists
+    - not ohmyzsh_installed.stat.exists
+  tags:
+    - git
+    - zsh
+    - completion
+
+- name: Display git completion info
+  ansible.builtin.debug:
+    msg: |
+      Git completion has been configured for available shells!
+
+      Bash:
+      - Completion source: /usr/share/bash-completion/completions/git
+      - Configuration: {{ user_bashrc }}
+      - Status: Enabled via blockinfile
+
+      Fish:
+      - Completion: Built-in (automatic)
+      - Configuration: {{ user_home }}/.config/fish/config.fish
+      - Status: {{ 'Enabled (note added)' if fish_config_exists.stat.exists else 'Fish not installed' }}
+      - Fish automatically loads git completions from system paths
+
+      Zsh:
+      - Configuration: {{ user_home }}/.zshrc
+      - Status: {{ 'Enabled via oh-my-zsh git plugin' if (zsh_config_exists.stat.exists and ohmyzsh_installed.stat.exists) else ('Enabled via compinit' if zsh_config_exists.stat.exists else 'Zsh not installed') }}
+      {% if zsh_config_exists.stat.exists and ohmyzsh_installed.stat.exists %}
+      - Plugin: git (provides completions + aliases)
+      - Aliases: gst, gco, gd, gp, gl, etc. (see zsh plugin output)
+      {% endif %}
+
+      To activate completions:
+      - Bash: Restart shell or run: source {{ user_bashrc }}
+      - Fish: Completions active immediately (reload: source ~/.config/fish/config.fish)
+      - Zsh: Restart shell or run: source {{ user_home }}/.zshrc
+
+      Test git completion:
+      - Type: git che<TAB>
+      - Should complete to: git checkout
+
+      - Type: git checkout <TAB>
+      - Should show available branches
+  tags:
+    - git
+    - completion

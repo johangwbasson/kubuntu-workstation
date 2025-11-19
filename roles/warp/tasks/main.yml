@@ -15,45 +15,39 @@
     - packages
     - dependencies
 
-- name: Remove old Warp GPG key (if exists from previous installation)
+- name: Remove old Warp GPG keys (all possible locations)
   ansible.builtin.file:
-    path: /etc/apt/trusted.gpg.d/warpdotdev.gpg
+    path: "{{ item }}"
     state: absent
+  loop:
+    - /etc/apt/trusted.gpg.d/warpdotdev.gpg
+    - /etc/apt/keyrings/warpdotdev.gpg
+    - /usr/share/keyrings/warpdotdev.gpg
   tags:
     - warp
     - terminal
     - packages
     - cleanup
 
-- name: Check for conflicting Warp repository files
-  ansible.builtin.find:
-    paths: /etc/apt/sources.list.d
-    patterns:
-      - "warp*.list"
-      - "warpdotdev*.list"
-  register: warp_conflicting_repos
-  tags:
-    - warp
-    - terminal
-    - packages
-    - cleanup
-
-- name: Remove conflicting Warp repository configurations
+- name: Remove all Warp repository configurations
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: "{{ item }}"
     state: absent
-  loop: "{{ warp_conflicting_repos.files }}"
-  when: warp_conflicting_repos.matched > 0
+  loop:
+    - /etc/apt/sources.list.d/warp.list
+    - /etc/apt/sources.list.d/warpdotdev.list
+    - /etc/apt/sources.list.d/warp-terminal.list
+    - /etc/apt/sources.list.d/warp-terminal.sources
   tags:
     - warp
     - terminal
     - packages
     - cleanup
 
-- name: Update APT cache after removing old configurations
+- name: Update APT cache after cleanup
   ansible.builtin.apt:
     update_cache: true
-  when: warp_conflicting_repos.matched > 0
+    cache_valid_time: 0
   tags:
     - warp
     - terminal

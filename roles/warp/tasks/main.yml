@@ -42,6 +42,7 @@
     url: "{{ warp_gpg_key_url }}"
     dest: /tmp/warp-gpg-key.asc
     mode: '0644'
+  when: warp_keyring_check.rc != 0
   tags:
     - warp
     - terminal
@@ -52,6 +53,7 @@
   ansible.builtin.command:
     cmd: gpg --dearmor --output "{{ warp_gpg_keyring_path }}" /tmp/warp-gpg-key.asc
     creates: "{{ warp_gpg_keyring_path }}"
+  when: warp_keyring_check.rc != 0
   tags:
     - warp
     - terminal
@@ -74,6 +76,7 @@
   ansible.builtin.file:
     path: /tmp/warp-gpg-key.asc
     state: absent
+  when: warp_keyring_check.rc != 0
   tags:
     - warp
     - terminal

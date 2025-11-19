@@ -187,6 +187,61 @@
     - filesystem
     - verification
 
+- name: Ensure Docker data directory exists
+  ansible.builtin.file:
+    path: /var/lib/docker
+    state: directory
+    mode: '0711'
+    owner: root
+    group: root
+  tags:
+    - btrfs
+    - btrfs_optimize
+    - docker
+    - filesystem
+    - nocow
+
+- name: Check if Docker directory already has nocow attribute
+  ansible.builtin.shell: |
+    set -o pipefail
+    lsattr -d /var/lib/docker | awk '{print $1}' | grep -q 'C' && echo "HAS_NOCOW" || echo "NO_NOCOW"
+  args:
+    executable: /bin/bash
+  register: docker_nocow_check
+  changed_when: false
+  tags:
+    - btrfs
+    - btrfs_optimize
+    - docker
+    - filesystem
+    - nocow
+
+- name: Disable copy-on-write for Docker data directory
+  ansible.builtin.command: chattr +C /var/lib/docker
+  when: docker_nocow_check.stdout == "NO_NOCOW"
+  register: docker_nocow_set
+  changed_when: docker_nocow_check.stdout == "NO_NOCOW"
+  tags:
+    - btrfs
+    - btrfs_optimize
+    - docker
+    - filesystem
+    - nocow
+
+- name: Display Docker nocow optimization result  # noqa: no-handler
+  ansible.builtin.debug:
+    msg: |
+      ✓ Disabled copy-on-write (COW) for /var/lib/docker
+      This improves Docker performance on BTRFS filesystems
+      Note: Only new files will benefit from this setting
+  when: docker_nocow_set is changed
+  tags:
+    - btrfs
+    - btrfs_optimize
+    - docker
+    - filesystem
+    - nocow
+
 - name: Display fstab verification results
   ansible.builtin.debug:
     msg: |

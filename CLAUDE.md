@@ -30,6 +30,14 @@ You must adhere to these principles in every response.
         Add descriptive tags to all tasks (e.g., tags: [packages, new_tool]) to allow for granular execution and testing.
         Place default variables in roles/your_role/defaults/main.yml and non-default variables in roles/your_role/vars/main.yml.
 
+    Filesystem-Specific Optimizations:
+        BTRFS Copy-on-Write (COW): When installing tools that perform intensive I/O operations with many small writes (databases, containers, VMs), disable COW for their data directories using chattr +C.
+            Required directories: /var/lib/docker, /var/lib/postgresql, /var/lib/mysql, /var/lib/libvirt/images
+            COW must be disabled on empty directories before data is written
+            Use ansible.builtin.file to create the directory, then ansible.builtin.command with chattr +C
+            Always check current state with lsattr before applying changes (idempotency)
+        Role Execution Order: The btrfs_optimize role runs early in workstation.yml to ensure filesystem optimizations are applied before the tools that need them are installed.
+
 ## TASK EXECUTION FRAMEWORK
 
 When I ask for a new feature or a bug fix, you must follow this three-phase process in your response.

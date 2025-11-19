@@ -22,7 +22,6 @@
     - dbeaver
     - kubectl
     - k9s
-    - helm
     - terraform
     - awscli
     - azure_cli

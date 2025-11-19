@@ -8,5 +8,7 @@ java_packages:
   - openjdk-21-jre
   - openjdk-21-doc
   - openjdk-21-source
+  - maven
+  - gradle
 
 java_package_state: present

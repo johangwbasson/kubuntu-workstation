@@ -1,0 +1,30 @@
+---
+# defaults file for intellij
+
+# User configuration
+intellij_user: "{{ username }}"
+intellij_user_home: "{{ user_home }}"
+
+# IntelliJ IDEA edition: 'community' or 'ultimate'
+# Community Edition is free and open source
+# Ultimate Edition requires a license
+intellij_edition: community
+
+# Download URLs for latest versions
+intellij_download_urls:
+  community: https://download.jetbrains.com/idea/ideaIC.tar.gz
+  ultimate: https://download.jetbrains.com/idea/ideaIU.tar.gz
+
+# Installation paths
+intellij_install_base: "{{ intellij_user_home }}/Applications"
+intellij_install_dir: "{{ intellij_install_base }}/IntelliJ"
+intellij_download_path: /tmp/intellij-idea.tar.gz
+
+# Desktop integration
+intellij_desktop_file_path: "{{ intellij_user_home }}/.local/share/applications/intellij-idea.desktop"
+
+# Application details
+intellij_app_name: "IntelliJ IDEA"
+intellij_app_comment: "The most intelligent Java IDE"
+intellij_app_categories: "Development;IDE;Java;"
+intellij_app_keywords: "intellij;idea;java;kotlin;ide;jetbrains;development;"

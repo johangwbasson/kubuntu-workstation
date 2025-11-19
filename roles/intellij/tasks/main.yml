@@ -1,0 +1,288 @@
+---
+# tasks file for intellij
+
+- name: Ensure Applications base directory exists
+  ansible.builtin.file:
+    path: "{{ intellij_install_base }}"
+    state: directory
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    mode: '0755'
+  tags:
+    - intellij
+    - ide
+    - development
+    - directories
+
+- name: Ensure IntelliJ installation directory exists
+  ansible.builtin.file:
+    path: "{{ intellij_install_dir }}"
+    state: directory
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    mode: '0755'
+  tags:
+    - intellij
+    - ide
+    - development
+    - directories
+
+- name: Check if IntelliJ IDEA is already installed
+  ansible.builtin.find:
+    paths: "{{ intellij_install_dir }}"
+    patterns: "idea-*"
+    file_type: directory
+  register: intellij_existing_install
+  tags:
+    - intellij
+    - ide
+    - development
+
+- name: Download IntelliJ IDEA ({{ intellij_edition | upper }})
+  ansible.builtin.get_url:
+    url: "{{ intellij_download_urls[intellij_edition] }}"
+    dest: "{{ intellij_download_path }}"
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    mode: '0644'
+    force: false
+  when: intellij_existing_install.matched == 0
+  tags:
+    - intellij
+    - ide
+    - development
+    - download
+  # Note: IntelliJ IDEA downloaded from official JetBrains CDN. Security relies on HTTPS.
+  # JetBrains doesn't publish checksums for the "latest" download URLs.
+
+- name: Extract IntelliJ IDEA to Applications directory
+  ansible.builtin.unarchive:
+    src: "{{ intellij_download_path }}"
+    dest: "{{ intellij_install_dir }}"
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    remote_src: true
+    creates: "{{ intellij_install_dir }}/idea-*"
+  when: intellij_existing_install.matched == 0
+  tags:
+    - intellij
+    - ide
+    - development
+    - extract
+
+- name: Remove IntelliJ IDEA tar.gz after extraction
+  ansible.builtin.file:
+    path: "{{ intellij_download_path }}"
+    state: absent
+  when: intellij_existing_install.matched == 0
+  tags:
+    - intellij
+    - ide
+    - development
+    - cleanup
+
+- name: Find IntelliJ IDEA installation directory
+  ansible.builtin.find:
+    paths: "{{ intellij_install_dir }}"
+    patterns: "idea-*"
+    file_type: directory
+  register: intellij_install_path
+  tags:
+    - intellij
+    - ide
+    - development
+
+- name: Set IntelliJ IDEA actual installation path
+  ansible.builtin.set_fact:
+    intellij_actual_path: "{{ intellij_install_path.files[0].path }}"
+  when: intellij_install_path.matched > 0
+  tags:
+    - intellij
+    - ide
+    - development
+
+- name: Ensure local applications directory exists
+  ansible.builtin.file:
+    path: "{{ intellij_user_home }}/.local/share/applications"
+    state: directory
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    mode: '0755'
+  tags:
+    - intellij
+    - ide
+    - desktop
+
+- name: Create IntelliJ IDEA desktop entry
+  ansible.builtin.copy:
+    dest: "{{ intellij_desktop_file_path }}"
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    mode: '0644'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name={{ intellij_app_name }} {{ intellij_edition | title }}
+      Comment={{ intellij_app_comment }}
+      Exec={{ intellij_actual_path }}/bin/idea.sh %f
+      Icon={{ intellij_actual_path }}/bin/idea.svg
+      Terminal=false
+      Categories={{ intellij_app_categories }}
+      Keywords={{ intellij_app_keywords }}
+      StartupWMClass=jetbrains-idea
+      StartupNotify=true
+      MimeType=text/plain;text/x-java;
+  when: intellij_install_path.matched > 0
+  tags:
+    - intellij
+    - ide
+    - desktop
+
+- name: Update desktop database
+  ansible.builtin.command: update-desktop-database "{{ intellij_user_home }}/.local/share/applications"
+  become: true
+  become_user: "{{ intellij_user }}"
+  changed_when: false
+  when: intellij_install_path.matched > 0
+  tags:
+    - intellij
+    - ide
+    - desktop
+
+- name: Ensure user bin directory exists
+  ansible.builtin.file:
+    path: "{{ intellij_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    mode: '0755'
+  tags:
+    - intellij
+    - ide
+    - cli
+
+- name: Create IntelliJ IDEA CLI launcher symlink
+  ansible.builtin.file:
+    src: "{{ intellij_actual_path }}/bin/idea.sh"
+    dest: "{{ intellij_user_home }}/.local/bin/idea"
+    owner: "{{ intellij_user }}"
+    group: "{{ intellij_user }}"
+    state: link
+    force: true
+  when: intellij_install_path.matched > 0
+  tags:
+    - intellij
+    - ide
+    - cli
+
+- name: Display IntelliJ IDEA installation info
+  ansible.builtin.debug:
+    msg: |
+      IntelliJ IDEA {{ intellij_edition | upper }} has been installed successfully!
+
+      Installation details:
+      - Edition: {{ intellij_edition | title }} ({{ 'free and open source' if intellij_edition == 'community' else 'requires license' }})
+      - Installation path: {{ intellij_actual_path | default(intellij_install_dir) }}
+      - Desktop entry: {{ intellij_desktop_file_path }}
+      - CLI launcher: {{ intellij_user_home }}/.local/bin/idea
+      - Download source: download.jetbrains.com
+
+      Features:
+      {% if intellij_edition == 'community' %}
+      Community Edition includes:
+      - Java, Kotlin, Groovy, Scala support
+      - Android development
+      - Maven, Gradle, SBT build tools
+      - Git, SVN, Mercurial version control
+      - JUnit, TestNG testing frameworks
+      - Code completion, refactoring, debugging
+      - Database tools (limited)
+      {% else %}
+      Ultimate Edition includes everything in Community plus:
+      - Spring, Spring Boot, Micronaut frameworks
+      - Jakarta EE, Quarkus, Helidon
+      - JavaScript, TypeScript, React, Angular, Vue.js
+      - SQL, database tools, and profiler
+      - HTTP client, REST API development
+      - Docker, Kubernetes integration
+      - Python, Go, Ruby, PHP support
+      - And much more...
+      {% endif %}
+
+      Getting started:
+      1. Launch from application menu: Search for "IntelliJ IDEA"
+      2. Or run from terminal: idea
+      3. Or run directly: {{ intellij_actual_path | default(intellij_install_dir) }}/bin/idea.sh
+
+      First-time setup:
+      {% if intellij_edition == 'community' %}
+      1. Launch IntelliJ IDEA
+      2. Import settings (if upgrading) or start fresh
+      3. Choose your UI theme (Light/Dark/High Contrast)
+      4. Install additional plugins if needed
+      5. Open or create your first project
+      {% else %}
+      1. Launch IntelliJ IDEA
+      2. Activate your license (JetBrains Account, License Server, or Activation Code)
+      3. Import settings (if upgrading) or start fresh
+      4. Choose your UI theme
+      5. Install additional plugins if needed
+      6. Open or create your first project
+      {% endif %}
+
+      Useful keyboard shortcuts:
+      - Ctrl+Shift+A      : Find Action (search for any command)
+      - Ctrl+Space        : Basic code completion
+      - Ctrl+Shift+Space  : Smart code completion
+      - Ctrl+N            : Find class
+      - Ctrl+Shift+N      : Find file
+      - Alt+Enter         : Show intention actions and quick-fixes
+      - Ctrl+Alt+L        : Reformat code
+      - Shift+Shift       : Search everywhere
+      - Ctrl+/            : Comment/uncomment line
+      - Ctrl+Shift+F10    : Run current file/test
+      - Shift+F10         : Run
+      - Shift+F9          : Debug
+
+      Recommended plugins for Java/Kotlin development:
+      - Lombok Plugin (Java)
+      - CheckStyle-IDEA (code quality)
+      - SonarLint (code quality)
+      - Rainbow Brackets (code readability)
+      - GitToolBox (enhanced Git integration)
+      - .ignore (gitignore support)
+      - Docker (container development)
+      - Kubernetes (cloud deployment)
+
+      JDK Configuration:
+      - IntelliJ will use JAVA_HOME: {{ lookup('env', 'JAVA_HOME') | default('Not set - will auto-detect', true) }}
+      - You can configure multiple JDKs in: File → Project Structure → SDKs
+      - Download JDKs directly from IntelliJ: File → Project Structure → SDKs → + → Download JDK
+
+      Import existing projects:
+      - Maven: File → Open → select pom.xml
+      - Gradle: File → Open → select build.gradle or settings.gradle
+      - Git: File → New → Project from Version Control
+
+      CLI launcher usage:
+      - Open project: idea /path/to/project
+      - Open file: idea /path/to/file.java
+      - Diff files: idea diff file1.txt file2.txt
+      - Merge files: idea merge file1.txt file2.txt base.txt
+
+      Update IntelliJ IDEA:
+      - Use built-in updater: Help → Check for Updates
+      - Or re-run this role with: ansible-playbook workstation.yml --tags intellij --force
+
+      Documentation: https://www.jetbrains.com/help/idea/
+      Community: https://intellij-support.jetbrains.com/hc/en-us
+      Kotlin docs: https://kotlinlang.org/docs/home.html
+
+      Note: Add ~/.local/bin to PATH if not already present
+      Check with: echo $PATH | grep -q "$HOME/.local/bin" && echo "Already in PATH" || echo "Add to PATH"
+  when: intellij_install_path.matched > 0
+  tags:
+    - intellij
+    - ide
+    - development

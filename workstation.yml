@@ -25,6 +25,7 @@
     - azure_cli
     - gcloud_cli
     - java
+    - intellij
     - rust
     - fish_shell
     - zsh

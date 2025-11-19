@@ -1,0 +1,12 @@
+---
+# Ansible collections required for this playbook
+# Install with: ansible-galaxy collection install -r requirements.yml
+
+collections:
+  # Required by roles/kernel_tuning for sysctl and pam_limits modules
+  - name: ansible.posix
+    version: ">=1.5.4"
+
+  # Required by roles/kernel_tuning (pam_limits) and roles/ufw (ufw module)
+  - name: community.general
+    version: ">=8.0.0"

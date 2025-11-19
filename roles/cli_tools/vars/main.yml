@@ -9,7 +9,8 @@ vcs_tools:
 network_tools:
   - curl
   - wget
-  - openssh-client  # Ubuntu: openssh-client (not openssh-clients)
+  - openssh-client
+  - httpie
 
 json_yaml_tools:
   - jq

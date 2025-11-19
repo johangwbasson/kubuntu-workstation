@@ -32,6 +32,7 @@
     - rust
     - fish_shell
     - zsh
+    - warp
     - claude_code
     - cursor
     - vscode

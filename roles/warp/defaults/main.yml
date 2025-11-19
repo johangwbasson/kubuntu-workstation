@@ -1,0 +1,13 @@
+---
+# defaults file for warp
+
+# Warp repository configuration
+warp_gpg_key_url: https://releases.warp.dev/linux/keys/warp.asc
+warp_gpg_keyring_path: /usr/share/keyrings/warp-terminal.gpg
+warp_repo_url: https://releases.warp.dev/linux/deb
+warp_package_name: warp-terminal
+warp_package_state: present
+
+# User configuration
+warp_user: "{{ username }}"
+warp_user_home: "{{ user_home }}"

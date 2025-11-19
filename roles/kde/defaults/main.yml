@@ -96,3 +96,68 @@ kde_flatpak_apps:
 # Flatpak remote
 kde_flatpak_remote: flathub
 kde_flatpak_method: system
+
+# KDE Keyboard Shortcuts Configuration
+kde_shortcuts_enabled: true
+kde_shortcuts_user: "{{ username }}"
+kde_shortcuts_user_home: "{{ user_home }}"
+
+# Custom keyboard shortcuts for applications and scripts
+kde_custom_shortcuts:
+  # System/Utilities
+  - name: "Launch Yakuake"
+    key: "Super+Return"
+    command: "yakuake"
+    type: "application"
+
+  - name: "Launch KRunner"
+    key: "Super+P"
+    command: "krunner"
+    type: "application"
+
+  # Scripts (MEGA directory)
+  - name: "Capture Script"
+    key: "Super+J"
+    command: "{{ user_home }}/MEGA/Applications/capture.sh"
+    type: "script"
+
+  - name: "Report Script"
+    key: "Super+R"
+    command: "{{ user_home }}/MEGA/Applications/report.sh"
+    type: "script"
+
+  - name: "Get Key Script"
+    key: "Super+1"
+    command: "{{ user_home }}/MEGA/Applications/get-key.sh"
+    type: "script"
+
+  # Development Applications
+  - name: "Launch VS Code"
+    key: "Super+V"
+    command: "code"
+    type: "application"
+
+  - name: "Launch IntelliJ IDEA"
+    key: "Super+I"
+    command: "idea"
+    type: "application"
+
+  - name: "Launch Kwrite"
+    key: "Super+K"
+    command: "kwrite"
+    type: "application"
+
+  - name: "Launch Sublime Text"
+    key: "Super+S"
+    command: "subl"
+    type: "application"
+
+  - name: "Launch Obsidian"
+    key: "Super+O"
+    command: "obsidian"
+    type: "application"
+
+  - name: "Launch Chrome"
+    key: "Super+C"
+    command: "google-chrome"
+    type: "application"

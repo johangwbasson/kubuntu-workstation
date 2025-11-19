@@ -112,6 +112,62 @@
     - configuration
     - plugins
 
+- name: Install dependencies for SDKMAN
+  ansible.builtin.apt:
+    name:
+      - curl
+      - unzip
+      - zip
+    state: present
+  tags:
+    - zsh
+    - shell
+    - sdkman
+    - dependencies
+
+- name: Download SDKMAN installer
+  ansible.builtin.get_url:
+    url: "https://get.sdkman.io?rcupdate=false"
+    dest: /tmp/sdkman-install.sh
+    mode: '0755'
+    force: true
+  tags:
+    - zsh
+    - shell
+    - sdkman
+    - development
+
+- name: Install SDKMAN
+  become: true
+  become_user: "{{ zsh_user }}"
+  ansible.builtin.command:
+    cmd: bash /tmp/sdkman-install.sh
+    creates: "{{ zsh_user_home }}/.sdkman"
+  environment:
+    HOME: "{{ zsh_user_home }}"
+  tags:
+    - zsh
+    - shell
+    - sdkman
+    - development
+
+- name: Initialize SDKMAN in .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ zsh_user_home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - SDKMAN"
+    block: |
+      # SDKMAN initialization
+      export SDKMAN_DIR="$HOME/.sdkman"
+      [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+    owner: "{{ zsh_user }}"
+    group: "{{ zsh_user }}"
+    mode: '0644'
+    create: false
+  tags:
+    - zsh
+    - configuration
+    - sdkman
+
 - name: Add direnv hook to .zshrc
   ansible.builtin.blockinfile:
     path: "{{ zsh_user_home }}/.zshrc"
@@ -256,11 +312,19 @@
       - Theme: Powerlevel10k
       - Plugins: {{ zsh_plugins | join(', ') }}
       - Default shell: {{ 'Yes' if zsh_set_as_default_shell else 'No' }}
+      - SDKMAN: Installed at ~/.sdkman
+
+      Development tools:
+      - SDKMAN installed for managing Java, Kotlin, Gradle, Maven, etc.
+      - Use 'sdk list' to see available tools
+      - Use 'sdk install <candidate>' to install tools
+      - Example: sdk install kotlin, sdk install gradle
 
       Next steps:
       1. Log out and log back in for shell change to take effect
       2. Run 'p10k configure' to customize Powerlevel10k theme
       3. All custom aliases have been added to ~/.zshrc
+      4. SDKMAN is available - try: sdk version
 
       Aliases configured:
       - File listing: ls, l, la, ll, lla, lsa, lt, c
@@ -270,5 +334,17 @@
       - Node: ni, nid, nig, nr, ns, nt, nb
       - Editor: v, vi, vim
       - Copilot: copilot, gcs, gce
+
+      SDKMAN usage examples:
+      - List Java versions: sdk list java
+      - Install Java 21: sdk install java 21-open
+      - Install Kotlin: sdk install kotlin
+      - Install Gradle: sdk install gradle
+      - Install Maven: sdk install maven
+      - Set default version: sdk default java 21-open
+      - Use specific version: sdk use java 17-open
+
+      Note: SDKMAN manages multiple versions of development tools
+      Maven and Gradle from apt packages are also installed via java role
   tags:
     - zsh

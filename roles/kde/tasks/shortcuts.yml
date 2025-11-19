@@ -147,18 +147,18 @@
   become_user: "{{ kde_shortcuts_user }}"
   ansible.builtin.shell: |
     set -e
-    INDEX={{ item.0 + (current_data_count.stdout | int) + 1 }}
+    INDEX={{ shortcut_index + (current_data_count.stdout | int) + 1 }}
     GROUP="Data_${INDEX}"
 
     # Create the shortcut group
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Comment "{{ item.1.name }}"
+    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Comment "{{ item.name }}"
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Enabled true
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Name "{{ item.1.name }}"
+    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Name "{{ item.name }}"
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Type "SIMPLE_ACTION_DATA"
 
     # Create the action (command to run)
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Actions" --key ActionsCount 1
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Actions0" --key CommandURL "{{ item.1.command }}"
+    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Actions0" --key CommandURL "{{ item.command }}"
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Actions0" --key Type "COMMAND_URL"
 
     # Create the conditions
@@ -168,10 +168,12 @@
     # Create the trigger (keyboard shortcut)
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers" --key Comment "Simple_action"
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers" --key TriggersCount 1
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers0" --key Key "{{ item.1.key }}"
+    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers0" --key Key "{{ item.key }}"
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers0" --key Type "SHORTCUT"
     {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers0" --key Uuid "{$(uuidgen)}"
-  loop: "{{ shortcuts_to_create | default([]) | enumerate }}"
+  loop: "{{ shortcuts_to_create | default([]) }}"
+  loop_control:
+    index_var: shortcut_index
   when:
     - kde_version | int > 0
     - shortcuts_to_create is defined

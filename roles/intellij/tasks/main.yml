@@ -28,10 +28,8 @@
     - directories
 
 - name: Check if IntelliJ IDEA is already installed
-  ansible.builtin.find:
-    paths: "{{ intellij_install_dir }}"
-    patterns: "idea-*"
-    file_type: directory
+  ansible.builtin.stat:
+    path: "{{ intellij_install_dir }}/bin/idea.sh"
   register: intellij_existing_install
   tags:
     - intellij
@@ -45,7 +43,7 @@
     return_content: true
     status_code: 200
   register: intellij_version_info
-  when: intellij_existing_install.matched == 0
+  when: not intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -56,7 +54,7 @@
   ansible.builtin.set_fact:
     intellij_version: "{{ intellij_version_info.json.IIC[0].version if intellij_edition == 'community' else intellij_version_info.json.IIU[0].version }}"
     intellij_build: "{{ intellij_version_info.json.IIC[0].build if intellij_edition == 'community' else intellij_version_info.json.IIU[0].build }}"
-  when: intellij_existing_install.matched == 0
+  when: not intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -65,7 +63,7 @@
 - name: Construct IntelliJ IDEA download URL
   ansible.builtin.set_fact:
     intellij_download_url: "{{ intellij_download_base_url }}/idea{{ 'IC' if intellij_edition == 'community' else 'IU' }}-{{ intellij_version }}.tar.gz"
-  when: intellij_existing_install.matched == 0
+  when: not intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -78,7 +76,7 @@
       Version: {{ intellij_version | default('Already installed') }}
       Build: {{ intellij_build | default('N/A') }}
       Download URL: {{ intellij_download_url | default('Skipped - already installed') }}
-  when: intellij_existing_install.matched == 0
+  when: not intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -92,7 +90,7 @@
     group: "{{ intellij_user }}"
     mode: '0644'
     force: false
-  when: intellij_existing_install.matched == 0
+  when: not intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -108,8 +106,9 @@
     owner: "{{ intellij_user }}"
     group: "{{ intellij_user }}"
     remote_src: true
-    creates: "{{ intellij_install_dir }}/idea-*"
-  when: intellij_existing_install.matched == 0
+    extra_opts: ['--strip-components=1']
+    creates: "{{ intellij_install_dir }}/bin/idea.sh"
+  when: not intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -120,32 +119,12 @@
   ansible.builtin.file:
     path: "{{ intellij_download_path }}"
     state: absent
-  when: intellij_existing_install.matched == 0
+  when: not intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
     - development
     - cleanup
-
-- name: Find IntelliJ IDEA installation directory
-  ansible.builtin.find:
-    paths: "{{ intellij_install_dir }}"
-    patterns: "idea-*"
-    file_type: directory
-  register: intellij_install_path
-  tags:
-    - intellij
-    - ide
-    - development
-
-- name: Set IntelliJ IDEA actual installation path
-  ansible.builtin.set_fact:
-    intellij_actual_path: "{{ intellij_install_path.files[0].path }}"
-  when: intellij_install_path.matched > 0
-  tags:
-    - intellij
-    - ide
-    - development
 
 - name: Ensure local applications directory exists
   ansible.builtin.file:
@@ -171,15 +150,15 @@
       Type=Application
       Name={{ intellij_app_name }} {{ intellij_edition | title }}
       Comment={{ intellij_app_comment }}
-      Exec={{ intellij_actual_path }}/bin/idea.sh %f
-      Icon={{ intellij_actual_path }}/bin/idea.svg
+      Exec={{ intellij_install_dir }}/bin/idea.sh %f
+      Icon={{ intellij_install_dir }}/bin/idea.svg
       Terminal=false
       Categories={{ intellij_app_categories }}
       Keywords={{ intellij_app_keywords }}
       StartupWMClass=jetbrains-idea
       StartupNotify=true
       MimeType=text/plain;text/x-java;
-  when: intellij_install_path.matched > 0
+  when: intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -190,7 +169,7 @@
   become: true
   become_user: "{{ intellij_user }}"
   changed_when: false
-  when: intellij_install_path.matched > 0
+  when: intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -210,13 +189,13 @@
 
 - name: Create IntelliJ IDEA CLI launcher symlink
   ansible.builtin.file:
-    src: "{{ intellij_actual_path }}/bin/idea.sh"
+    src: "{{ intellij_install_dir }}/bin/idea.sh"
     dest: "{{ intellij_user_home }}/.local/bin/idea"
     owner: "{{ intellij_user }}"
     group: "{{ intellij_user }}"
     state: link
     force: true
-  when: intellij_install_path.matched > 0
+  when: intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide
@@ -231,7 +210,7 @@
       - Edition: {{ intellij_edition | title }} ({{ 'free and open source' if intellij_edition == 'community' else 'requires license' }})
       - Version: {{ intellij_version | default('See installation path') }}
       - Build: {{ intellij_build | default('N/A') }}
-      - Installation path: {{ intellij_actual_path | default(intellij_install_dir) }}
+      - Installation path: {{ intellij_install_dir }}
       - Desktop entry: {{ intellij_desktop_file_path }}
       - CLI launcher: {{ intellij_user_home }}/.local/bin/idea
       - Download source: download.jetbrains.com
@@ -261,7 +240,7 @@
       Getting started:
       1. Launch from application menu: Search for "IntelliJ IDEA"
       2. Or run from terminal: idea
-      3. Or run directly: {{ intellij_actual_path | default(intellij_install_dir) }}/bin/idea.sh
+      3. Or run directly: {{ intellij_install_dir }}/bin/idea.sh
 
       First-time setup:
       {% if intellij_edition == 'community' %}
@@ -329,7 +308,7 @@
 
       Note: Add ~/.local/bin to PATH if not already present
       Check with: echo $PATH | grep -q "$HOME/.local/bin" && echo "Already in PATH" || echo "Add to PATH"
-  when: intellij_install_path.matched > 0
+  when: intellij_existing_install.stat.exists
   tags:
     - intellij
     - ide

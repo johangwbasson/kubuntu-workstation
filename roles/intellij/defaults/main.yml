@@ -8,7 +8,7 @@ intellij_user_home: "{{ user_home }}"
 # IntelliJ IDEA edition: 'community' or 'ultimate'
 # Community Edition is free and open source
 # Ultimate Edition requires a license
-intellij_edition: community
+intellij_edition: ultimate
 
 # JetBrains data services API URLs to fetch latest version info
 intellij_api_urls:

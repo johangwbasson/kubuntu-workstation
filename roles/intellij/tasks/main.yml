@@ -38,9 +38,55 @@
     - ide
     - development
 
+- name: Fetch latest IntelliJ IDEA version info from JetBrains API
+  ansible.builtin.uri:
+    url: "{{ intellij_api_urls[intellij_edition] }}"
+    method: GET
+    return_content: true
+    status_code: 200
+  register: intellij_version_info
+  when: intellij_existing_install.matched == 0
+  tags:
+    - intellij
+    - ide
+    - development
+    - api
+
+- name: Extract IntelliJ IDEA version from API response
+  ansible.builtin.set_fact:
+    intellij_version: "{{ intellij_version_info.json.IIC[0].version if intellij_edition == 'community' else intellij_version_info.json.IIU[0].version }}"
+    intellij_build: "{{ intellij_version_info.json.IIC[0].build if intellij_edition == 'community' else intellij_version_info.json.IIU[0].build }}"
+  when: intellij_existing_install.matched == 0
+  tags:
+    - intellij
+    - ide
+    - development
+
+- name: Construct IntelliJ IDEA download URL
+  ansible.builtin.set_fact:
+    intellij_download_url: "{{ intellij_download_base_url }}/idea{{ 'IC' if intellij_edition == 'community' else 'IU' }}-{{ intellij_version }}.tar.gz"
+  when: intellij_existing_install.matched == 0
+  tags:
+    - intellij
+    - ide
+    - development
+
+- name: Display download information
+  ansible.builtin.debug:
+    msg: |
+      IntelliJ IDEA {{ intellij_edition | title }}
+      Version: {{ intellij_version | default('Already installed') }}
+      Build: {{ intellij_build | default('N/A') }}
+      Download URL: {{ intellij_download_url | default('Skipped - already installed') }}
+  when: intellij_existing_install.matched == 0
+  tags:
+    - intellij
+    - ide
+    - development
+
 - name: Download IntelliJ IDEA ({{ intellij_edition | upper }})
   ansible.builtin.get_url:
-    url: "{{ intellij_download_urls[intellij_edition] }}"
+    url: "{{ intellij_download_url }}"
     dest: "{{ intellij_download_path }}"
     owner: "{{ intellij_user }}"
     group: "{{ intellij_user }}"
@@ -53,7 +99,7 @@
     - development
     - download
   # Note: IntelliJ IDEA downloaded from official JetBrains CDN. Security relies on HTTPS.
-  # JetBrains doesn't publish checksums for the "latest" download URLs.
+  # Version fetched from official JetBrains data services API.
 
 - name: Extract IntelliJ IDEA to Applications directory
   ansible.builtin.unarchive:
@@ -183,6 +229,8 @@
 
       Installation details:
       - Edition: {{ intellij_edition | title }} ({{ 'free and open source' if intellij_edition == 'community' else 'requires license' }})
+      - Version: {{ intellij_version | default('See installation path') }}
+      - Build: {{ intellij_build | default('N/A') }}
       - Installation path: {{ intellij_actual_path | default(intellij_install_dir) }}
       - Desktop entry: {{ intellij_desktop_file_path }}
       - CLI launcher: {{ intellij_user_home }}/.local/bin/idea
@@ -273,7 +321,7 @@
 
       Update IntelliJ IDEA:
       - Use built-in updater: Help → Check for Updates
-      - Or re-run this role with: ansible-playbook workstation.yml --tags intellij --force
+      - Or re-run this role with: ansible-playbook workstation.yml --tags intellij
 
       Documentation: https://www.jetbrains.com/help/idea/
       Community: https://intellij-support.jetbrains.com/hc/en-us

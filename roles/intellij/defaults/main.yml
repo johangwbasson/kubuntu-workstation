@@ -10,10 +10,14 @@ intellij_user_home: "{{ user_home }}"
 # Ultimate Edition requires a license
 intellij_edition: community
 
-# Download URLs for latest versions
-intellij_download_urls:
-  community: https://download.jetbrains.com/idea/ideaIC.tar.gz
-  ultimate: https://download.jetbrains.com/idea/ideaIU.tar.gz
+# JetBrains data services API URLs to fetch latest version info
+intellij_api_urls:
+  community: "https://data.services.jetbrains.com/products/releases?code=IIC&latest=true&type=release"
+  ultimate: "https://data.services.jetbrains.com/products/releases?code=IIU&latest=true&type=release"
+
+# Download URL template (will be populated with version)
+# Example: https://download.jetbrains.com/idea/ideaIC-2024.1.tar.gz
+intellij_download_base_url: "https://download.jetbrains.com/idea"
 
 # Installation paths
 intellij_install_base: "{{ intellij_user_home }}/Applications"

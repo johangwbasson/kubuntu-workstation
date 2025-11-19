@@ -310,10 +310,10 @@
       4. Access via command palette (Ctrl+P)
 
       Example workflows for development:
-      - Git commit workflow: git add . && git commit -m "{{message}}"
-      - Maven build: mvn clean install -DskipTests={{skip}}
-      - Docker compose: docker-compose -f {{file}} up -d
-      - K8s deploy: kubectl apply -f {{manifest}} -n {{namespace}}
+      - Git commit workflow: git add . && git commit -m "{% raw %}{{message}}{% endraw %}"
+      - Maven build: mvn clean install -DskipTests={% raw %}{{skip}}{% endraw %}
+      - Docker compose: docker-compose -f {% raw %}{{file}}{% endraw %} up -d
+      - K8s deploy: kubectl apply -f {% raw %}{{manifest}}{% endraw %} -n {% raw %}{{namespace}}{% endraw %}
 
       Privacy and data:
       - Command history stored locally by default

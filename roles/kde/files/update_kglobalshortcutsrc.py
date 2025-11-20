@@ -44,9 +44,15 @@ def update_kglobalshortcutsrc(user_home):
 
     for idx, shortcut in enumerate(shortcuts, 1):
         uuid = f"{{00000000-0000-0000-0000-{idx:012d}}}"
-        key = shortcut.get('key', 'none')
+        key = shortcut.get('key', '')
+        # Convert Super to Meta for KDE compatibility
+        if key:
+            key = key.replace('Super', 'Meta')
+        else:
+            key = ''
         name = shortcut.get('name', 'Shortcut')
-        new_khotkeys.append(f"{uuid}={key},none,{name}")
+        # Format: {uuid}=key,,name
+        new_khotkeys.append(f"{uuid}={key},,{name}")
 
     # Add empty line after section
     new_khotkeys.append('')

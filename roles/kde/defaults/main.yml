@@ -144,13 +144,13 @@ kde_custom_shortcuts:
     type: "script"
 
   - name: "Get Key Script"
-    key: "Super+1"
+    key: "Super+A"
     command: "{{ user_home }}/MEGA/Applications/get-key.sh"
     type: "script"
 
   # Development Applications
   - name: "Launch VS Code"
-    key: "Super+V"
+    key: "Super+U"
     command: "code"
     type: "application"
 

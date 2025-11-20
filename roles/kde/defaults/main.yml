@@ -171,7 +171,7 @@ kde_custom_shortcuts:
 
   - name: "Launch Obsidian"
     key: "Super+O"
-    command: "obsidian"
+    command: "/opt/Obsidian/obsidian"
     type: "application"
 
   - name: "Launch Chrome"

@@ -45,6 +45,18 @@
     - ssh
     - security
 
+- name: Ensure SSH privilege separation directory exists
+  ansible.builtin.file:
+    path: /run/sshd
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  tags:
+    - openssh
+    - ssh
+    - security
+
 - name: Configure SSH server
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config

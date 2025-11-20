@@ -1,0 +1,51 @@
+# Fail2ban configuration file for SSH protection
+# Managed by Ansible - changes may be overwritten
+#
+# This file provides local jail configuration for fail2ban
+
+[DEFAULT]
+# Ban time (in seconds)
+bantime = {{ fail2ban_bantime }}
+
+# Time window to count failures (in seconds)
+findtime = {{ fail2ban_findtime }}
+
+# Number of failures before ban
+maxretry = {{ fail2ban_maxretry }}
+
+# Destination email for notifications
+destemail = {{ fail2ban_destemail }}
+
+# Sender email address
+sender = {{ fail2ban_sender }}
+
+# Action to take when banning
+# %(action_)s = ban only
+# %(action_mw)s = ban and send email with whois report
+# %(action_mwl)s = ban and send email with whois report and log lines
+action = {{ fail2ban_action }}
+
+# Backend to use
+backend = systemd
+
+[sshd]
+# Enable SSH jail
+enabled = {{ 'true' if fail2ban_ssh_enabled else 'false' }}
+
+# Port to monitor
+port = {{ fail2ban_ssh_port }}
+
+# Log path
+logpath = %(sshd_log)s
+
+# Filter to use
+filter = sshd
+
+# Maximum retry for SSH
+maxretry = {{ fail2ban_maxretry }}
+
+# Ban time for SSH (can override default)
+bantime = {{ fail2ban_bantime }}
+
+# Find time window
+findtime = {{ fail2ban_findtime }}

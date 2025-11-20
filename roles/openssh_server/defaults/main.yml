@@ -1,0 +1,30 @@
+---
+# defaults file for openssh_server
+
+# SSH server configuration
+ssh_port: 22
+ssh_permit_root_login: "no"
+ssh_password_authentication: "yes"  # Set to "no" after SSH keys are set up
+ssh_pubkey_authentication: "yes"
+ssh_permit_empty_passwords: "no"
+ssh_challenge_response_auth: "no"
+ssh_use_pam: "yes"
+ssh_x11_forwarding: "yes"
+ssh_print_motd: "no"
+ssh_accept_env: "LANG LC_*"
+ssh_subsystem: "sftp /usr/lib/openssh/sftp-server"
+ssh_max_auth_tries: 3
+ssh_max_sessions: 10
+ssh_client_alive_interval: 300
+ssh_client_alive_count_max: 2
+
+# Fail2ban configuration
+fail2ban_enabled: true
+fail2ban_ssh_enabled: true
+fail2ban_ssh_port: "{{ ssh_port }}"
+fail2ban_bantime: 3600  # 1 hour
+fail2ban_findtime: 600   # 10 minutes
+fail2ban_maxretry: 5
+fail2ban_destemail: "root@localhost"
+fail2ban_sender: "fail2ban@{{ ansible_fqdn }}"
+fail2ban_action: "%(action_mwl)s"  # mail with whois and log lines

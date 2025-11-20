@@ -90,6 +90,33 @@
   # to indicate when changes are made. The directory creation tasks above
   # already track meaningful changes, so we mark this as unchanged.
 
+- name: Ensure KDE user-places directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/.local/share"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+  tags:
+    - home
+    - kde
+    - dolphin
+    - configuration
+
+- name: Configure Dolphin places sidebar (KDE)
+  ansible.builtin.template:
+    src: user-places.xbel.j2
+    dest: "{{ user_home }}/.local/share/user-places.xbel"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+    backup: true
+  tags:
+    - home
+    - kde
+    - dolphin
+    - configuration
+
 - name: Display home directory setup info
   ansible.builtin.debug:
     msg: |
@@ -143,6 +170,12 @@
       ✓ Personal ~/bin for custom scripts
       ✓ Archive directory for long-term storage
       ✓ XDG compliance (applications will use correct paths)
+
+      Dolphin/KDE Configuration:
+      ──────────────────────────
+      ✓ Dolphin "Places" sidebar configured with correct paths
+      ✓ No more broken bookmarks to non-existent directories
+      ✓ Restart Dolphin to see the updated sidebar
 
       Note: Applications will now save files to these new locations.
       File manager and desktop will use the new structure automatically.

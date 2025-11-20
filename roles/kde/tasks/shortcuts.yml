@@ -94,6 +94,20 @@
   tags:
     - kde_shortcuts
 
+- name: Update khotkeysrc with command definitions
+  become: true
+  become_user: "{{ kde_shortcuts_user }}"
+  ansible.builtin.script: update_khotkeysrc.py "{{ kde_shortcuts_user_home }}"
+  args:
+    executable: /usr/bin/python3
+  when:
+    - kde_version | int > 0
+    - kde_shortcuts_enabled | default(true)
+  register: khotkeys_configured
+  changed_when: '"changed=true" in khotkeys_configured.stdout'
+  tags:
+    - kde_shortcuts
+
 - name: Clean up temporary shortcuts JSON file
   become: true
   become_user: "{{ kde_shortcuts_user }}"
@@ -114,8 +128,8 @@
     {{ kde_qdbus }} org.kde.kded6 /modules/khotkeys reread_configuration 2>/dev/null || true
   when:
     - kde_version | int > 0
-    - shortcuts_to_create is defined
-    - shortcuts_to_create | length > 0
+    - kde_custom_shortcuts is defined
+    - kde_custom_shortcuts | length > 0
   changed_when: false
   failed_when: false
   environment:

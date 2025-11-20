@@ -18,8 +18,7 @@
   register: kde_plasma_version_detect
   changed_when: false
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
     - detection
 
 - name: Set KDE version and tool names
@@ -29,8 +28,7 @@
     kde_read_config: "{{ 'kreadconfig6' if kde_plasma_version_detect.stdout | int >= 6 else 'kreadconfig5' }}"
     kde_qdbus: "{{ 'qdbus6' if kde_plasma_version_detect.stdout | int >= 6 else 'qdbus' }}"
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
 
 - name: Display detected KDE version
   ansible.builtin.debug:
@@ -39,8 +37,7 @@
       Using tools: {{ kde_write_config }}, {{ kde_read_config }}, {{ kde_qdbus }}
       Configuring {{ kde_custom_shortcuts | length }} custom shortcuts
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
 
 - name: Ensure KDE CLI tools are installed
   ansible.builtin.apt:
@@ -48,8 +45,7 @@
     state: present
   when: kde_version | int > 0
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
     - packages
 
 - name: Ensure khotkeys is installed (for custom shortcuts)
@@ -59,149 +55,29 @@
   when: kde_version | int > 0
   failed_when: false
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
     - packages
 
-- name: Check if khotkeysrc exists
-  ansible.builtin.stat:
-    path: "{{ kde_shortcuts_user_home }}/.config/khotkeysrc"
-  register: khotkeysrc_exists
-  tags:
-    - kde
-    - shortcuts
-
-- name: Create khotkeysrc if it doesn't exist
-  become: true
-  become_user: "{{ kde_shortcuts_user }}"
-  ansible.builtin.copy:
-    dest: "{{ kde_shortcuts_user_home }}/.config/khotkeysrc"
-    content: |
-      [Data]
-      DataCount=0
-
-      [Main]
-      Version=2
-    owner: "{{ kde_shortcuts_user }}"
-    group: "{{ kde_shortcuts_user }}"
-    mode: '0644'
-  when:
-    - kde_version | int > 0
-    - not khotkeysrc_exists.stat.exists
-  tags:
-    - kde
-    - shortcuts
-
-- name: Get current DataCount from khotkeysrc
-  become: true
-  become_user: "{{ kde_shortcuts_user }}"
-  ansible.builtin.shell: |
-    {{ kde_read_config }} --file khotkeysrc --group Data --key DataCount 2>/dev/null || echo "0"
-  register: current_data_count
-  changed_when: false
-  when: kde_version | int > 0
-  tags:
-    - kde
-    - shortcuts
-
-- name: Check which shortcuts already exist
-  become: true
-  become_user: "{{ kde_shortcuts_user }}"
-  ansible.builtin.shell: |
-    set -o pipefail
-    # Search all Data_* groups for shortcuts with matching key combination
-    grep -q "Key={{ item.key }}" "{{ kde_shortcuts_user_home }}/.config/khotkeysrc" 2>/dev/null && echo "EXISTS" || echo "MISSING"
-  args:
-    executable: /bin/bash
-  loop: "{{ kde_custom_shortcuts }}"
-  register: shortcut_exists_check
-  changed_when: false
-  when: kde_version | int > 0
-  tags:
-    - kde
-    - shortcuts
-
-- name: Set list of shortcuts to create
-  ansible.builtin.set_fact:
-    shortcuts_to_create: "{{ shortcuts_to_create | default([]) + [item.item] }}"
-  loop: "{{ shortcut_exists_check.results }}"
-  when:
-    - kde_version | int > 0
-    - item.stdout == "MISSING"
-  tags:
-    - kde
-    - shortcuts
-
-- name: Display shortcuts to be created
+- name: Note about khotkeysrc
   ansible.builtin.debug:
     msg: |
-      Shortcuts already configured: {{ (kde_custom_shortcuts | length) - (shortcuts_to_create | default([]) | length) }}
-      Shortcuts to create: {{ shortcuts_to_create | default([]) | length }}
-  when: kde_version | int > 0
+      KDE custom shortcuts are now managed through kglobalshortcutsrc instead of khotkeysrc.
+      The khotkeysrc file is system-managed and gets merged with system defaults,
+      making it unreliable for custom shortcut configuration.
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
 
-- name: Configure custom shortcuts in khotkeysrc
+- name: Update KDE global shortcuts (kglobalshortcutsrc) - khotkeys section
   become: true
   become_user: "{{ kde_shortcuts_user }}"
-  ansible.builtin.shell: |
-    set -e
-    INDEX={{ shortcut_index + (current_data_count.stdout | int) + 1 }}
-    GROUP="Data_${INDEX}"
-
-    # Create the shortcut group
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Comment "{{ item.name }}"
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Enabled true
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Name "{{ item.name }}"
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}" --key Type "SIMPLE_ACTION_DATA"
-
-    # Create the action (command to run)
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Actions" --key ActionsCount 1
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Actions0" --key CommandURL "{{ item.command }}"
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Actions0" --key Type "COMMAND_URL"
-
-    # Create the conditions
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Conditions" --key Comment ""
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Conditions" --key ConditionsCount 0
-
-    # Create the trigger (keyboard shortcut)
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers" --key Comment "Simple_action"
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers" --key TriggersCount 1
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers0" --key Key "{{ item.key }}"
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers0" --key Type "SHORTCUT"
-    {{ kde_write_config }} --file khotkeysrc --group "${GROUP}Triggers0" --key Uuid "{$(uuidgen)}"
-  loop: "{{ shortcuts_to_create | default([]) }}"
-  loop_control:
-    index_var: shortcut_index
+  ansible.builtin.script: update_kglobalshortcutsrc.py "{{ kde_shortcuts_user_home }}" "{{ kde_custom_shortcuts | to_json }}"
   when:
     - kde_version | int > 0
-    - shortcuts_to_create is defined
-    - shortcuts_to_create | length > 0
-  register: shortcuts_configured
-  changed_when: shortcuts_to_create | length > 0
+    - kde_shortcuts_enabled | default(true)
+  register: global_shortcuts_configured
+  changed_when: '"changed=true" in global_shortcuts_configured.stdout'
   tags:
-    - kde
-    - shortcuts
-
-- name: Update DataCount in khotkeysrc
-  become: true
-  become_user: "{{ kde_shortcuts_user }}"
-  ansible.builtin.command:
-    cmd: >
-      {{ kde_write_config }}
-      --file khotkeysrc
-      --group Data
-      --key DataCount
-      "{{ (current_data_count.stdout | int) + (shortcuts_to_create | default([]) | length) + 1 }}"
-  when:
-    - kde_version | int > 0
-    - shortcuts_to_create is defined
-    - shortcuts_to_create | length > 0
-  changed_when: shortcuts_to_create | length > 0
-  tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
 
 - name: Reload khotkeys configuration
   become: true
@@ -218,8 +94,7 @@
   environment:
     DISPLAY: ":0"
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts
 
 - name: Display KDE shortcuts configuration summary
   ansible.builtin.debug:
@@ -231,16 +106,16 @@
       Configured {{ kde_custom_shortcuts | length }} custom shortcuts:
 
       System/Utilities:
-      - Super + Enter     : Launch Yakuake (drop-down terminal)
+      - Super + Return    : Launch Yakuake (drop-down terminal)
       - Super + P         : Launch KRunner (application launcher)
 
       Scripts (MEGA directory):
       - Super + J         : Run capture.sh
       - Super + R         : Run report.sh
-      - Super + 1         : Run get-key.sh
+      - Super + A         : Run get-key.sh
 
       Development Applications:
-      - Super + V         : Launch VS Code
+      - Super + U         : Launch VS Code
       - Super + I         : Launch IntelliJ IDEA
       - Super + K         : Launch Kwrite
       - Super + S         : Launch Sublime Text
@@ -248,22 +123,22 @@
       - Super + C         : Launch Chrome
 
       Configuration:
-      - Config file: ~/.config/khotkeysrc
+      - Config file: ~/.config/kglobalshortcutsrc (khotkeys section)
       - Tools used: {{ kde_write_config }}, {{ kde_read_config }}
-      - Total shortcuts: {{ (current_data_count.stdout | int) + (shortcuts_to_create | default([]) | length) + 1 }}
-      - New shortcuts added this run: {{ shortcuts_to_create | default([]) | length }}
+      - Total shortcuts configured: {{ kde_custom_shortcuts | length }}
 
       To apply changes:
       - Shortcuts should be active immediately
       - If not working, log out and log back in
-      - Or restart khotkeys: {{ kde_qdbus }} org.kde.kded{{ kde_version }} /modules/khotkeys reread_configuration
+      - Or reload configuration: {{ kde_qdbus }} org.kde.kded{{ kde_version }} /modules/khotkeys reread_configuration
 
       Verify shortcuts:
       - Test each key combination
       - Check System Settings → Shortcuts → Custom Shortcuts
-      - View config: cat ~/.config/khotkeysrc
+      - View config section: grep -A {{ kde_custom_shortcuts | length }} "^\[khotkeys\]" ~/.config/kglobalshortcutsrc
 
       Notes:
+      - Shortcuts are stored in kglobalshortcutsrc (not khotkeysrc, which is system-managed)
       - Scripts are referenced from: ~/MEGA/Applications/
       - Make sure scripts are executable: chmod +x ~/MEGA/Applications/*.sh
       - Applications will launch if installed, otherwise shortcut does nothing
@@ -273,9 +148,9 @@
       - Check for conflicts with existing shortcuts
       - Verify applications are in PATH: which code, which idea, etc.
       - Check script permissions: ls -la ~/MEGA/Applications/
+      - Verify kglobalshortcutsrc has correct entries: grep "00000000-0000" ~/.config/kglobalshortcutsrc
 
       ================================================================================
   when: kde_version | int > 0
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts

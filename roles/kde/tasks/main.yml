@@ -518,5 +518,4 @@
   ansible.builtin.include_tasks: shortcuts.yml
   when: kde_shortcuts_enabled | default(true)
   tags:
-    - kde
-    - shortcuts
+    - kde_shortcuts

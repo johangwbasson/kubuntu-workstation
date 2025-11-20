@@ -1,0 +1,34 @@
+[Data]
+DataCount={{ kde_custom_shortcuts | length }}
+
+[Main]
+Version=2
+
+{% for shortcut in kde_custom_shortcuts %}
+[Data_{{ loop.index }}]
+Comment={{ shortcut.name }}
+Enabled=true
+Name={{ shortcut.name }}
+Type=SIMPLE_ACTION_DATA
+
+[Data_{{ loop.index }}Actions]
+ActionsCount=1
+
+[Data_{{ loop.index }}Actions0]
+CommandURL={{ shortcut.command }}
+Type=COMMAND_URL
+
+[Data_{{ loop.index }}Conditions]
+Comment=
+ConditionsCount=0
+
+[Data_{{ loop.index }}Triggers]
+Comment=Simple_action
+TriggersCount=1
+
+[Data_{{ loop.index }}Triggers0]
+Key={{ shortcut.key }}
+Type=SHORTCUT
+Uuid={00000000-0000-0000-0000-00000000{{ "%04d" | format(loop.index) }}}
+
+{% endfor %}

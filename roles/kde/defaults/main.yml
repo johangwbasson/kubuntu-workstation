@@ -79,6 +79,19 @@ kde_applications:
     description: "Package manager"
     category: productivity
 
+  # PIM (Personal Information Management)
+  - name: merkuro
+    description: "KDE calendar and contacts application"
+    category: pim
+
+  - name: kdepim-addons
+    description: "Addons for KDE PIM applications"
+    category: pim
+
+  - name: plasma-widgets-addons
+    description: "Additional Plasma widgets (includes Event Calendar)"
+    category: utilities
+
 # Package state
 kde_package_state: present
 
@@ -96,6 +109,13 @@ kde_flatpak_apps:
 # Flatpak remote
 kde_flatpak_remote: flathub
 kde_flatpak_method: system
+
+# Betterbird configuration
+betterbird_version: "128.6.0esr"
+betterbird_download_url: "https://www.betterbird.eu/downloads/LinuxArchive/betterbird-{{ betterbird_version }}-bb45.en-US.linux-x86_64.tar.bz2"
+betterbird_install_dir: "{{ user_home }}/Applications/Betterbird"
+betterbird_download_path: "/tmp/betterbird.tar.bz2"
+betterbird_desktop_file_path: "{{ user_home }}/.local/share/applications/betterbird.desktop"
 
 # KDE Keyboard Shortcuts Configuration
 kde_shortcuts_enabled: true

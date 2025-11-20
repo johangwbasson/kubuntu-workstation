@@ -383,6 +383,85 @@
         • Configure refresh intervals per feed
 
       ═══════════════════════════════════════════════════════════════
+      PIM (PERSONAL INFORMATION MANAGEMENT)
+      ═══════════════════════════════════════════════════════════════
+
+      Merkuro
+      ───────
+      Description: KDE calendar and contacts application
+      Launch: merkuro or search "Merkuro" in application menu
+      Features:
+        • Calendar management (events, tasks, reminders)
+        • Contact management
+        • Multiple calendar support (local, CalDAV, Google Calendar)
+        • Email integration (with Betterbird or KMail)
+        • Task management
+        • Recurrence patterns for events
+      Usage:
+        • Add event: Click on calendar date
+        • Add contact: Contacts → New Contact
+        • Sync calendars: Settings → Add Calendar Account
+        • Import/export: File → Import/Export
+      Integration:
+        • Works with Akonadi for data backend
+        • Syncs with cloud services (Google, Nextcloud, etc.)
+        • Integrates with notification system
+
+      Betterbird
+      ──────────
+      Description: Enhanced Thunderbird fork for email
+      Launch: betterbird or search "Betterbird" in application menu
+      Location: {{ betterbird_install_dir }}
+      Features:
+        • Improved performance over Thunderbird
+        • Better handling of large mailboxes
+        • Enhanced search and threading
+        • Multiple account support (IMAP, POP3, Exchange)
+        • OpenPGP encryption built-in
+        • Calendar integration (works with Merkuro)
+        • RSS feed reader
+        • Add-on support
+      Usage:
+        • Add account: Account Settings → Add Mail Account
+        • Import from Thunderbird: Automatically detected
+        • Compose: Ctrl+N
+        • Search: Ctrl+K
+      Tips:
+        • Use filters for automatic email organization
+        • Enable encryption for sensitive communications
+        • Configure unified folders for multiple accounts
+
+      KDE PIM Addons
+      ──────────────
+      Additional plugins and extensions for KDE PIM applications
+      Includes:
+        • Import/export plugins
+        • Additional protocols and formats
+        • Enhanced functionality for Merkuro
+        • Grammar checking
+        • Anti-spam tools
+
+      ═══════════════════════════════════════════════════════════════
+      PLASMA WIDGETS
+      ═══════════════════════════════════════════════════════════════
+
+      Event Calendar Widget
+      ────────────────────
+      Description: Plasma applet showing calendar and upcoming events
+      Installation: Included in plasma-widgets-addons package
+      Usage:
+        • Right-click on desktop/panel → Add Widgets
+        • Search for "Event Calendar"
+        • Drag to desktop or panel
+        • Configure to show events from Merkuro calendars
+      Features:
+        • Shows upcoming events
+        • Month view calendar
+        • Quick event creation
+        • Integrates with Akonadi/Merkuro
+        • Customizable appearance
+
+      ═══════════════════════════════════════════════════════════════
       SYSTEM INTEGRATION
       ═══════════════════════════════════════════════════════════════
 
@@ -419,9 +498,12 @@
       Security:         kgpg, kleopatra
       File Management:  krusader
       Productivity:     zanshin, akregator
+      PIM:              merkuro, betterbird, kdepim-addons
+      Plasma Widgets:   plasma-widgets-addons (Event Calendar)
 
       Total APT applications: {{ kde_applications | length }}
       Total Flatpak applications: {{ kde_flatpak_apps | length }}
+      Additional installations: Betterbird (tarball)
 
       ═══════════════════════════════════════════════════════════════
 
@@ -438,3 +520,11 @@
   tags:
     - kde
     - shortcuts
+
+# Include Betterbird installation
+- name: Install Betterbird email client
+  ansible.builtin.include_tasks: betterbird.yml
+  tags:
+    - kde
+    - betterbird
+    - email

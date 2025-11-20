@@ -1,0 +1,186 @@
+---
+# Betterbird installation tasks
+
+- name: Ensure Applications base directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/Applications"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+  tags:
+    - kde
+    - betterbird
+    - email
+    - directories
+
+- name: Ensure Betterbird installation directory exists
+  ansible.builtin.file:
+    path: "{{ betterbird_install_dir }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+  tags:
+    - kde
+    - betterbird
+    - email
+    - directories
+
+- name: Check if Betterbird is already installed
+  ansible.builtin.stat:
+    path: "{{ betterbird_install_dir }}/betterbird"
+  register: betterbird_existing_install
+  tags:
+    - kde
+    - betterbird
+    - email
+
+- name: Download Betterbird
+  ansible.builtin.get_url:
+    url: "{{ betterbird_download_url }}"
+    dest: "{{ betterbird_download_path }}"
+    mode: '0644'
+    force: false
+  when: not betterbird_existing_install.stat.exists
+  tags:
+    - kde
+    - betterbird
+    - email
+    - download
+
+- name: Extract Betterbird to Applications directory
+  ansible.builtin.unarchive:
+    src: "{{ betterbird_download_path }}"
+    dest: "{{ betterbird_install_dir }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    remote_src: true
+    extra_opts: ['--strip-components=1']
+    creates: "{{ betterbird_install_dir }}/betterbird"
+  when: not betterbird_existing_install.stat.exists
+  tags:
+    - kde
+    - betterbird
+    - email
+    - extract
+
+- name: Remove Betterbird tar.bz2 after extraction
+  ansible.builtin.file:
+    path: "{{ betterbird_download_path }}"
+    state: absent
+  when: not betterbird_existing_install.stat.exists
+  tags:
+    - kde
+    - betterbird
+    - email
+    - cleanup
+
+- name: Ensure local applications directory exists
+  ansible.builtin.file:
+    path: "{{ user_home }}/.local/share/applications"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+  tags:
+    - kde
+    - betterbird
+    - email
+    - desktop
+
+- name: Create Betterbird desktop entry
+  ansible.builtin.copy:
+    dest: "{{ betterbird_desktop_file_path }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Betterbird
+      Comment=Betterbird Email Client (Thunderbird Fork)
+      Exec={{ betterbird_install_dir }}/betterbird %u
+      Icon={{ betterbird_install_dir }}/chrome/icons/default/default256.png
+      Terminal=false
+      Categories=Network;Email;
+      Keywords=email;mail;thunderbird;betterbird;
+      StartupNotify=true
+      MimeType=message/rfc822;x-scheme-handler/mailto;application/x-xpinstall;
+      StartupWMClass=betterbird
+  when: betterbird_existing_install.stat.exists or not betterbird_existing_install.stat.exists
+  tags:
+    - kde
+    - betterbird
+    - email
+    - desktop
+
+- name: Update desktop database
+  ansible.builtin.command: update-desktop-database "{{ user_home }}/.local/share/applications"
+  become: true
+  become_user: "{{ username }}"
+  changed_when: false
+  when: betterbird_existing_install.stat.exists or not betterbird_existing_install.stat.exists
+  tags:
+    - kde
+    - betterbird
+    - email
+    - desktop
+
+- name: Display Betterbird installation info
+  ansible.builtin.debug:
+    msg: |
+      Betterbird has been installed successfully!
+
+      Installation details:
+      - Installation path: {{ betterbird_install_dir }}
+      - Desktop entry: {{ betterbird_desktop_file_path }}
+      - Binary: {{ betterbird_install_dir }}/betterbird
+
+      About Betterbird:
+      Betterbird is a fork of Mozilla Thunderbird with additional features,
+      bug fixes, and improved performance. It maintains compatibility with
+      Thunderbird while offering enhancements.
+
+      Key improvements over Thunderbird:
+      - Better performance and stability
+      - Additional features and bug fixes
+      - Improved search functionality
+      - Enhanced message threading
+      - Better handling of large mailboxes
+      - More configuration options
+
+      Getting started:
+      1. Launch from application menu: Search for "Betterbird"
+      2. Or run from terminal: {{ betterbird_install_dir }}/betterbird
+      3. Import settings from Thunderbird (if upgrading)
+      4. Set up your email accounts
+
+      Features:
+      - Multiple email accounts (IMAP, POP3, Exchange)
+      - Calendar and task management (when used with Merkuro)
+      - RSS feed reader
+      - Chat (IRC, XMPP, Matrix)
+      - OpenPGP encryption support
+      - Email filters and rules
+      - Address book
+      - Full-text search
+      - Add-ons and extensions
+
+      Integration with KDE:
+      - Works seamlessly with Plasma desktop
+      - Uses KDE file dialogs
+      - Integrates with KDE notifications
+      - Can work alongside Merkuro for PIM functionality
+
+      Update Betterbird:
+      - Built-in updater: Help → About Betterbird
+      - Or re-run this role: ansible-playbook workstation.yml --tags kde
+
+      Documentation: https://www.betterbird.eu/
+      Support: https://www.betterbird.eu/support/
+  tags:
+    - kde
+    - betterbird
+    - email

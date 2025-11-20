@@ -118,6 +118,66 @@
     - development
     - editor
 
+- name: Ensure Sublime Text Packages/User directory exists
+  ansible.builtin.file:
+    path: "{{ sublime_config_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - configuration
+
+- name: Configure Package Control with packages to install
+  ansible.builtin.copy:
+    content: |
+      {
+        "bootstrapped": true,
+        "installed_packages":
+        [
+      {{ sublime_packages | to_nice_json(indent=2) | indent(4) }}
+        ]
+      }
+    dest: "{{ sublime_config_dir }}/Package Control.sublime-settings"
+    mode: '0644'
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - configuration
+
+- name: Configure Sublime Text preferences
+  ansible.builtin.copy:
+    content: |
+      {
+        "font_face": "{{ sublime_font_face }}",
+        "font_size": {{ sublime_font_size }},
+        "ignored_packages":
+        [
+          "Vintage"
+        ]
+      }
+    dest: "{{ sublime_config_dir }}/Preferences.sublime-settings"
+    mode: '0644'
+    owner: "{{ ansible_env.USER }}"
+    group: "{{ ansible_env.USER }}"
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - configuration
+
 - name: Display Sublime Text installation info
   ansible.builtin.debug:
     msg: |
@@ -129,6 +189,13 @@
       - Command palette
       - Multiple cursors
       - Goto Anything
+
+      Configured packages (will auto-install on first launch):
+      {{ sublime_packages | to_nice_yaml }}
+
+      Font configuration:
+      - Font: {{ sublime_font_face }}
+      - Size: {{ sublime_font_size }}
 
       Useful commands:
       - subl                     : Launch Sublime Text
@@ -148,21 +215,10 @@
       - Ctrl+K, Ctrl+B          : Toggle sidebar
       - Ctrl+`                  : Show console
 
-      Install Package Control packages:
-      1. Press Ctrl+Shift+P
-      2. Type "Install Package"
-      3. Search and install packages
-
-      Popular packages:
-      - LSP (Language Server Protocol support)
-      - Terminus (integrated terminal)
-      - GitGutter (Git diff markers)
-      - BracketHighlighter
-      - SideBarEnhancements
-      - SublimeLinter
-      - DocBlockr
-      - Emmet
-      - Color Highlighter
+      Package Control:
+      - Packages will be automatically installed on first Sublime Text launch
+      - Press Ctrl+Shift+P and type "List Packages" to see installed packages
+      - Press Ctrl+Shift+P and type "Install Package" to add more packages
 
       Configuration files location:
       ~/.config/sublime-text/Packages/User/

@@ -1,4 +1,15 @@
 ---
+- name: Install git-delta
+  ansible.builtin.apt:
+    name: git-delta
+    state: present
+    update_cache: true
+  tags:
+    - git
+    - packages
+    - delta
+    - development
+
 - name: Setup git username and email
   become: true
   become_user: '{{ username }}'
@@ -109,6 +120,11 @@
     msg: |
       Git completion has been configured for available shells!
 
+      Git Delta:
+      - Package: git-delta (installed via apt)
+      - Configured as default pager for git diff and git show
+      - Features: Syntax highlighting, line numbers, side-by-side diffs
+
       Bash:
       - Completion source: /usr/share/bash-completion/completions/git
       - Configuration: {{ user_bashrc }}
@@ -139,6 +155,12 @@
 
       - Type: git checkout <TAB>
       - Should show available branches
+
+      Test git delta:
+      - Run: git diff
+      - Run: git show
+      - Run: git log -p
+      - You should see syntax-highlighted, beautiful diffs!
   tags:
     - git
     - completion

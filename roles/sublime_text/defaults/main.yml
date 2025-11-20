@@ -4,3 +4,22 @@ sublime_gpg_key_url: https://download.sublimetext.com/sublimehq-pub.gpg
 sublime_gpg_keyring_path: /usr/share/keyrings/sublimehq-archive-keyring.gpg
 sublime_repo_url: https://download.sublimetext.com/
 sublime_package_state: present
+sublime_user_home: "{{ ansible_env.HOME }}"
+sublime_config_dir: "{{ sublime_user_home }}/.config/sublime-text/Packages/User"
+sublime_packages:
+  - Ansible
+  - ApplySyntax
+  - SublimeLinter
+  - SublimeLinter-contrib-ansible-lint
+  - Pretty YAML
+  - Git
+  - MarkdownEditing
+  - Java
+  - Kotlin
+  - INI
+  - Catppuccin
+  - A File Icon
+
+# Font configuration
+sublime_font_face: "JetBrainsMono Nerd Font Mono"
+sublime_font_size: 10

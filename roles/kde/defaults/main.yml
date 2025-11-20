@@ -161,7 +161,7 @@ kde_custom_shortcuts:
 
   - name: "Launch Kwrite"
     key: "Super+K"
-    command: "kwrite"
+    command: "/usr/bin/kwrite"
     type: "application"
 
   - name: "Launch Sublime Text"

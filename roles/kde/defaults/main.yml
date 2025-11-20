@@ -59,6 +59,10 @@ kde_applications:
     description: "Hex/binary editor"
     category: development
 
+  - name: kwrite
+    description: "Text editor"
+    category: development
+
   # Git tools (installed via Flatpak)
   # Note: kommit installed separately via Flatpak task
 

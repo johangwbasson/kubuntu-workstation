@@ -31,7 +31,7 @@
     - rust
     - fish_shell
     - zsh
-    - warp
+   # - warp
     - claude_code
     - cursor
     - vscode
@@ -59,6 +59,6 @@
     - lazygit
     - clamav
     - ufw
-    - openssh_server
+    # - openssh_server
     - zram
     - ollama

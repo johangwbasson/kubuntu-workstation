@@ -106,16 +106,13 @@ kde_flatpak_apps:
     description: "Git client for KDE"
     category: development
 
+  - name: eu.betterbird.Betterbird
+    description: "Enhanced Thunderbird fork for email"
+    category: email
+
 # Flatpak remote
 kde_flatpak_remote: flathub
 kde_flatpak_method: system
-
-# Betterbird configuration
-betterbird_version: "128.6.0esr"
-betterbird_download_url: "https://www.betterbird.eu/downloads/LinuxArchive/betterbird-{{ betterbird_version }}-bb45.en-US.linux-x86_64.tar.bz2"
-betterbird_install_dir: "{{ user_home }}/Applications/Betterbird"
-betterbird_download_path: "/tmp/betterbird.tar.bz2"
-betterbird_desktop_file_path: "{{ user_home }}/.local/share/applications/betterbird.desktop"
 
 # KDE Keyboard Shortcuts Configuration
 kde_shortcuts_enabled: true

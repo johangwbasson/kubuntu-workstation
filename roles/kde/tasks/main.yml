@@ -407,11 +407,11 @@
         • Syncs with cloud services (Google, Nextcloud, etc.)
         • Integrates with notification system
 
-      Betterbird
-      ──────────
+      Betterbird (Flatpak)
+      ────────────────────
       Description: Enhanced Thunderbird fork for email
-      Launch: betterbird or search "Betterbird" in application menu
-      Location: {{ betterbird_install_dir }}
+      Launch: flatpak run eu.betterbird.Betterbird or search "Betterbird" in application menu
+      Installation: Flatpak from Flathub
       Features:
         • Improved performance over Thunderbird
         • Better handling of large mailboxes
@@ -430,6 +430,7 @@
         • Use filters for automatic email organization
         • Enable encryption for sensitive communications
         • Configure unified folders for multiple accounts
+      Update: flatpak update eu.betterbird.Betterbird
 
       KDE PIM Addons
       ──────────────
@@ -498,12 +499,11 @@
       Security:         kgpg, kleopatra
       File Management:  krusader
       Productivity:     zanshin, akregator
-      PIM:              merkuro, betterbird, kdepim-addons
+      PIM:              merkuro, betterbird (Flatpak), kdepim-addons
       Plasma Widgets:   plasma-widgets-addons (Event Calendar)
 
       Total APT applications: {{ kde_applications | length }}
       Total Flatpak applications: {{ kde_flatpak_apps | length }}
-      Additional installations: Betterbird (tarball)
 
       ═══════════════════════════════════════════════════════════════
 
@@ -520,11 +520,3 @@
   tags:
     - kde
     - shortcuts
-
-# Include Betterbird installation
-- name: Install Betterbird email client
-  ansible.builtin.include_tasks: betterbird.yml
-  tags:
-    - kde
-    - betterbird
-    - email

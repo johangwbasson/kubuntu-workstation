@@ -1,6 +1,0 @@
----
-# defaults file for ubuntu_drivers
-# Set to 'autoinstall' to install recommended drivers automatically
-# Set to 'list' to only list available drivers without installing
-ubuntu_drivers_mode: autoinstall
-ubuntu_drivers_package_state: present

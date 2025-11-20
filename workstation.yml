@@ -10,40 +10,33 @@
     - btrfs_optimize
     - home
     - remove_snap
-    - ubuntu_drivers
     - kernel_module_blacklist
     - kernel_tuning
     - unattended_upgrades
+    - zram
+    - firefox
     - fonts
     - multimedia_codecs
     - cli_tools
+    - git
+    - lazygit
     - docker
     - lazydocker
-    - dbeaver
-    - kubectl
-    - k9s
-    - terraform
-    - awscli
-    - azure_cli
-    - gcloud_cli
     - java
     - intellij
     - rust
     - fish_shell
     - zsh
     - warp
-    - claude_code
-    - cursor
     - vscode
     - sublime_text
     - neovim
     - lazyvim
-    - firefox
-    - brave
-    - chromium
     - flatpak
     - kde
     - kde_fonts
+    - brave
+    - chromium
     - chrome-browser
     - slack
     - zoom
@@ -55,10 +48,16 @@
     - onlyoffice
     - insomnia
     - postman
-    - git
-    - lazygit
+    - dbeaver
+    - kubectl
+    - k9s
+    - terraform
+    - awscli
+    - azure_cli
+    - gcloud_cli
+    - claude_code
+    - cursor
     - clamav
     - ufw
     # - openssh_server
-    - zram
     - ollama

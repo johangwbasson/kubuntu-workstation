@@ -1,6 +1,0 @@
----
-# handlers file for ubuntu_drivers
-
-- name: Reboot required for driver installation
-  ansible.builtin.debug:
-    msg: "WARNING: System reboot is recommended to activate newly installed drivers. Please reboot when convenient."

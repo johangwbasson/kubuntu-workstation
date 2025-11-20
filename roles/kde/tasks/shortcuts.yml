@@ -80,31 +80,17 @@
   tags:
     - kde_shortcuts
 
-- name: Update KDE global shortcuts (kglobalshortcutsrc) - khotkeys section
+- name: Update KDE shortcuts using kwriteconfig5
   become: true
   become_user: "{{ kde_shortcuts_user }}"
-  ansible.builtin.script: update_kglobalshortcutsrc.py "{{ kde_shortcuts_user_home }}"
+  ansible.builtin.script: update_shortcuts_kwrite.py "{{ kde_shortcuts_user_home }}"
   args:
     executable: /usr/bin/python3
   when:
     - kde_version | int > 0
     - kde_shortcuts_enabled | default(true)
-  register: global_shortcuts_configured
-  changed_when: '"changed=true" in global_shortcuts_configured.stdout'
-  tags:
-    - kde_shortcuts
-
-- name: Update khotkeysrc with command definitions
-  become: true
-  become_user: "{{ kde_shortcuts_user }}"
-  ansible.builtin.script: update_khotkeysrc.py "{{ kde_shortcuts_user_home }}"
-  args:
-    executable: /usr/bin/python3
-  when:
-    - kde_version | int > 0
-    - kde_shortcuts_enabled | default(true)
-  register: khotkeys_configured
-  changed_when: '"changed=true" in khotkeys_configured.stdout'
+  register: shortcuts_configured
+  changed_when: '"changed=true" in shortcuts_configured.stdout'
   tags:
     - kde_shortcuts
 
@@ -179,7 +165,9 @@
       - View config section: grep -A {{ kde_custom_shortcuts | length }} "^\[khotkeys\]" ~/.config/kglobalshortcutsrc
 
       Notes:
-      - Shortcuts are stored in kglobalshortcutsrc (not khotkeysrc, which is system-managed)
+      - Shortcuts configured using kwriteconfig5 (KDE's official config tool)
+      - Key bindings stored in kglobalshortcutsrc [khotkeys] section
+      - Commands stored in khotkeysrc [Data_N] sections
       - Scripts are referenced from: ~/MEGA/Applications/
       - Make sure scripts are executable: chmod +x ~/MEGA/Applications/*.sh
       - Applications will launch if installed, otherwise shortcut does nothing

@@ -1,3 +1,4 @@
 .ansible/
 .vars.yml
 venv/
+__pycache__

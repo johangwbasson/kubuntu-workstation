@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 """
 Update the khotkeys section in kglobalshortcutsrc while preserving other settings.
+
+Reads shortcuts from ~/.config/shortcuts.json.tmp (created by Ansible).
 """
 import sys
 import json
-import os
 from pathlib import Path
 
-def update_kglobalshortcutsrc(user_home, shortcuts_json):
+def update_kglobalshortcutsrc(user_home):
     """Update khotkeys section in kglobalshortcutsrc"""
     config_path = Path(user_home) / ".config" / "kglobalshortcutsrc"
+    shortcuts_file = Path(user_home) / ".config" / "shortcuts.json.tmp"
 
-    # Parse shortcuts from JSON
-    shortcuts = json.loads(shortcuts_json)
+    # Read shortcuts from temporary JSON file
+    try:
+        with open(shortcuts_file, 'r') as f:
+            shortcuts = json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        raise ValueError(f"Failed to read shortcuts from {shortcuts_file}: {e}")
 
     # Read existing file or create new one
     if config_path.exists():
@@ -73,15 +79,14 @@ def update_kglobalshortcutsrc(user_home, shortcuts_json):
     return 0
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("Usage: update_kglobalshortcutsrc.py <user_home> <shortcuts_json>", file=sys.stderr)
+    if len(sys.argv) < 2:
+        print("Usage: update_kglobalshortcutsrc.py <user_home>", file=sys.stderr)
         sys.exit(1)
 
     user_home = sys.argv[1]
-    shortcuts_json = sys.argv[2]
 
     try:
-        sys.exit(update_kglobalshortcutsrc(user_home, shortcuts_json))
+        sys.exit(update_kglobalshortcutsrc(user_home))
     except Exception as e:
         print(f"error: {e}", file=sys.stderr)
         sys.exit(1)

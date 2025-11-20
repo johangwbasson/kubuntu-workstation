@@ -123,6 +123,10 @@ kde_shortcuts_enabled: true
 kde_shortcuts_user: "{{ username }}"
 kde_shortcuts_user_home: "{{ user_home }}"
 
+# KDE Task Switcher Configuration
+kde_taskswitcher_enabled: true
+kde_taskswitcher_layout: "modern_informative"
+
 # Custom keyboard shortcuts for applications and scripts
 kde_custom_shortcuts:
   # System/Utilities

@@ -1,0 +1,210 @@
+---
+# KDE Task Switcher - Modern Informative installation and configuration
+
+- name: Check if Modern Informative task switcher is already installed
+  ansible.builtin.command:
+    cmd: kpackagetool5 --show modern_informative --type KWin/WindowSwitcher
+  become: false
+  become_user: "{{ kde_shortcuts_user }}"
+  register: taskswitcher_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - kde
+    - taskswitcher
+    - configuration
+
+- name: Get Modern Informative download URL from KDE Store API
+  ansible.builtin.uri:
+    url: https://api.opendesktop.org/ocs/v1/content/data/2128867?format=json
+    return_content: true
+  register: taskswitcher_api_response
+  when: taskswitcher_check.rc != 0
+  tags:
+    - kde
+    - taskswitcher
+    - download
+
+- name: Parse download URL and checksum
+  ansible.builtin.set_fact:
+    taskswitcher_download_url: "{{ taskswitcher_api_response.json.data.downloadlink1 }}"
+    taskswitcher_checksum: "md5:{{ taskswitcher_api_response.json.data.md5sum1 }}"
+    taskswitcher_filename: "modern-informative-plasma6-{{ taskswitcher_api_response.json.data.version }}.tar.gz"
+  when: taskswitcher_check.rc != 0
+  tags:
+    - kde
+    - taskswitcher
+    - download
+
+- name: Download Modern Informative task switcher
+  ansible.builtin.get_url:
+    url: "{{ taskswitcher_download_url }}"
+    dest: "/tmp/{{ taskswitcher_filename }}"
+    checksum: "{{ taskswitcher_checksum }}"
+    mode: '0644'
+  when: taskswitcher_check.rc != 0
+  tags:
+    - kde
+    - taskswitcher
+    - download
+
+- name: Install Modern Informative task switcher
+  ansible.builtin.command:
+    cmd: kpackagetool5 --type KWin/WindowSwitcher --install /tmp/{{ taskswitcher_filename }}
+  become: false
+  become_user: "{{ kde_shortcuts_user }}"
+  when: taskswitcher_check.rc != 0
+  register: taskswitcher_install
+  changed_when: taskswitcher_install.rc == 0
+  tags:
+    - kde
+    - taskswitcher
+    - installation
+
+- name: Remove downloaded task switcher archive
+  ansible.builtin.file:
+    path: "/tmp/{{ taskswitcher_filename }}"
+    state: absent
+  when: taskswitcher_check.rc != 0
+  tags:
+    - kde
+    - taskswitcher
+    - cleanup
+
+- name: Get current task switcher layout
+  ansible.builtin.command:
+    cmd: kreadconfig5 --file kwinrc --group TabBox --key LayoutName
+  become: false
+  become_user: "{{ kde_shortcuts_user }}"
+  register: current_layout
+  changed_when: false
+  failed_when: false
+  tags:
+    - kde
+    - taskswitcher
+    - configuration
+
+- name: Set Modern Informative as default task switcher
+  ansible.builtin.command:
+    cmd: >
+      kwriteconfig5 --file kwinrc --group TabBox --key LayoutName modern_informative
+  become: false
+  become_user: "{{ kde_shortcuts_user }}"
+  when: current_layout.stdout != "modern_informative"
+  register: taskswitcher_config
+  changed_when: taskswitcher_config.rc == 0
+  notify: reconfigure kwin
+  tags:
+    - kde
+    - taskswitcher
+    - configuration
+
+- name: Display Modern Informative task switcher installation info
+  ansible.builtin.debug:
+    msg: |
+      ═══════════════════════════════════════════════════════════════
+      MODERN INFORMATIVE TASK SWITCHER
+      ═══════════════════════════════════════════════════════════════
+
+      {% if taskswitcher_check.rc == 0 %}
+      Status: ✓ Already installed
+      {% else %}
+      Status: ✓ Newly installed
+      {% endif %}
+
+      Configuration:
+      - Layout: Modern Informative
+      - Type: KWin Window Switcher
+      - Author: Mélanie Chauvel (ariasuni)
+      - Description: A modern and informative window switcher layout
+
+      ═══════════════════════════════════════════════════════════════
+      USAGE
+      ═══════════════════════════════════════════════════════════════
+
+      The Modern Informative task switcher is now your default window
+      switcher for KDE Plasma.
+
+      Activation:
+      • Alt+Tab: Switch between windows (forward)
+      • Alt+Shift+Tab: Switch between windows (backward)
+      • Hold Alt: Keep switcher open while cycling
+
+      Features:
+      • Shows window titles and application icons
+      • Displays desktop names alongside windows
+      • Modern, clean interface design
+      • Replaces the deprecated "Informative" switcher
+
+      ═══════════════════════════════════════════════════════════════
+      CONFIGURATION
+      ═══════════════════════════════════════════════════════════════
+
+      To customize the task switcher:
+      1. Open System Settings
+      2. Go to: Window Management → Task Switcher
+      3. Select "Modern Informative" from the dropdown
+      4. Configure additional options (show desktop, etc.)
+
+      Alternative Layouts:
+      If you want to try other task switcher layouts:
+      - Informative: Information-rich classic layout
+      - Thumbnails: Large window previews
+      - Compact: Minimal window list
+      - Big Icons: Large application icons
+      - Breeze: Default KDE layout
+      - Flip Switch: 3D flip effect
+      - Cover Switch: Cover flow style
+
+      Change layout:
+      kwriteconfig5 --file kwinrc --group TabBox --key LayoutName <layout_name>
+      qdbus org.kde.KWin /KWin reconfigure
+
+      ═══════════════════════════════════════════════════════════════
+      VERIFICATION
+      ═══════════════════════════════════════════════════════════════
+
+      Check installation:
+      kpackagetool5 --show modern_informative --type KWin/WindowSwitcher
+
+      Check configuration:
+      kreadconfig5 --file kwinrc --group TabBox --key LayoutName
+
+      Expected output: modern_informative
+
+      ═══════════════════════════════════════════════════════════════
+      TROUBLESHOOTING
+      ═══════════════════════════════════════════════════════════════
+
+      If the task switcher doesn't appear correctly:
+
+      1. Restart KWin:
+         kwin_x11 --replace &   # For X11
+         kwin_wayland --replace &   # For Wayland
+
+      2. Reconfigure KWin:
+         qdbus org.kde.KWin /KWin reconfigure
+
+      3. Check logs:
+         journalctl --user -b -u plasma-kwin_x11.service
+
+      4. Reinstall:
+         kpackagetool5 --type KWin/WindowSwitcher --remove modern_informative
+         kpackagetool5 --type KWin/WindowSwitcher --install ~/path/to/package.tar.gz
+
+      ═══════════════════════════════════════════════════════════════
+      ADDITIONAL INFORMATION
+      ═══════════════════════════════════════════════════════════════
+
+      Source: https://store.kde.org/p/2128867
+      Repository: https://framagit.org/ariasuni/kwin-windowswitcher-modern-informative
+
+      The Modern Informative task switcher was created to replace the
+      original "Informative" layout that was removed in Plasma 5.28.
+      It displays desktops on the right side instead of below the
+      window's title, providing a more modern and space-efficient layout.
+
+      ═══════════════════════════════════════════════════════════════
+  tags:
+    - kde
+    - taskswitcher

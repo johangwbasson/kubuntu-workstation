@@ -1,0 +1,13 @@
+---
+# handlers file for kde
+
+- name: Reconfigure KWin
+  ansible.builtin.command:
+    cmd: qdbus org.kde.KWin /KWin reconfigure
+  become: false
+  become_user: "{{ kde_shortcuts_user }}"
+  listen: reconfigure kwin
+  failed_when: false
+  tags:
+    - kde
+    - kwin

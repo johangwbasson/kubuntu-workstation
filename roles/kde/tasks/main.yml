@@ -79,3 +79,11 @@
     - kde
     - flatpak
     - development
+
+# Include KDE task switcher configuration
+- name: Configure KDE task switcher
+  ansible.builtin.include_tasks: taskswitcher.yml
+  when: kde_taskswitcher_enabled | default(true)
+  tags:
+    - kde
+    - taskswitcher

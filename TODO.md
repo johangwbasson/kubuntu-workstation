@@ -1,9 +1,9 @@
 # TODO
 
 - [-] shortcuts are not being applied to system
-- [ ] Dolhin XDG directories point to wrong locations
+- [-] Dolhin XDG directories point to wrong locations
 - [-] Setup sublime text configuration
-- [- ] Fix ssh server
+- [-] Fix ssh server
 - [-] Git delta setup
 
 
@@ -13,3 +13,4 @@
 - [ ] Git diff (delta)
 - [ ] Shortcuts
 - [ ] Ssh server
+- [ ] Dolphin places

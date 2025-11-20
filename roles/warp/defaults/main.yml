@@ -1,9 +1,10 @@
 ---
 # defaults file for warp
 
-# Warp download configuration
-warp_download_url: https://app.warp.dev/get_warp?package=deb
-warp_download_path: /tmp/warp-terminal.deb
+# Warp GPG key and repository configuration
+warp_gpg_key_url: https://releases.warp.dev/linux/keys/warp.asc
+warp_gpg_keyring_path: /etc/apt/keyrings/warpdotdev.gpg
+warp_repository: "deb [arch=amd64 signed-by=/etc/apt/keyrings/warpdotdev.gpg] https://releases.warp.dev/linux/deb stable main"
 warp_package_name: warp-terminal
 
 # User configuration

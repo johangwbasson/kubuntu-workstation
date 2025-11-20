@@ -7,7 +7,6 @@
     state: absent
   loop:
     - /etc/apt/trusted.gpg.d/warpdotdev.gpg
-    - /etc/apt/keyrings/warpdotdev.gpg
     - /usr/share/keyrings/warpdotdev.gpg
     - /usr/share/keyrings/warp-terminal.gpg
   tags:
@@ -31,58 +30,78 @@
     - packages
     - cleanup
 
-- name: Update APT cache after cleanup
-  ansible.builtin.apt:
-    update_cache: true
-    cache_valid_time: 0
-  tags:
-    - warp
-    - terminal
-    - packages
-    - cleanup
-
-- name: Check if Warp terminal is already installed
-  ansible.builtin.command: dpkg -l warp-terminal
-  register: warp_installed_check
-  changed_when: false
-  failed_when: false
-  tags:
-    - warp
-    - terminal
-    - packages
-
-- name: Download Warp terminal .deb package
-  ansible.builtin.get_url:
-    url: "{{ warp_download_url }}"
-    dest: "{{ warp_download_path }}"
-    mode: '0644'
-  when: warp_installed_check.rc != 0
-  tags:
-    - warp
-    - terminal
-    - packages
-    - download
-
-- name: Install Warp terminal from .deb package
-  ansible.builtin.apt:
-    deb: "{{ warp_download_path }}"
-    state: present
-  when: warp_installed_check.rc != 0
-  tags:
-    - warp
-    - terminal
-    - packages
-
-- name: Remove downloaded .deb file
+- name: Ensure /etc/apt/keyrings directory exists
   ansible.builtin.file:
-    path: "{{ warp_download_path }}"
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  tags:
+    - warp
+    - terminal
+    - packages
+
+- name: Download Warp GPG key
+  ansible.builtin.get_url:
+    url: "{{ warp_gpg_key_url }}"
+    dest: /tmp/warp.asc
+    mode: '0644'
+  tags:
+    - warp
+    - terminal
+    - packages
+
+- name: Convert and install Warp GPG key to keyring
+  ansible.builtin.shell:
+    cmd: gpg --dearmor < /tmp/warp.asc > {{ warp_gpg_keyring_path }}
+    creates: "{{ warp_gpg_keyring_path }}"
+  tags:
+    - warp
+    - terminal
+    - packages
+
+- name: Set correct permissions on Warp GPG keyring
+  ansible.builtin.file:
+    path: "{{ warp_gpg_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+  tags:
+    - warp
+    - terminal
+    - packages
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/warp.asc
     state: absent
-  when: warp_installed_check.rc != 0
   tags:
     - warp
     - terminal
     - packages
     - cleanup
+
+- name: Add Warp official APT repository
+  ansible.builtin.apt_repository:
+    repo: "{{ warp_repository }}"
+    state: present
+    filename: warpdotdev
+    update_cache: true
+  tags:
+    - warp
+    - terminal
+    - packages
+
+- name: Install Warp terminal from official repository
+  ansible.builtin.apt:
+    name: "{{ warp_package_name }}"
+    state: present
+    update_cache: true
+  tags:
+    - warp
+    - terminal
+    - packages
 
 - name: Get Warp version
   ansible.builtin.command: warp-terminal --version
@@ -102,8 +121,8 @@
       - Binary location: /usr/bin/warp-terminal
       - Version: {{ warp_version_output.stdout | default('N/A') }}
       - Desktop entry: /usr/share/applications/warp-terminal.desktop
-      - Installation method: Direct .deb package
-      - Download source: {{ warp_download_url }}
+      - Installation method: Official APT repository
+      - Repository: https://releases.warp.dev/linux/deb
 
       Features:
       - GPU-accelerated rendering (Rust + WebGPU)
@@ -274,8 +293,8 @@
       Support: https://warp.dev/support
 
       Update Warp:
-      - Download latest .deb: {{ warp_download_url }}
-      - Install with: sudo apt install ./warp-terminal.deb
+      - Updates are handled automatically via APT
+      - Run: sudo apt update && sudo apt upgrade warp-terminal
       - Or re-run this role: ansible-playbook workstation.yml --tags warp
 
       Note: Warp requires a GPU and X11/Wayland. Works best with modern GPUs.

@@ -137,23 +137,14 @@
     - editor
     - configuration
 
-- name: Configure Sublime Text preferences
+- name: Copy configuration
   ansible.builtin.copy:
-    content: |
-      {
-        "font_face": "{{ sublime_font_face }}",
-        "font_size": {{ sublime_font_size }},
-        "ignored_packages":
-        [
-          "Vintage"
-        ]
-      }
-    dest: "{{ sublime_config_dir }}/Preferences.sublime-settings"
+    src: files/*.sublime-settings
+    dest: "{{ sublime_config_dir }}"
     mode: '0644'
     owner: "{{ username }}"
     group: "{{ username }}"
   become_user: "{{ username }}"
-  when: sublime_manage_user_config or not sublime_preferences.stat.exists
   tags:
     - sublime-text
     - sublime

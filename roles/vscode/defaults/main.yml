@@ -20,11 +20,11 @@ vscode_extensions:
   # Language Support
   - vscjava.vscode-java-pack  # Extension Pack for Java (includes multiple Java extensions)
 
-  # Additional recommended extensions (optional - can be disabled by setting vscode_install_recommended: false)
   - eamodio.gitlens  # Enhanced Git integration
   - hashicorp.terraform  # Terraform support
   - ms-azuretools.vscode-docker  # Docker support
-  - ms-kubernetes-tools.vscode-kubernetes-tools  # Kubernetes support
+  - enkia.tokyo-night
+  - tal7aouy.icons
 
 # Control whether to install recommended extensions
 vscode_install_recommended: true

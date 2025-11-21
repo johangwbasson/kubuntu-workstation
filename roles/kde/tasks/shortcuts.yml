@@ -30,15 +30,6 @@
   tags:
     - kde_shortcuts
 
-- name: Display detected KDE version
-  ansible.builtin.debug:
-    msg: |
-      Detected KDE Plasma version: {{ kde_version }}
-      Using tools: {{ kde_write_config }}, {{ kde_read_config }}, {{ kde_qdbus }}
-      Configuring {{ kde_custom_shortcuts | length }} custom shortcuts
-  tags:
-    - kde_shortcuts
-
 - name: Ensure KDE CLI tools are installed
   ansible.builtin.apt:
     name: kde-cli-tools
@@ -120,66 +111,5 @@
   failed_when: false
   environment:
     DISPLAY: ":0"
-  tags:
-    - kde_shortcuts
-
-- name: Display KDE shortcuts configuration summary
-  ansible.builtin.debug:
-    msg: |
-      ================================================================================
-      KDE {{ kde_version }} Custom Keyboard Shortcuts Configured Successfully!
-      ================================================================================
-
-      Configured {{ kde_custom_shortcuts | length }} custom shortcuts:
-
-      System/Utilities:
-      - Super + Return    : Launch Yakuake (drop-down terminal)
-      - Super + P         : Launch KRunner (application launcher)
-
-      Scripts (MEGA directory):
-      - Super + J         : Run capture.sh
-      - Super + R         : Run report.sh
-      - Super + A         : Run get-key.sh
-
-      Development Applications:
-      - Super + U         : Launch VS Code
-      - Super + I         : Launch IntelliJ IDEA
-      - Super + K         : Launch Kwrite
-      - Super + S         : Launch Sublime Text
-      - Super + O         : Launch Obsidian
-      - Super + C         : Launch Chrome
-
-      Configuration:
-      - Config file: ~/.config/kglobalshortcutsrc (khotkeys section)
-      - Tools used: {{ kde_write_config }}, {{ kde_read_config }}
-      - Total shortcuts configured: {{ kde_custom_shortcuts | length }}
-
-      To apply changes:
-      - Shortcuts should be active immediately
-      - If not working, log out and log back in
-      - Or reload configuration: {{ kde_qdbus }} org.kde.kded{{ kde_version }} /modules/khotkeys reread_configuration
-
-      Verify shortcuts:
-      - Test each key combination
-      - Check System Settings → Shortcuts → Custom Shortcuts
-      - View config section: grep -A {{ kde_custom_shortcuts | length }} "^\[khotkeys\]" ~/.config/kglobalshortcutsrc
-
-      Notes:
-      - Shortcuts configured using kwriteconfig5 (KDE's official config tool)
-      - Key bindings stored in kglobalshortcutsrc [khotkeys] section
-      - Commands stored in khotkeysrc [Data_N] sections
-      - Scripts are referenced from: ~/MEGA/Applications/
-      - Make sure scripts are executable: chmod +x ~/MEGA/Applications/*.sh
-      - Applications will launch if installed, otherwise shortcut does nothing
-
-      Troubleshooting:
-      - If shortcuts don't work: System Settings → Shortcuts → Custom Shortcuts
-      - Check for conflicts with existing shortcuts
-      - Verify applications are in PATH: which code, which idea, etc.
-      - Check script permissions: ls -la ~/MEGA/Applications/
-      - Verify kglobalshortcutsrc has correct entries: grep "00000000-0000" ~/.config/kglobalshortcutsrc
-
-      ================================================================================
-  when: kde_version | int > 0
   tags:
     - kde_shortcuts

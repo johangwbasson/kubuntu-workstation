@@ -29,16 +29,6 @@
     - google_cloud
     - cloud
 
-- name: Display current Google Cloud CLI version if installed
-  ansible.builtin.debug:
-    msg: "Google Cloud CLI already installed: {{ gcloud_installed.stdout_lines[0] }}"
-  when: gcloud_installed.rc == 0
-  tags:
-    - gcloud_cli
-    - gcloud
-    - google_cloud
-    - cloud
-
 - name: Create directory for Google Cloud GPG key
   ansible.builtin.file:
     path: /usr/share/keyrings
@@ -134,35 +124,6 @@
   ansible.builtin.command: gcloud --version
   register: gcloud_version
   changed_when: false
-  tags:
-    - gcloud_cli
-    - gcloud
-    - google_cloud
-    - cloud
-
-- name: Display Google Cloud CLI installation info
-  ansible.builtin.debug:
-    msg: |
-      Google Cloud CLI has been installed successfully!
-
-      Version: {{ gcloud_version.stdout_lines[0] }}
-
-      Getting started:
-      - Initialize gcloud: gcloud init
-      - Authenticate: gcloud auth login
-      - Set project: gcloud config set project PROJECT_ID
-
-      Useful commands:
-      - gcloud --version              : Show gcloud version
-      - gcloud init                   : Initialize or reinitialize gcloud
-      - gcloud auth login             : Authenticate with Google Cloud
-      - gcloud config list            : Show current configuration
-      - gcloud projects list          : List available projects
-      - gcloud help                   : Show help
-
-      Documentation: https://cloud.google.com/sdk/docs
-
-      Note: Run 'gcloud init' to get started with authentication and project setup.
   tags:
     - gcloud_cli
     - gcloud

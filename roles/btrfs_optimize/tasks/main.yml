@@ -109,18 +109,6 @@
     - filesystem
     - fstab_order
 
-- name: Display fstab reordering result  # noqa: no-handler
-  ansible.builtin.debug:
-    msg: |
-      ✓ Fixed /boot and /boot/efi ordering in /etc/fstab
-      /boot now appears before /boot/efi as required by mount hierarchy
-  when: fstab_reorder_result is changed
-  tags:
-    - btrfs
-    - btrfs_optimize
-    - filesystem
-    - fstab_order
-
 - name: Check current fstab for BTRFS entries
   ansible.builtin.shell: |
     set -o pipefail
@@ -129,18 +117,6 @@
     executable: /bin/bash
   register: current_btrfs_entries
   changed_when: false
-  tags:
-    - btrfs
-    - btrfs_optimize
-    - filesystem
-
-- name: Display current BTRFS mount options
-  ansible.builtin.debug:
-    msg: |
-      Current BTRFS entries in /etc/fstab:
-      {{ current_btrfs_entries.stdout }}
-
-      Will be optimized with: {{ btrfs_mount_options }}
   tags:
     - btrfs
     - btrfs_optimize
@@ -228,32 +204,6 @@
     - filesystem
     - nocow
 
-- name: Display Docker nocow optimization result  # noqa: no-handler
-  ansible.builtin.debug:
-    msg: |
-      ✓ Disabled copy-on-write (COW) for /var/lib/docker
-      This improves Docker performance on BTRFS filesystems
-      Note: Only new files will benefit from this setting
-  when: docker_nocow_set is changed
-  tags:
-    - btrfs
-    - btrfs_optimize
-    - docker
-    - filesystem
-    - nocow
-
-- name: Display fstab verification results
-  ansible.builtin.debug:
-    msg: |
-      ✓ fstab verification successful!
-      {{ fstab_verify.stdout }}
-  when: fstab_verify.rc == 0
-  tags:
-    - btrfs
-    - btrfs_optimize
-    - filesystem
-    - verification
-
 - name: Read updated fstab BTRFS entries
   ansible.builtin.shell: |
     set -o pipefail
@@ -263,67 +213,6 @@
   register: updated_btrfs_entries
   changed_when: false
   when: root_fstab_modified.changed or home_fstab_modified.changed
-  tags:
-    - btrfs
-    - btrfs_optimize
-    - filesystem
-
-- name: Display optimization summary
-  ansible.builtin.debug:
-    msg: |
-      ================================================================================
-      BTRFS Mount Options Optimization Complete
-      ================================================================================
-
-      Backup location: {{ btrfs_fstab_backup_dir }}/fstab.{{ ansible_date_time.iso8601_basic_short }}
-
-      Updated BTRFS entries:
-      {{ updated_btrfs_entries.stdout }}
-
-      Optimizations applied:
-      ✓ ssd              - SSD-specific allocation patterns
-      ✓ noatime          - Prevent access time updates (reduces writes)
-      ✓ compress=zstd:1  - Zstandard compression level 1 (balanced)
-      ✓ space_cache=v2   - Modern free space cache
-      ✓ discard=async    - Asynchronous TRIM for SSD longevity
-      ✗ autodefrag       - REMOVED (not recommended for SSD)
-
-      ================================================================================
-      IMPORTANT: Changes require a reboot to take effect
-      ================================================================================
-
-      To apply immediately without rebooting (OPTIONAL):
-
-      1. Remount root filesystem with new options:
-         sudo mount -o remount,{{ btrfs_mount_options }},subvol=@ /
-
-      2. Remount home filesystem with new options:
-         sudo mount -o remount,{{ btrfs_mount_options }},subvol=@home /home
-
-      3. Verify current mount options:
-         mount | grep btrfs
-
-      To rollback if needed:
-         sudo cp {{ btrfs_fstab_backup_dir }}/fstab.{{ ansible_date_time.iso8601_basic_short }} /etc/fstab
-
-      For best results, REBOOT your system when convenient.
-      ================================================================================
-  when: root_fstab_modified.changed or home_fstab_modified.changed
-  tags:
-    - btrfs
-    - btrfs_optimize
-    - filesystem
-
-- name: Display no changes message
-  ansible.builtin.debug:
-    msg: |
-      ================================================================================
-      BTRFS mount options are already optimized
-      ================================================================================
-      No changes were made to /etc/fstab.
-      Current mount options already include the recommended optimizations.
-      ================================================================================
-  when: not (root_fstab_modified.changed or home_fstab_modified.changed)
   tags:
     - btrfs
     - btrfs_optimize

@@ -8,6 +8,7 @@ sublime_package_state: present
 sublime_user_home: "/home/{{ username }}"
 sublime_config_dir: "{{ sublime_user_home }}/.config/sublime-text/Packages/User"
 sublime_packages:
+  - Package Control
   - Ansible
   - ApplySyntax
   - SublimeLinter

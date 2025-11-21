@@ -1,25 +1,52 @@
 [user]
-        name = {{ git_name }}
-        email = {{ git_email }}
+  name = {{ git_name }}
+  email = {{ git_email }}
 
 [init]
-        defaultBranch = main
+  defaultBranch = main
+
+[alias]
+  his = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+  slog = log --graph --all --topo-order --pretty='format:%h %ai %s%d (%an)'
 
 [core]
-        pager = delta
+  autocrlf = input
+  pager = delta --line-numbers --dark -s
+  editor = true
+
+[color]
+  ui = auto
+  diff = auto
+  status = auto
+  branch = auto
+
+[pull]
+  rebase = false
+
+[push]
+  default = simple
+  autoSetupRemote = true
 
 [interactive]
-        diffFilter = delta --color-only
+  diffFilter = delta --color-only
 
 [delta]
-        navigate = true
-        light = false
-        line-numbers = true
-        side-by-side = true
-        syntax-theme = Dracula
+  navigate = true
+  light = false
+  side-by-side = true
+  line-numbers = true
+  syntax-theme = Dracula
+  file-style = bold yellow ul
+  file-decoration-style = yellow box
+  hunk-header-style = file line-number syntax
+  plus-style = "syntax #283b4d"
+  plus-emph-style = "syntax #3b5a76"
+  minus-style = "syntax #3f2d3d"
+  minus-emph-style = "syntax #6f4b5e"
+  line-numbers-zero-style = "#4b5263"
+  line-numbers-minus-style = "#b04b57"
+  line-numbers-plus-style = "#266d6a"
+  zero-style = dim syntax
 
-[merge]
-        conflictstyle = diff3
-
-[diff]
-        colorMoved = default
+[merge "ours"]
+	driver = true

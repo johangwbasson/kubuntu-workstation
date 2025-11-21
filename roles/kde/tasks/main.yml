@@ -1,6 +1,18 @@
 ---
 # tasks file for kde
 
+- name: Set keyboard repeat delay
+  ansible.builtin.command: "kwriteconfig5 --file ~/.kde/share/config/kcminputrc InputRepeatDelay 400"
+  become_user: "{{ username }}"
+  tags:
+    - kde
+
+- name: Set keyboard repeat rate
+  ansible.builtin.command: "kwriteconfig5 --file ~/.kde/share/config/kcminputrc InputRepeatRate 35"
+  become_user: "{{ username }}"
+  tags:
+    - kde
+
 - name: Update APT cache
   ansible.builtin.apt:
     update_cache: true
@@ -87,3 +99,11 @@
   tags:
     - kde
     - taskswitcher
+
+# Include KDE keyboard shortcuts configuration
+- name: Configure KDE keyboard shortcuts
+  ansible.builtin.include_tasks: shortcuts.yml
+  when: kde_shortcuts_enabled | default(true)
+  tags:
+    - kde
+    - kde_shortcuts

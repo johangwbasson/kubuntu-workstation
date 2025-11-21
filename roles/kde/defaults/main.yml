@@ -196,3 +196,10 @@ kde_global_shortcuts:
     key: "Meta+Q"
     default_key: "Alt+F4"
     description: "Close Window"
+
+  # Activity/Overview (plasmashell)
+  - component: "plasmashell"
+    action: "show activity switcher"
+    key: "Meta+Tab"
+    default_key: ""
+    description: "Show Activity Switcher"

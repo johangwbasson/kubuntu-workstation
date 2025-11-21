@@ -48,6 +48,8 @@
     url: "{{ sublime_gpg_key_url }}"
     dest: /tmp/sublime-gpg-key.asc
     mode: '0644'
+    checksum: "{{ sublime_gpg_key_checksum }}"
+  when: sublime_keyring_check.rc != 0
   tags:
     - sublime-text
     - sublime
@@ -82,17 +84,6 @@
     - editor
     - security
 
-- name: Remove malformed Sublime Text repository file if it exists
-  ansible.builtin.file:
-    path: /etc/apt/sources.list.d/sublime-text.list
-    state: absent
-  tags:
-    - sublime-text
-    - sublime
-    - packages
-    - development
-    - editor
-
 - name: Add Sublime Text repository
   ansible.builtin.apt_repository:
     repo: "deb [arch=amd64 signed-by={{ sublime_gpg_keyring_path }}] {{ sublime_repo_url }} apt/stable/"
@@ -123,8 +114,21 @@
     path: "{{ sublime_config_dir }}"
     state: directory
     mode: '0755'
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+  become_user: "{{ username }}"
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - configuration
+
+- name: Check if Package Control settings exist
+  ansible.builtin.stat:
+    path: "{{ sublime_config_dir }}/Package Control.sublime-settings"
+  register: package_control_settings
   tags:
     - sublime-text
     - sublime
@@ -145,8 +149,22 @@
       }
     dest: "{{ sublime_config_dir }}/Package Control.sublime-settings"
     mode: '0644'
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+  become_user: "{{ username }}"
+  when: sublime_manage_user_config or not package_control_settings.stat.exists
+  tags:
+    - sublime-text
+    - sublime
+    - packages
+    - development
+    - editor
+    - configuration
+
+- name: Check if Sublime Text preferences exist
+  ansible.builtin.stat:
+    path: "{{ sublime_config_dir }}/Preferences.sublime-settings"
+  register: sublime_preferences
   tags:
     - sublime-text
     - sublime
@@ -168,8 +186,10 @@
       }
     dest: "{{ sublime_config_dir }}/Preferences.sublime-settings"
     mode: '0644'
-    owner: "{{ ansible_env.USER }}"
-    group: "{{ ansible_env.USER }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+  become_user: "{{ username }}"
+  when: sublime_manage_user_config or not sublime_preferences.stat.exists
   tags:
     - sublime-text
     - sublime

@@ -1,10 +1,11 @@
 ---
 # defaults file for sublime_text
 sublime_gpg_key_url: https://download.sublimetext.com/sublimehq-pub.gpg
+sublime_gpg_key_checksum: sha256:603d5989ceee473bb7821c8658c21126c124624434dd256f3db05fe398faf58f
 sublime_gpg_keyring_path: /usr/share/keyrings/sublimehq-archive-keyring.gpg
 sublime_repo_url: https://download.sublimetext.com/
 sublime_package_state: present
-sublime_user_home: "{{ ansible_env.HOME }}"
+sublime_user_home: "/home/{{ username }}"
 sublime_config_dir: "{{ sublime_user_home }}/.config/sublime-text/Packages/User"
 sublime_packages:
   - Ansible
@@ -23,3 +24,6 @@ sublime_packages:
 # Font configuration
 sublime_font_face: "JetBrainsMono Nerd Font Mono"
 sublime_font_size: 10
+
+# Configuration management
+sublime_manage_user_config: true  # Set to false to preserve user customizations

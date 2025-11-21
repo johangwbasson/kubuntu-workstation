@@ -182,3 +182,13 @@ kde_custom_shortcuts:
     key: "Super+C"
     command: "google-chrome"
     type: "application"
+
+# KDE Global Shortcuts (built-in actions for kwin, plasma, etc.)
+# These are KDE system shortcuts, not custom application shortcuts
+kde_global_shortcuts:
+  # Window Management (kwin)
+  - component: "kwin"
+    action: "Window Close"
+    key: "Meta+Q"
+    default_key: "Alt+F4"
+    description: "Close Window"

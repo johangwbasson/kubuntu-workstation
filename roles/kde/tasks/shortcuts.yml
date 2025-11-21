@@ -97,6 +97,44 @@
   tags:
     - kde_shortcuts
 
+- name: Configure KDE global shortcuts (kwin, plasma, etc.)
+  become: true
+  become_user: "{{ kde_shortcuts_user }}"
+  ansible.builtin.shell: |
+    {{ kde_write_config }} \
+      --file kglobalshortcutsrc \
+      --group "{{ item.component }}" \
+      --key "{{ item.action }}" \
+      "{{ item.key }},{{ item.default_key }},{{ item.description }}"
+  loop: "{{ kde_global_shortcuts }}"
+  when:
+    - kde_version | int > 0
+    - kde_global_shortcuts is defined
+    - kde_global_shortcuts | length > 0
+  register: global_shortcuts_result
+  changed_when: global_shortcuts_result.rc == 0
+  tags:
+    - kde_shortcuts
+    - kde_global_shortcuts
+
+- name: Reload KWin to apply global shortcut changes
+  become: true
+  become_user: "{{ kde_shortcuts_user }}"
+  ansible.builtin.shell: |
+    {{ kde_qdbus }} org.kde.KWin /KWin reconfigure 2>/dev/null || true
+  when:
+    - kde_version | int > 0
+    - kde_global_shortcuts is defined
+    - kde_global_shortcuts | length > 0
+    - global_shortcuts_result is changed
+  changed_when: false
+  failed_when: false
+  environment:
+    DISPLAY: ":0"
+  tags:
+    - kde_shortcuts
+    - kde_global_shortcuts
+
 - name: Reload khotkeys configuration
   become: true
   become_user: "{{ kde_shortcuts_user }}"

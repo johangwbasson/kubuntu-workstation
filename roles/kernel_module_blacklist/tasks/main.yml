@@ -22,7 +22,7 @@
       # Kernel module blacklist managed by Ansible
       # This file prevents specific kernel modules from loading automatically
       #
-      # Generated on: {{ ansible_date_time.iso8601 }}
+      # Generated on: {{ ansible_facts['date_time']['iso8601'] }}
       # Managed by: kernel_module_blacklist role
 
       {% for module in blacklisted_modules %}
@@ -46,7 +46,7 @@
     name: "{{ item }}"
     state: absent
   loop: "{{ blacklisted_modules }}"
-  when: loaded_modules.stdout | regex_search(item)
+  when: loaded_modules.stdout | regex_search(item) is not none
   failed_when: false
   tags:
     - kernel_modules

@@ -51,6 +51,7 @@
   register: mega_keyring_check
   changed_when: false
   failed_when: false
+  when: not ansible_check_mode
   tags:
     - megasync
     - packages
@@ -73,6 +74,7 @@
     url: "{{ mega_gpg_key_url }}"
     dest: /tmp/mega-release.key
     mode: '0644'
+  when: not ansible_check_mode
   tags:
     - megasync
     - packages
@@ -86,6 +88,7 @@
   args:
     executable: /bin/bash
     creates: "{{ mega_gpg_keyring_path }}"
+  when: not ansible_check_mode
   tags:
     - megasync
     - packages
@@ -98,6 +101,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - megasync
     - packages

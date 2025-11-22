@@ -6,6 +6,7 @@
   register: neovim_keyring_check
   changed_when: false
   failed_when: false
+  when: not ansible_check_mode
   tags:
     - neovim
     - packages
@@ -30,6 +31,7 @@
     gpg --no-default-keyring --keyring "{{ neovim_ppa_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 9DBB0BE9366964F134855E2255F96FCF8231B6DD
   args:
     creates: "{{ neovim_ppa_keyring_path }}"
+  when: not ansible_check_mode
   tags:
     - neovim
     - packages
@@ -43,6 +45,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - neovim
     - packages

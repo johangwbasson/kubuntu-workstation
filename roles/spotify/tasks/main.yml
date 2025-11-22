@@ -47,7 +47,9 @@
     url: "{{ spotify_gpg_key_url }}"
     dest: /tmp/spotify-gpg-key.asc
     mode: '0644'
-  when: not spotify_keyring.stat.exists
+  when:
+    - not spotify_keyring.stat.exists
+    - not ansible_check_mode
   tags:
     - spotify
     - packages
@@ -60,7 +62,9 @@
     gpg --dearmor < /tmp/spotify-gpg-key.asc > {{ spotify_keyring_path }}
   args:
     creates: "{{ spotify_keyring_path }}"
-  when: not spotify_keyring.stat.exists
+  when:
+    - not spotify_keyring.stat.exists
+    - not ansible_check_mode
   tags:
     - spotify
     - packages
@@ -74,6 +78,7 @@
     owner: root
     group: root
     mode: '0644'
+  when: not ansible_check_mode
   tags:
     - spotify
     - packages

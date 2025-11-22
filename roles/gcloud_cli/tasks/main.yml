@@ -45,6 +45,7 @@
   register: gcloud_keyring_check
   changed_when: false
   failed_when: false
+  when: not ansible_check_mode
   tags:
     - gcloud_cli
     - gcloud
@@ -67,6 +68,7 @@
     url: "{{ gcloud_gpg_key_url }}"
     dest: /tmp/gcloud-gpg-key.asc
     mode: '0644'
+  when: not ansible_check_mode
   tags:
     - gcloud_cli
     - gcloud
@@ -78,6 +80,7 @@
   ansible.builtin.command:
     cmd: gpg --dearmor --output "{{ gcloud_keyring_path }}" /tmp/gcloud-gpg-key.asc
     creates: "{{ gcloud_keyring_path }}"
+  when: not ansible_check_mode
   tags:
     - gcloud_cli
     - gcloud
@@ -91,6 +94,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - gcloud_cli
     - gcloud

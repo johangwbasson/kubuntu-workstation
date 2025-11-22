@@ -22,6 +22,7 @@
   register: sublime_keyring_check
   changed_when: false
   failed_when: false
+  when: not ansible_check_mode
   tags:
     - sublime-text
     - sublime
@@ -49,7 +50,9 @@
     dest: /tmp/sublime-gpg-key.asc
     mode: '0644'
     checksum: "{{ sublime_gpg_key_checksum }}"
-  when: sublime_keyring_check.rc != 0
+  when:
+    - sublime_keyring_check.rc != 0
+    - not ansible_check_mode
   tags:
     - sublime-text
     - sublime
@@ -62,6 +65,7 @@
   ansible.builtin.command:
     cmd: gpg --dearmor --output "{{ sublime_gpg_keyring_path }}" /tmp/sublime-gpg-key.asc
     creates: "{{ sublime_gpg_keyring_path }}"
+  when: not ansible_check_mode
   tags:
     - sublime-text
     - sublime
@@ -76,6 +80,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - sublime-text
     - sublime

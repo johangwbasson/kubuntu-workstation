@@ -47,7 +47,9 @@
     url: "{{ insomnia_gpg_key_url }}"
     dest: /tmp/insomnia-gpg-key.asc
     mode: '0644'
-  when: not insomnia_keyring.stat.exists
+  when:
+    - not insomnia_keyring.stat.exists
+    - not ansible_check_mode
   tags:
     - insomnia
     - packages
@@ -60,7 +62,9 @@
     gpg --dearmor < /tmp/insomnia-gpg-key.asc > {{ insomnia_keyring_path }}
   args:
     creates: "{{ insomnia_keyring_path }}"
-  when: not insomnia_keyring.stat.exists
+  when:
+    - not insomnia_keyring.stat.exists
+    - not ansible_check_mode
   tags:
     - insomnia
     - packages
@@ -74,6 +78,7 @@
     owner: root
     group: root
     mode: '0644'
+  when: not ansible_check_mode
   tags:
     - insomnia
     - packages

@@ -19,6 +19,7 @@
   register: onepassword_keyring_check
   changed_when: false
   failed_when: false
+  when: not ansible_check_mode
   tags:
     - onepassword
     - packages
@@ -39,6 +40,7 @@
     url: "{{ onepassword_gpg_key_url }}"
     dest: /tmp/1password.asc
     mode: '0644'
+  when: not ansible_check_mode
   tags:
     - onepassword
     - packages
@@ -51,6 +53,7 @@
   args:
     executable: /bin/bash
     creates: "{{ onepassword_gpg_keyring_path }}"
+  when: not ansible_check_mode
   tags:
     - onepassword
     - packages
@@ -62,6 +65,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - onepassword
     - packages

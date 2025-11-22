@@ -6,6 +6,7 @@
   register: dbeaver_keyring_check
   changed_when: false
   failed_when: false
+  when: not ansible_check_mode
   tags:
     - dbeaver
     - database
@@ -28,7 +29,9 @@
     url: "{{ dbeaver_gpg_key_url }}"
     dest: /tmp/dbeaver-gpg-key.asc
     mode: '0644'
-  when: dbeaver_keyring_check.rc != 0
+  when:
+    - dbeaver_keyring_check.rc != 0
+    - not ansible_check_mode
   tags:
     - dbeaver
     - database
@@ -39,7 +42,9 @@
   ansible.builtin.command:
     cmd: gpg --dearmor --output "{{ dbeaver_gpg_keyring_path }}" /tmp/dbeaver-gpg-key.asc
     creates: "{{ dbeaver_gpg_keyring_path }}"
-  when: dbeaver_keyring_check.rc != 0
+  when:
+    - dbeaver_keyring_check.rc != 0
+    - not ansible_check_mode
   tags:
     - dbeaver
     - database
@@ -52,6 +57,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - dbeaver
     - database

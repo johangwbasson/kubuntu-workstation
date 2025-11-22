@@ -23,7 +23,7 @@
     - services
 
 - name: Load zram kernel module (manual method)
-  ansible.builtin.modprobe:
+  community.general.modprobe:
     name: zram
     state: present
   when: zram_method == 'manual'

@@ -3,13 +3,17 @@
 
 - name: Set keyboard repeat delay
   ansible.builtin.command: "kwriteconfig5 --file ~/.kde/share/config/kcminputrc InputRepeatDelay 400"
+  become: true
   become_user: "{{ username }}"
+  changed_when: true
   tags:
     - kde
 
 - name: Set keyboard repeat rate
   ansible.builtin.command: "kwriteconfig5 --file ~/.kde/share/config/kcminputrc InputRepeatRate 35"
+  become: true
   become_user: "{{ username }}"
+  changed_when: true
   tags:
     - kde
 

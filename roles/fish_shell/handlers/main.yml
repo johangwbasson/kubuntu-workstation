@@ -1,0 +1,17 @@
+---
+# handlers file for fish_shell
+
+- name: Set Node.js LTS as default
+  become: true
+  become_user: "{{ fish_user }}"
+  ansible.builtin.shell: |
+    fish -c "nvm use {{ node_version }}"
+  args:
+    executable: /usr/bin/fish
+  changed_when: true
+  failed_when: false
+  tags:
+    - fish
+    - shell
+    - nvm
+    - nodejs

@@ -116,6 +116,7 @@
     mode: '0755'
     owner: "{{ username }}"
     group: "{{ username }}"
+  become: true
   become_user: "{{ username }}"
   tags:
     - sublime-text
@@ -144,6 +145,7 @@
     mode: '0644'
     owner: "{{ username }}"
     group: "{{ username }}"
+  become: true
   become_user: "{{ username }}"
   tags:
     - sublime-text
@@ -160,6 +162,7 @@
     mode: '0644'
     owner: "{{ username }}"
     group: "{{ username }}"
+  become: true
   become_user: "{{ username }}"
   tags:
     - sublime-text

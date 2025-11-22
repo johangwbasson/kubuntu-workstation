@@ -233,22 +233,7 @@
   when: nvm_list.stdout == "" or "No installed" in nvm_list.stdout
   register: node_install
   changed_when: "'installed' in node_install.stdout or 'Downloading' in node_install.stdout"
-  tags:
-    - fish
-    - shell
-    - nvm
-    - nodejs
-
-- name: Set Node.js LTS as default
-  become: true
-  become_user: "{{ fish_user }}"
-  ansible.builtin.shell: |
-    fish -c "nvm use {{ node_version }}"
-  args:
-    executable: /usr/bin/fish
-  changed_when: true
-  when: node_install is changed
-  failed_when: false
+  notify: Set Node.js LTS as default
   tags:
     - fish
     - shell

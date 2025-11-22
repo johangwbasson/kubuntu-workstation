@@ -55,6 +55,16 @@ jobs:
             ansible-galaxy install -r requirements.yml
           fi
 
+      - name: Create .vars.yml for CI
+        run: |
+          cat > .vars.yml << 'EOF'
+          ---
+          # CI test variables
+          git_name: CI User
+          git_email: ci@example.com
+          username: runner
+          EOF
+
       - name: Run playbook in check mode
         run: |
           ansible-playbook workstation.yml \

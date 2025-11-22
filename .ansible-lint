@@ -4,6 +4,7 @@
 # Skip specific rules
 skip_list:
   - var-naming[no-role-prefix]  # Allow variables without role prefix
+  - yaml[line-length]  # Allow lines longer than 160 characters
 
 # Optionally, you can also exclude specific paths
 # exclude_paths:

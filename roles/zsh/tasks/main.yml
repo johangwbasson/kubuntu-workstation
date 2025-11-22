@@ -93,6 +93,7 @@
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
     mode: '0644'
+    create: true
   tags:
     - zsh
     - configuration
@@ -107,6 +108,7 @@
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
     mode: '0644'
+    create: true
   tags:
     - zsh
     - configuration

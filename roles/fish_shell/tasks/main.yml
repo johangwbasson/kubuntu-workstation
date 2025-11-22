@@ -28,6 +28,7 @@
     gpg --no-default-keyring --keyring "{{ fish_keyring_path }}" --keyserver keyserver.ubuntu.com --recv-keys 59FDA1CE1B84B3FAD89366C027557F056DC33CA5
   args:
     creates: "{{ fish_keyring_path }}"
+  when: not ansible_check_mode
   tags:
     - fish
     - shell
@@ -40,6 +41,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - fish
     - shell

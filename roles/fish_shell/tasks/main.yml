@@ -131,7 +131,9 @@
     group: "{{ fish_user }}"
     mode: '0644'
     force: true
-  when: not fisher_installed.stat.exists
+  when:
+    - not fisher_installed.stat.exists
+    - not ansible_check_mode
   tags:
     - fish
     - shell

@@ -92,6 +92,8 @@
     url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0AB215679C571D1C8325275B9BDB3D89CE49EC21
     dest: /tmp/mozilla-ppa-key.asc
     mode: '0644'
+  when: not ansible_check_mode
+  failed_when: false
   tags:
     - packages
     - firefox
@@ -102,6 +104,7 @@
   ansible.builtin.command:
     cmd: gpg --dearmor --output "{{ firefox_ppa_keyring_path }}" /tmp/mozilla-ppa-key.asc
     creates: "{{ firefox_ppa_keyring_path }}"
+  when: not ansible_check_mode
   tags:
     - packages
     - firefox
@@ -114,6 +117,7 @@
     mode: '0644'
     owner: root
     group: root
+  when: not ansible_check_mode
   tags:
     - packages
     - firefox

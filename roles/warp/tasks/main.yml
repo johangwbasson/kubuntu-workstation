@@ -101,6 +101,7 @@
     name: "{{ warp_package_name }}"
     state: present
     update_cache: true
+  when: not ansible_check_mode
   tags:
     - warp
     - terminal

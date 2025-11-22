@@ -164,7 +164,7 @@
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
     mode: '0644'
-    create: false
+    create: true
   tags:
     - zsh
     - configuration
@@ -182,7 +182,7 @@
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
     mode: '0644'
-    create: false
+    create: true
   tags:
     - zsh
     - configuration
@@ -205,7 +205,7 @@
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
     mode: '0644'
-    create: false
+    create: true
   tags:
     - zsh
     - configuration
@@ -279,7 +279,7 @@
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
     mode: '0644'
-    create: false
+    create: true
   tags:
     - zsh
     - configuration

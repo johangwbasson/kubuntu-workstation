@@ -1,0 +1,66 @@
+---
+name: Ansible CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Ansible Lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Ansible and ansible-lint
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible ansible-lint
+
+      - name: Run ansible-lint
+        run: ansible-lint workstation.yml
+
+  check:
+    name: Ansible Check Mode
+    runs-on: ubuntu-24.04
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+
+      - name: Install Ansible Galaxy dependencies
+        run: |
+          if [ -f requirements.yml ]; then
+            ansible-galaxy install -r requirements.yml
+          fi
+
+      - name: Run playbook in check mode
+        run: |
+          ansible-playbook workstation.yml \
+            --check \
+            --connection=local \
+            --inventory=localhost, \
+            --extra-vars="ansible_python_interpreter=/usr/bin/python3"
+        env:
+          ANSIBLE_FORCE_COLOR: 'true'

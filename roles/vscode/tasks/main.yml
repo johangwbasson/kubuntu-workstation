@@ -131,6 +131,7 @@
     name: code
     state: "{{ vscode_package_state }}"
     update_cache: true
+  when: not ansible_check_mode
   tags:
     - vscode
     - packages

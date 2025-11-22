@@ -110,6 +110,7 @@
     name: sublime-text
     state: "{{ sublime_package_state }}"
     update_cache: true
+  when: not ansible_check_mode
   tags:
     - sublime-text
     - sublime

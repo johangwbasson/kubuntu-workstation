@@ -119,6 +119,7 @@
     name: google-cloud-cli
     state: present
     update_cache: true
+  when: not ansible_check_mode
   tags:
     - gcloud_cli
     - gcloud

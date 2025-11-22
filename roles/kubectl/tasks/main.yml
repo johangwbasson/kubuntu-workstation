@@ -106,6 +106,7 @@
     name: kubectl
     state: "{{ kubectl_package_state }}"
     update_cache: true
+  when: not ansible_check_mode
   tags:
     - kubectl
     - kubernetes

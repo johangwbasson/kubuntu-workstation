@@ -98,6 +98,7 @@
     name: 1password
     state: "{{ onepassword_package_state }}"
     update_cache: true
+  when: not ansible_check_mode
   tags:
     - onepassword
     - packages

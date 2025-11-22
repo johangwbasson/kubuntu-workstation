@@ -115,6 +115,7 @@
     name: terraform
     state: "{{ terraform_package_state }}"
     update_cache: true
+  when: not ansible_check_mode
   tags:
     - terraform
     - infrastructure

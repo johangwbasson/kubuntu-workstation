@@ -6,4 +6,6 @@
     name: zram
     state: restarted
     daemon_reload: true
-  when: zram_method == 'manual'
+  when:
+    - zram_method == 'manual'
+    - not ansible_check_mode

@@ -44,7 +44,9 @@
     src: "{{ fira_sans_zip }}"
     dest: "{{ fira_sans_dir }}"
     remote_src: false
-  when: not fira_sans_installed.stat.exists
+  when:
+    - not fira_sans_installed.stat.exists
+    - not ansible_check_mode
   tags:
     - fonts
     - fira-sans
@@ -72,7 +74,9 @@
     src: "{{ jetbrains_mono_zip }}"
     dest: "{{ jetbrains_mono_dir }}"
     remote_src: false
-  when: not jetbrains_mono_installed.stat.exists
+  when:
+    - not jetbrains_mono_installed.stat.exists
+    - not ansible_check_mode
   tags:
     - fonts
     - jetbrains-mono

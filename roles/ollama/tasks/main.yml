@@ -97,6 +97,7 @@
 - name: Reload systemd daemon
   ansible.builtin.systemd:
     daemon_reload: true
+  when: not ansible_check_mode
   tags:
     - ollama
     - ai
@@ -108,6 +109,7 @@
     name: ollama
     state: "{{ ollama_service_state }}"
     enabled: "{{ ollama_service_enabled }}"
+  when: not ansible_check_mode
   tags:
     - ollama
     - ai

@@ -18,12 +18,14 @@
 - name: Create timestamped backup of fstab
   ansible.builtin.copy:
     src: /etc/fstab
-    dest: "{{ btrfs_fstab_backup_dir }}/fstab.{{ ansible_date_time.iso8601_basic_short }}"
+    dest: "{{ btrfs_fstab_backup_dir }}/fstab.{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
     remote_src: true
     mode: '0600'
     owner: root
     group: root
-  when: btrfs_create_backup
+  when:
+    - btrfs_create_backup
+    - not ansible_check_mode
   tags:
     - btrfs
     - btrfs_optimize

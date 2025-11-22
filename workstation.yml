@@ -7,7 +7,6 @@
     - ./.vars.yml
     - ./vars.yml
   roles:
-    - btrfs_optimize
     - home
     - remove_snap
     - kernel_module_blacklist

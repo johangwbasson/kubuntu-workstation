@@ -51,7 +51,7 @@
     url: https://api.github.com/repos/jesseduffield/lazygit/releases/latest
     return_content: true
   register: lazygit_latest_release
-  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_latest_release.json.tag_name | default('') | regex_replace('^v', ''))
+  when: lazygit_installed.rc != 0 or lazygit_current_version.stdout is defined
   tags:
     - lazygit
     - git
@@ -73,7 +73,9 @@
     url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/checksums.txt"
     return_content: true
   register: lazygit_checksums
-  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
+  when:
+    - lazygit_version is defined
+    - lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   failed_when: false
   tags:
     - lazygit
@@ -86,6 +88,7 @@
   ansible.builtin.set_fact:
     lazygit_checksum: "{{ (lazygit_checksums.content | regex_search('([a-f0-9]{64})\\s+lazygit_' + lazygit_version + '_Linux_x86_64.tar.gz', '\\1')) }}"
   when:
+    - lazygit_version is defined
     - lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
     - lazygit_checksums.status == 200
   tags:
@@ -101,7 +104,9 @@
     dest: "/tmp/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
     checksum: "{{ 'sha256:' + lazygit_checksum[0] if lazygit_checksum is defined and lazygit_checksum else omit }}"
     mode: '0644'
-  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
+  when:
+    - lazygit_version is defined
+    - lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:
     - lazygit
     - packages
@@ -114,7 +119,9 @@
     src: "/tmp/lazygit_{{ lazygit_version }}_Linux_x86_64.tar.gz"
     dest: /tmp
     remote_src: true
-  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
+  when:
+    - lazygit_version is defined
+    - lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:
     - lazygit
     - packages
@@ -130,7 +137,9 @@
     owner: root
     group: root
     remote_src: true
-  when: lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
+  when:
+    - lazygit_version is defined
+    - lazygit_installed.rc != 0 or (lazygit_current_version.stdout is defined and lazygit_current_version.stdout != lazygit_version)
   tags:
     - lazygit
     - packages

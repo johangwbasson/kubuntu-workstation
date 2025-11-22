@@ -1,0 +1,15 @@
+---
+# Ansible-lint configuration file
+
+# Skip specific rules
+skip_list:
+  - var-naming[no-role-prefix]  # Allow variables without role prefix
+
+# Optionally, you can also exclude specific paths
+# exclude_paths:
+#   - .cache/
+#   - .github/
+
+# Set the kind of output (default is full)
+# parseable: true
+# quiet: true

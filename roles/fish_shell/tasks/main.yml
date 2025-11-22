@@ -16,7 +16,9 @@
   ansible.builtin.file:
     path: "{{ fish_keyring_path }}"
     state: absent
-  when: fish_keyring_check.rc != 0
+  when:
+    - fish_keyring_check.rc is defined
+    - fish_keyring_check.rc != 0
   tags:
     - fish
     - shell

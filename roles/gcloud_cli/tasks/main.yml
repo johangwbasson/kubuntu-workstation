@@ -56,7 +56,9 @@
   ansible.builtin.file:
     path: "{{ gcloud_keyring_path }}"
     state: absent
-  when: gcloud_keyring_check.rc != 0
+  when:
+    - gcloud_keyring_check.rc is defined
+    - gcloud_keyring_check.rc != 0
   tags:
     - gcloud_cli
     - gcloud

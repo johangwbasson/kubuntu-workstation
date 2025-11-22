@@ -34,7 +34,9 @@
 - name: Configure libdvd-pkg (DVD playback support)
   ansible.builtin.command:
     cmd: dpkg-reconfigure -f noninteractive libdvd-pkg
-  when: libdvdcss_check.rc != 0 or 'install ok installed' not in libdvdcss_check.stdout
+  when:
+    - libdvdcss_check.rc is defined
+    - libdvdcss_check.rc != 0 or 'install ok installed' not in libdvdcss_check.stdout
   changed_when: true  # Task only runs when libdvdcss2 is not installed
   tags:
     - multimedia

@@ -35,7 +35,9 @@
   ansible.builtin.file:
     path: "{{ sublime_gpg_keyring_path }}"
     state: absent
-  when: sublime_keyring_check.rc != 0
+  when:
+    - sublime_keyring_check.rc is defined
+    - sublime_keyring_check.rc != 0
   tags:
     - sublime-text
     - sublime
@@ -51,6 +53,7 @@
     mode: '0644'
     checksum: "{{ sublime_gpg_key_checksum }}"
   when:
+    - sublime_keyring_check.rc is defined
     - sublime_keyring_check.rc != 0
     - not ansible_check_mode
   tags:

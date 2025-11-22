@@ -58,7 +58,9 @@
   ansible.builtin.file:
     path: "{{ brave_gpg_keyring_path }}"
     state: absent
-  when: brave_keyring_check.rc != 0
+  when:
+    - brave_keyring_check.rc is defined
+    - brave_keyring_check.rc != 0
   tags:
     - brave
     - packages

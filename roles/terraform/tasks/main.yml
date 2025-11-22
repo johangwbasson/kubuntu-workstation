@@ -32,7 +32,9 @@
   ansible.builtin.file:
     path: "{{ terraform_gpg_keyring_path }}"
     state: absent
-  when: terraform_keyring_check.rc != 0
+  when:
+    - terraform_keyring_check.rc is defined
+    - terraform_keyring_check.rc != 0
   tags:
     - terraform
     - infrastructure
@@ -141,7 +143,9 @@
 
 - name: Enable Terraform bash completion
   ansible.builtin.command: terraform -install-autocomplete
-  when: terraform_bash_completion_exists.rc != 0
+  when:
+    - terraform_bash_completion_exists.rc is defined
+    - terraform_bash_completion_exists.rc != 0
   changed_when: true
   failed_when: false
   tags:
@@ -166,7 +170,9 @@
     owner: "{{ terraform_user }}"
     group: "{{ terraform_user }}"
     mode: '0755'
-  when: fish_installed.rc == 0
+  when:
+    - fish_installed.rc is defined
+    - fish_installed.rc == 0
   tags:
     - terraform
     - infrastructure
@@ -177,7 +183,9 @@
   become_user: "{{ terraform_user }}"
   ansible.builtin.shell: |
     grep -q 'complete -c terraform' "{{ terraform_user_home }}/.config/fish/config.fish" 2>/dev/null
-  when: fish_installed.rc == 0
+  when:
+    - fish_installed.rc is defined
+    - fish_installed.rc == 0
   register: terraform_fish_completion_exists
   changed_when: false
   failed_when: false
@@ -191,7 +199,9 @@
   become_user: "{{ terraform_user }}"
   ansible.builtin.command: terraform -install-autocomplete
   when:
+    - fish_installed.rc is defined
     - fish_installed.rc == 0
+    - terraform_fish_completion_exists.rc is defined
     - terraform_fish_completion_exists.rc != 0
   changed_when: true
   failed_when: false
@@ -224,7 +234,9 @@
     fish -c "abbr --show | grep -q '^abbr -a -g -- tf terraform$'"
   args:
     executable: /bin/bash
-  when: fish_installed.rc == 0
+  when:
+    - fish_installed.rc is defined
+    - fish_installed.rc == 0
   register: terraform_abbr_exists
   changed_when: false
   failed_when: false
@@ -238,7 +250,9 @@
   become_user: "{{ terraform_user }}"
   ansible.builtin.command: fish -c "abbr --add --global tf terraform"
   when:
+    - fish_installed.rc is defined
     - fish_installed.rc == 0
+    - terraform_abbr_exists.rc is defined
     - terraform_abbr_exists.rc != 0
   changed_when: true
   tags:

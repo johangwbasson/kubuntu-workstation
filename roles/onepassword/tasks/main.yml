@@ -29,7 +29,9 @@
   ansible.builtin.file:
     path: "{{ onepassword_gpg_keyring_path }}"
     state: absent
-  when: onepassword_keyring_check.rc != 0
+  when:
+    - onepassword_keyring_check.rc is defined
+    - onepassword_keyring_check.rc != 0
   tags:
     - onepassword
     - packages

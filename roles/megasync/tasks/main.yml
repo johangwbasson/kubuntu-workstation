@@ -62,7 +62,9 @@
   ansible.builtin.file:
     path: "{{ mega_gpg_keyring_path }}"
     state: absent
-  when: mega_keyring_check.rc != 0
+  when:
+    - mega_keyring_check.rc is defined
+    - mega_keyring_check.rc != 0
   tags:
     - megasync
     - packages

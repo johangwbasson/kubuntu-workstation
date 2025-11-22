@@ -80,7 +80,9 @@
   ansible.builtin.file:
     path: "{{ firefox_ppa_keyring_path }}"
     state: absent
-  when: firefox_keyring_check.rc != 0
+  when:
+    - firefox_keyring_check.rc is defined
+    - firefox_keyring_check.rc != 0
   tags:
     - packages
     - firefox

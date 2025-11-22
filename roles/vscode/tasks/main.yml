@@ -54,7 +54,9 @@
   ansible.builtin.file:
     path: "{{ vscode_gpg_keyring_path }}"
     state: absent
-  when: vscode_keyring_check.rc != 0
+  when:
+    - vscode_keyring_check.rc is defined
+    - vscode_keyring_check.rc != 0
   tags:
     - vscode
     - packages

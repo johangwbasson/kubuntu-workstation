@@ -33,7 +33,9 @@
   ansible.builtin.file:
     path: "{{ onlyoffice_gpg_keyring_path }}"
     state: absent
-  when: onlyoffice_keyring_check.rc != 0
+  when:
+    - onlyoffice_keyring_check.rc is defined
+    - onlyoffice_keyring_check.rc != 0
   tags:
     - onlyoffice
     - packages

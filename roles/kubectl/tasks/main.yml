@@ -32,7 +32,9 @@
   ansible.builtin.file:
     path: "{{ kubectl_gpg_keyring_path }}"
     state: absent
-  when: kubectl_keyring_check.rc != 0
+  when:
+    - kubectl_keyring_check.rc is defined
+    - kubectl_keyring_check.rc != 0
   tags:
     - kubectl
     - kubernetes
@@ -146,7 +148,9 @@
     owner: "{{ kubectl_user }}"
     group: "{{ kubectl_user }}"
     mode: '0755'
-  when: fish_installed.rc == 0
+  when:
+    - fish_installed.rc is defined
+    - fish_installed.rc == 0
   tags:
     - kubectl
     - kubernetes
@@ -158,7 +162,9 @@
     chown {{ kubectl_user }}:{{ kubectl_user }} {{ kubectl_user_home }}/.config/fish/completions/kubectl.fish
   args:
     creates: "{{ kubectl_user_home }}/.config/fish/completions/kubectl.fish"
-  when: fish_installed.rc == 0
+  when:
+    - fish_installed.rc is defined
+    - fish_installed.rc == 0
   tags:
     - kubectl
     - kubernetes
@@ -189,7 +195,9 @@
     fish -c "abbr --show | grep -q '^abbr -a -g -- k kubectl$'"
   args:
     executable: /bin/bash
-  when: fish_installed.rc == 0
+  when:
+    - fish_installed.rc is defined
+    - fish_installed.rc == 0
   register: kubectl_abbr_exists
   changed_when: false
   failed_when: false
@@ -206,7 +214,9 @@
   args:
     executable: /usr/bin/fish
   when:
+    - fish_installed.rc is defined
     - fish_installed.rc == 0
+    - kubectl_abbr_exists.rc is defined
     - kubectl_abbr_exists.rc != 0
   changed_when: true  # Task only runs when abbreviation doesn't exist
   tags:

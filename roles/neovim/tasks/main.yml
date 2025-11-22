@@ -18,7 +18,9 @@
   ansible.builtin.file:
     path: "{{ neovim_ppa_keyring_path }}"
     state: absent
-  when: neovim_keyring_check.rc != 0
+  when:
+    - neovim_keyring_check.rc is defined
+    - neovim_keyring_check.rc != 0
   tags:
     - neovim
     - packages

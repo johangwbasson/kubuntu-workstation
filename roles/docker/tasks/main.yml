@@ -31,7 +31,9 @@
   ansible.builtin.file:
     path: "{{ docker_gpg_keyring_path }}"
     state: absent
-  when: docker_keyring_check.rc != 0
+  when:
+    - docker_keyring_check.rc is defined
+    - docker_keyring_check.rc != 0
   tags:
     - docker
     - packages

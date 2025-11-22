@@ -53,7 +53,9 @@
   ansible.builtin.file:
     path: "{{ azure_cli_keyring_path }}"
     state: absent
-  when: azure_cli_keyring_check.rc != 0
+  when:
+    - azure_cli_keyring_check.rc is defined
+    - azure_cli_keyring_check.rc != 0
   tags:
     - azure_cli
     - azure
@@ -115,7 +117,9 @@
     name: azure-cli
     state: present
     update_cache: true
-  when: azure_cli_installed.rc != 0
+  when:
+    - azure_cli_installed.rc is defined
+    - azure_cli_installed.rc != 0
   tags:
     - azure_cli
     - azure

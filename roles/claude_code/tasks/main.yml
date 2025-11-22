@@ -106,7 +106,9 @@
     executable: /bin/bash
   environment:
     HOME: "{{ claude_code_user_home }}"
-  when: claude_code_check.rc != 0
+  when:
+    - claude_code_check.rc is defined
+    - claude_code_check.rc != 0
   register: claude_code_install
   changed_when: claude_code_install.rc == 0
   tags:
@@ -148,6 +150,7 @@
     create: true
   when:
     - claude_code_configure_fish
+    - fish_installed.rc is defined
     - fish_installed.rc == 0
   tags:
     - claude_code
@@ -180,6 +183,7 @@
     create: false
   when:
     - claude_code_configure_zsh
+    - zsh_installed.rc is defined
     - zsh_installed.rc == 0
   tags:
     - claude_code

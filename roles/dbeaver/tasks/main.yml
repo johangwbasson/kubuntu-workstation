@@ -17,7 +17,9 @@
   ansible.builtin.file:
     path: "{{ dbeaver_gpg_keyring_path }}"
     state: absent
-  when: dbeaver_keyring_check.rc != 0
+  when:
+    - dbeaver_keyring_check.rc is defined
+    - dbeaver_keyring_check.rc != 0
   tags:
     - dbeaver
     - database
@@ -30,6 +32,7 @@
     dest: /tmp/dbeaver-gpg-key.asc
     mode: '0644'
   when:
+    - dbeaver_keyring_check.rc is defined
     - dbeaver_keyring_check.rc != 0
     - not ansible_check_mode
   tags:
@@ -43,6 +46,7 @@
     cmd: gpg --dearmor --output "{{ dbeaver_gpg_keyring_path }}" /tmp/dbeaver-gpg-key.asc
     creates: "{{ dbeaver_gpg_keyring_path }}"
   when:
+    - dbeaver_keyring_check.rc is defined
     - dbeaver_keyring_check.rc != 0
     - not ansible_check_mode
   tags:
@@ -68,7 +72,9 @@
   ansible.builtin.file:
     path: /tmp/dbeaver-gpg-key.asc
     state: absent
-  when: dbeaver_keyring_check.rc != 0
+  when:
+    - dbeaver_keyring_check.rc is defined
+    - dbeaver_keyring_check.rc != 0
   tags:
     - dbeaver
     - database

@@ -54,7 +54,9 @@
   ansible.builtin.set_fact:
     intellij_version: "{{ intellij_version_info.json.IIC[0].version if intellij_edition == 'community' else intellij_version_info.json.IIU[0].version }}"
     intellij_build: "{{ intellij_version_info.json.IIC[0].build if intellij_edition == 'community' else intellij_version_info.json.IIU[0].build }}"
-  when: not intellij_existing_install.stat.exists
+  when:
+    - not intellij_existing_install.stat.exists
+    - intellij_version_info.json is defined
   tags:
     - intellij
     - ide
@@ -63,7 +65,9 @@
 - name: Construct IntelliJ IDEA download URL
   ansible.builtin.set_fact:
     intellij_download_url: "{{ intellij_download_base_url }}/idea{{ 'IC' if intellij_edition == 'community' else 'IU' }}-{{ intellij_version }}.tar.gz"
-  when: not intellij_existing_install.stat.exists
+  when:
+    - not intellij_existing_install.stat.exists
+    - intellij_version is defined
   tags:
     - intellij
     - ide
@@ -77,7 +81,9 @@
     group: "{{ intellij_user }}"
     mode: '0644'
     force: false
-  when: not intellij_existing_install.stat.exists
+  when:
+    - not intellij_existing_install.stat.exists
+    - intellij_download_url is defined
   tags:
     - intellij
     - ide

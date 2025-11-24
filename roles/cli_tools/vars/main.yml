@@ -28,6 +28,7 @@ file_management_tools:
   - ripgrep
   - fzf
   - bat
+  - inotify-tools
 
 system_monitoring_tools:
   - htop
@@ -59,8 +60,7 @@ build_tools:
 
 package_management_tools:
   - flatpak
-  - apt-btrfs-snapshot
-  # Note: dnf-plugins-core is Fedora-specific, not needed on Ubuntu
+  - pipx
 
 core_utilities:
   - util-linux

@@ -45,6 +45,14 @@
     - kde
     - packages
 
+- name: Install xclip package
+  ansible.builtin.apt:
+    name: xclip
+    state: present
+  tags:
+    - kde
+    - packages
+
 - name: Verify VLC installation
   ansible.builtin.command: vlc --version
   register: vlc_version

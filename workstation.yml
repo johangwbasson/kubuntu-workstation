@@ -60,3 +60,4 @@
     - ufw
     - openssh_server
     - ollama
+    - todoist_flatpak

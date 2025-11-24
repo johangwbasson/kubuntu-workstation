@@ -1,0 +1,7 @@
+Remove zin (task manager)
+Install todoist (flatpak)
+Change keyboard: 400ms, 35 rep
+Install xclip
+Install Opencode
+sudo apt install inotify-tools
+sudo apt install pipx

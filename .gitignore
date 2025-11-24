@@ -2,3 +2,4 @@
 .vars.yml
 venv/
 __pycache__
+.aider*

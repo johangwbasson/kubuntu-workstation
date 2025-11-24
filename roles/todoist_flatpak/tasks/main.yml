@@ -1,0 +1,6 @@
+---
+- name: Install Todoist using Flatpak
+  community.general.flatpak:
+    name: com.todoist.Todoist
+    state: present
+    remote: flathub

@@ -1,0 +1,5 @@
+roles/todoist_flatpak/
+├── tasks/
+│   └── main.yml
+└── meta/
+    └── main.yml

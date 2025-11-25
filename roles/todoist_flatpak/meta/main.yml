@@ -1,6 +1,2 @@
 ---
 dependencies: []
-description: "Install Todoist using Flatpak"
-license: MIT
-name: todoist_flatpak
-version: 1.0.0

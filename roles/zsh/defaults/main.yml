@@ -5,6 +5,9 @@
 zsh_user: "{{ username }}"
 zsh_user_home: "{{ user_home }}"
 
+# Path to zshrc source file in repository
+zshrc_source_file: "{{ playbook_dir }}/roles/zsh/files/zshrc"
+
 # Oh My Zsh configuration
 ohmyzsh_install_url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
 ohmyzsh_dir: "{{ zsh_user_home }}/.oh-my-zsh"
@@ -13,17 +16,6 @@ ohmyzsh_dir: "{{ zsh_user_home }}/.oh-my-zsh"
 p10k_repo: https://github.com/romkatv/powerlevel10k.git
 p10k_dir: "{{ ohmyzsh_dir }}/custom/themes/powerlevel10k"
 p10k_version: master  # Can be pinned to a specific tag
-
-# Plugins to enable
-zsh_plugins:
-  - git
-  - docker
-  - kubectl
-  - terraform
-  - sudo
-  - history
-  - direnv
-  - fzf
 
 # Additional configuration
 zsh_set_as_default_shell: true

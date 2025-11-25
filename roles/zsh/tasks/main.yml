@@ -72,48 +72,6 @@
     - themes
     - powerlevel10k
 
-- name: Ensure .zshrc exists
-  ansible.builtin.file:
-    path: "{{ zsh_user_home }}/.zshrc"
-    state: touch
-    owner: "{{ zsh_user }}"
-    group: "{{ zsh_user }}"
-    mode: '0644'
-    modification_time: preserve
-    access_time: preserve
-  tags:
-    - zsh
-    - configuration
-
-- name: Configure Powerlevel10k theme in .zshrc
-  ansible.builtin.lineinfile:
-    path: "{{ zsh_user_home }}/.zshrc"
-    regexp: '^ZSH_THEME='
-    line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
-    owner: "{{ zsh_user }}"
-    group: "{{ zsh_user }}"
-    mode: '0644'
-    create: true
-  tags:
-    - zsh
-    - configuration
-    - themes
-    - powerlevel10k
-
-- name: Configure Oh My Zsh plugins in .zshrc
-  ansible.builtin.lineinfile:
-    path: "{{ zsh_user_home }}/.zshrc"
-    regexp: '^plugins='
-    line: "plugins=({{ zsh_plugins | join(' ') }})"
-    owner: "{{ zsh_user }}"
-    group: "{{ zsh_user }}"
-    mode: '0644'
-    create: true
-  tags:
-    - zsh
-    - configuration
-    - plugins
-
 - name: Install dependencies for SDKMAN
   ansible.builtin.apt:
     name:
@@ -153,137 +111,52 @@
     - sdkman
     - development
 
-- name: Initialize SDKMAN in .zshrc
-  ansible.builtin.blockinfile:
+- name: Check if .zshrc exists and is not a symlink
+  ansible.builtin.stat:
     path: "{{ zsh_user_home }}/.zshrc"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - SDKMAN"
-    block: |
-      # SDKMAN initialization
-      export SDKMAN_DIR="$HOME/.sdkman"
-      [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-    owner: "{{ zsh_user }}"
-    group: "{{ zsh_user }}"
-    mode: '0644'
-    create: true
+  register: zshrc_stat
   tags:
     - zsh
     - configuration
-    - sdkman
 
-- name: Add direnv hook to .zshrc
-  ansible.builtin.blockinfile:
-    path: "{{ zsh_user_home }}/.zshrc"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - DIRENV"
-    block: |
-      # direnv hook
-      if command -v direnv &> /dev/null; then
-        eval "$(direnv hook zsh)"
-      fi
+- name: Backup existing .zshrc if it exists and is not a symlink
+  ansible.builtin.copy:
+    src: "{{ zsh_user_home }}/.zshrc"
+    dest: "{{ zsh_user_home }}/.zshrc.backup.{{ ansible_date_time.epoch }}"
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
     mode: '0644'
-    create: true
+    remote_src: true
+  when:
+    - zshrc_stat.stat.exists
+    - not zshrc_stat.stat.islnk
   tags:
     - zsh
     - configuration
-    - direnv
+    - backup
 
-- name: Add fzf configuration to .zshrc
-  ansible.builtin.blockinfile:
+- name: Remove .zshrc if it exists and is not a symlink
+  ansible.builtin.file:
     path: "{{ zsh_user_home }}/.zshrc"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - FZF"
-    block: |
-      # fzf configuration
-      if [ -f ~/.fzf.zsh ]; then
-        source ~/.fzf.zsh
-      fi
+    state: absent
+  when:
+    - zshrc_stat.stat.exists
+    - not zshrc_stat.stat.islnk
+  tags:
+    - zsh
+    - configuration
 
-      # fzf options
-      export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
-      export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-      export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+- name: Create symlink from .zshrc to repository file
+  ansible.builtin.file:
+    src: "{{ zshrc_source_file }}"
+    dest: "{{ zsh_user_home }}/.zshrc"
     owner: "{{ zsh_user }}"
     group: "{{ zsh_user }}"
-    mode: '0644'
-    create: true
+    state: link
+    force: true
   tags:
     - zsh
     - configuration
-    - fzf
-
-- name: Add custom aliases to .zshrc
-  ansible.builtin.blockinfile:
-    path: "{{ zsh_user_home }}/.zshrc"
-    marker: "# {mark} ANSIBLE MANAGED BLOCK - ALIASES"
-    block: |
-
-      export PATH=$PATH:$HOME/.cargo/bin
-
-      # ---- ALIASES ----
-
-      # File listing aliases (lsd)
-      unalias ls 2>/dev/null || true
-      alias ls='lsd'
-      alias l='ls -lha'
-      alias la='ls -lhA'
-      alias ll='ls -lAFh'
-      alias lla='lsd -la'
-      alias lsa='ls -lha'
-      alias lt='lsd --tree'
-      alias c=clear
-
-      # Build tool aliases
-      alias mcb='mvn clean build'
-      alias gcb='./gradlew clean build'
-      alias m='make'
-
-      # System update and container aliases
-      alias tg='topgrade'
-      alias dcu="docker-compose up"
-
-      # GitHub Copilot aliases
-      alias copilot="gh copilot"
-      alias gcs="gh copilot suggest"
-      alias gce="gh copilot explain"
-
-      # Git workflow aliases
-      alias gc="git commit"
-      alias gs="git status"
-      alias gp="git push"
-      alias gl="git pull"
-      alias gco="git checkout"
-      alias gd="git diff"
-      alias gb="git branch"
-      alias ga="git add"
-      alias glo="git log --oneline --decorate --color"
-
-      # Node development aliases
-      alias ni="npm install"
-      alias nid="npm install --save-dev"
-      alias nig="npm install -g"
-      alias nr="npm run"
-      alias ns="npm start"
-      alias nt="npm test"
-      alias nb="npm run build"
-
-      # Vim/Neovim aliases
-      alias v='nvim'
-      alias vi='nvim'
-      alias vim='nvim'
-
-      # Gradle aliases
-      alias spot='./gradlew spotlessApply'
-
-      # Docker aliases
-      alias lad=lazydocker
-    owner: "{{ zsh_user }}"
-    group: "{{ zsh_user }}"
-    mode: '0644'
-    create: true
-  tags:
-    - zsh
-    - configuration
-    - aliases
 
 - name: Check current shell for user
   ansible.builtin.command: "getent passwd {{ zsh_user }}"

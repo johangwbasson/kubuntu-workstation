@@ -1,0 +1,38 @@
+---
+# defaults file for ocaml
+
+# User to install OCaml for (from vars.yml)
+ocaml_user: "{{ username }}"
+ocaml_user_home: "{{ user_home }}"
+
+# OCaml compiler version
+ocaml_version: "5.2.1"  # Latest stable as of 2024
+
+# opam configuration
+opam_version: "2.2"  # Latest stable opam version
+opam_root: "{{ ocaml_user_home }}/.opam"
+
+# Core development tools (installed in single command for efficiency)
+# opam install --yes dune merlin ocaml-lsp-server ocamlformat
+ocaml_core_tools:
+  - dune                   # Build system
+  - merlin                 # Editor helper for autocompletion and type info
+  - ocaml-lsp-server       # Language Server Protocol for IDE support
+  - ocamlformat            # Code formatter
+
+# Additional development tools (optional, installed individually)
+ocaml_additional_tools:
+  - utop                   # Enhanced REPL
+  - ocp-indent             # Indentation tool
+
+# Common OCaml libraries to install
+ocaml_common_packages:
+  - base                   # Standard library replacement
+  - core                   # Jane Street's alternative standard library
+  - lwt                    # Promises and concurrent programming
+  - cmdliner               # Command-line parsing
+  - yojson                 # JSON parsing
+  - alcotest               # Testing framework
+
+# Shell integration
+ocaml_configure_shell: true

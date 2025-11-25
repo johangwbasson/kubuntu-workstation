@@ -168,19 +168,11 @@
     - zsh
     - shell
 
-- name: Configure nvm for Zsh shell
+- name: Remove old NVM configuration from Zsh (if exists)
   ansible.builtin.blockinfile:
     path: "{{ claude_code_user_home }}/.zshrc"
     marker: "# {mark} ANSIBLE MANAGED BLOCK - NVM"
-    block: |
-      # NVM configuration
-      export NVM_DIR="{{ nvm_dir }}"
-      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-    owner: "{{ claude_code_user }}"
-    group: "{{ claude_code_user }}"
-    mode: '0644'
-    create: false
+    state: absent
   when:
     - claude_code_configure_zsh
     - zsh_installed.rc is defined

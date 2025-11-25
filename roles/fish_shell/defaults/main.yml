@@ -5,6 +5,10 @@ fish_keyring_path: /usr/share/keyrings/fish-shell-release-3.gpg
 fish_package_state: present
 fish_user: "{{ lookup('env', 'SUDO_USER') | default(lookup('env', 'USER'), true) }}"
 fish_user_home: "{{ lookup('env', 'HOME') if fish_user == lookup('env', 'USER') else '/home/' + fish_user }}"
+
+# Path to config.fish source file in repository
+config_fish_source_file: "{{ playbook_dir }}/roles/fish_shell/files/config.fish"
+
 fisher_install_url: https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish
 # Fisher plugins to install
 fisher_plugins:

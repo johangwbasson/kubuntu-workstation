@@ -246,66 +246,53 @@
     - nvm
     - nodejs
 
-- name: Add aliases to fish config
-  ansible.builtin.lineinfile:
-    path: /home/{{ username }}/.config/fish/config.fish
-    line: "{{ item }}"
-    state: present
-    create: true
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: '0644'
-  loop:
-    - "direnv hook fish | source"
-    - ""
-    - "# LS Aliases"
-    - "alias ls='lsd'"
-    - "alias l='ls -lha'"
-    - "alias la='ls -lhA'"
-    - "alias ll='ls -lAFh'"
-    - "alias lla='lsd -la'"
-    - "alias lsa='ls -lha'"
-    - "alias lt='lsd --tree'"
-    - ""
-    - "# General Aliases"
-    - "alias c=clear"
-    - ""
-    - "# Build Aliases"
-    - "alias mcb='mvn clean build'"
-    - "alias gcb='./gradlew clean build'"
-    - "alias m='make'"
-    - ""
-    - "# System Aliases"
-    - "alias tg='topgrade'"
-    - "alias dcu='docker-compose up'"
-    - ""
-    - "# Git Aliases"
-    - "alias gc='git commit'"
-    - "alias gs='git status'"
-    - "alias gp='git push'"
-    - "alias gl='git pull'"
-    - "alias gco='git checkout'"
-    - "alias gd='git diff'"
-    - "alias gb='git branch'"
-    - "alias ga='git add'"
-    - "alias glo='git log --oneline --decorate --color'"
-    - ""
-    - "# NPM Aliases"
-    - "alias ni='npm install'"
-    - "alias nid='npm install --save-dev'"
-    - "alias nig='npm install -g'"
-    - "alias nr='npm run'"
-    - "alias ns='npm start'"
-    - "alias nt='npm test'"
-    - "alias nb='npm run build'"
-    - "alias spot='./gradlew spotlessApply'"
-    - ""
-    - "# Utility Aliases"
-    - "alias lad=lazydocker"
-  become: true
-  become_user: "{{ username }}"
+- name: Check if config.fish exists and is not a symlink
+  ansible.builtin.stat:
+    path: "{{ fish_user_home }}/.config/fish/config.fish"
+  register: config_fish_stat
   tags:
     - fish
     - shell
     - configuration
-    - aliases
+
+- name: Backup existing config.fish if it exists and is not a symlink
+  ansible.builtin.copy:
+    src: "{{ fish_user_home }}/.config/fish/config.fish"
+    dest: "{{ fish_user_home }}/.config/fish/config.fish.backup.{{ ansible_date_time.epoch }}"
+    owner: "{{ fish_user }}"
+    group: "{{ fish_user }}"
+    mode: '0644'
+    remote_src: true
+  when:
+    - config_fish_stat.stat.exists
+    - not config_fish_stat.stat.islnk
+  tags:
+    - fish
+    - shell
+    - configuration
+    - backup
+
+- name: Remove config.fish if it exists and is not a symlink
+  ansible.builtin.file:
+    path: "{{ fish_user_home }}/.config/fish/config.fish"
+    state: absent
+  when:
+    - config_fish_stat.stat.exists
+    - not config_fish_stat.stat.islnk
+  tags:
+    - fish
+    - shell
+    - configuration
+
+- name: Create symlink from config.fish to repository file
+  ansible.builtin.file:
+    src: "{{ config_fish_source_file }}"
+    dest: "{{ fish_user_home }}/.config/fish/config.fish"
+    owner: "{{ fish_user }}"
+    group: "{{ fish_user }}"
+    state: link
+    force: true
+  tags:
+    - fish
+    - shell
+    - configuration

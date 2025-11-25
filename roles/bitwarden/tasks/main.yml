@@ -13,12 +13,25 @@
     - flatpak
     - dependencies
 
+- name: Check if flatpak executable is available
+  ansible.builtin.command: which flatpak
+  register: bitwarden_flatpak_executable_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - bitwarden
+    - packages
+    - security
+    - password-manager
+    - flatpak
+
 - name: Install Bitwarden from Flathub
   community.general.flatpak:
     name: "{{ bitwarden_flatpak_id }}"
     state: present
     remote: "{{ flatpak_remote }}"
     method: "{{ flatpak_method }}"
+  when: bitwarden_flatpak_executable_check.rc == 0
   tags:
     - bitwarden
     - packages

@@ -2,5 +2,6 @@
 # defaults file for kernel_module_blacklist
 blacklisted_modules:
   - mt7921e
+  - kvm_intel
 
 blacklist_conf_path: /etc/modprobe.d/blacklist-custom.conf

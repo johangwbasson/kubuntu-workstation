@@ -1,0 +1,3 @@
+---
+# VirtualBox installation defaults
+virtualbox_package_version: "7.0"

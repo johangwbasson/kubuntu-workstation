@@ -1,0 +1,38 @@
+---
+- name: Add VirtualBox GPG key
+  ansible.builtin.apt_key:
+    url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+    state: present
+  tags:
+    - packages
+    - virtualbox
+
+- name: Add VirtualBox repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian {{ ansible_distribution_release }} contrib"
+    state: present
+    filename: virtualbox
+  tags:
+    - packages
+    - virtualbox
+
+- name: Install VirtualBox and dependencies
+  ansible.builtin.apt:
+    name:
+      - virtualbox
+      - build-essential
+      - dkms
+    state: present
+    update_cache: true
+  tags:
+    - packages
+    - virtualbox
+
+- name: Add current user to vboxusers group
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: vboxusers
+    append: true
+  tags:
+    - packages
+    - virtualbox

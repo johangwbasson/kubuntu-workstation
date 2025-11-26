@@ -13,12 +13,25 @@
     - flatpak
     - dependencies
 
+- name: Check if flatpak executable is available
+  ansible.builtin.command: which flatpak
+  register: postman_flatpak_executable_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - postman
+    - packages
+    - api
+    - development
+    - flatpak
+
 - name: Install Postman from Flathub
   community.general.flatpak:
     name: "{{ postman_flatpak_id }}"
     state: present
     remote: "{{ flatpak_remote }}"
     method: "{{ flatpak_method }}"
+  when: postman_flatpak_executable_check.rc == 0
   tags:
     - postman
     - packages

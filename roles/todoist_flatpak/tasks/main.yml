@@ -1,6 +1,21 @@
 ---
+- name: Check if flatpak executable is available
+  ansible.builtin.command: which flatpak
+  register: todoist_flatpak_executable_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - todoist
+    - flatpak
+    - productivity
+
 - name: Install Todoist using Flatpak
   community.general.flatpak:
     name: com.todoist.Todoist
     state: present
     remote: flathub
+  when: todoist_flatpak_executable_check.rc == 0
+  tags:
+    - todoist
+    - flatpak
+    - productivity

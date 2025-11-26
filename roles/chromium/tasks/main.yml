@@ -12,11 +12,23 @@
     - browser
     - flatpak
 
+- name: Check if flatpak executable is available
+  ansible.builtin.command: which flatpak
+  register: chromium_flatpak_executable_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - chromium
+    - packages
+    - browser
+    - flatpak
+
 - name: Add Flathub repository
   community.general.flatpak_remote:
     name: flathub
     state: present
     flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+  when: chromium_flatpak_executable_check.rc == 0
   tags:
     - chromium
     - packages
@@ -28,6 +40,7 @@
     name: org.chromium.Chromium
     state: present
     remote: flathub
+  when: chromium_flatpak_executable_check.rc == 0
   tags:
     - chromium
     - packages

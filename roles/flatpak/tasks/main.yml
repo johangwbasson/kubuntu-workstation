@@ -22,12 +22,23 @@
     - package-management
     - kde
 
+- name: Check if flatpak executable is available
+  ansible.builtin.command: which flatpak
+  register: flatpak_executable_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - flatpak
+    - package-management
+    - flathub
+
 - name: Add Flathub remote repository
   community.general.flatpak_remote:
     name: "{{ flathub_remote_name }}"
     state: present
     flatpakrepo_url: "{{ flathub_remote_url }}"
     method: "{{ flathub_remote_method }}"
+  when: flatpak_executable_check.rc == 0
   tags:
     - flatpak
     - package-management

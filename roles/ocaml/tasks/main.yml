@@ -1,0 +1,287 @@
+---
+# tasks file for ocaml
+
+- name: Install OCaml build dependencies
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - curl
+      - git
+      - m4
+      - unzip
+      - bubblewrap
+      - pkg-config
+      - libgmp-dev
+      - libffi-dev
+      - libssl-dev
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  tags:
+    - ocaml
+    - packages
+    - development
+    - dependencies
+
+- name: Check if opam is already installed
+  ansible.builtin.command: which opam
+  register: opam_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - ocaml
+    - opam
+
+- name: Download opam installer
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh"
+    dest: /tmp/opam-install.sh
+    mode: '0755'
+    force: true
+  when: opam_installed.rc != 0
+  tags:
+    - ocaml
+    - opam
+    - download
+  # Note: opam installer downloaded from official OCaml GitHub repository. Security relies on HTTPS.
+
+- name: Install opam
+  ansible.builtin.command:
+    cmd: sh /tmp/opam-install.sh --version {{ opam_version }}
+  environment:
+    OPAMYES: "1"
+  when: opam_installed.rc != 0
+  changed_when: true
+  tags:
+    - ocaml
+    - opam
+
+- name: Check if opam is initialized
+  ansible.builtin.stat:
+    path: "{{ opam_root }}/config"
+  register: opam_initialized
+  become: true
+  become_user: "{{ ocaml_user }}"
+  tags:
+    - ocaml
+    - opam
+
+- name: Initialize opam
+  become: true
+  become_user: "{{ ocaml_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    opam init --auto-setup --yes --compiler={{ ocaml_version }} --disable-sandboxing
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "{{ ocaml_user_home }}"
+    OPAMYES: "1"
+  when: not opam_initialized.stat.exists
+  changed_when: true
+  tags:
+    - ocaml
+    - opam
+
+- name: Update opam repository
+  become: true
+  become_user: "{{ ocaml_user }}"
+  ansible.builtin.command: opam update
+  environment:
+    HOME: "{{ ocaml_user_home }}"
+    OPAMYES: "1"
+  changed_when: false
+  tags:
+    - ocaml
+    - opam
+
+- name: Install core OCaml development tools
+  become: true
+  become_user: "{{ ocaml_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    eval $(opam env) && opam install --yes dune merlin ocaml-lsp-server ocamlformat
+  args:
+    executable: /bin/bash
+    creates: "{{ opam_root }}/default/bin/dune"
+  environment:
+    HOME: "{{ ocaml_user_home }}"
+    OPAMYES: "1"
+  register: ocaml_core_tools_install
+  changed_when: ocaml_core_tools_install.rc == 0
+  tags:
+    - ocaml
+    - opam
+    - packages
+    - development
+
+- name: Check installed OCaml packages
+  become: true
+  become_user: "{{ ocaml_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    eval $(opam env) && opam list --installed --short
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "{{ ocaml_user_home }}"
+  register: opam_installed_packages
+  changed_when: false
+  tags:
+    - ocaml
+    - opam
+    - packages
+
+- name: Install additional OCaml development tools
+  become: true
+  become_user: "{{ ocaml_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    eval $(opam env) && opam install --yes {{ item }}
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "{{ ocaml_user_home }}"
+    OPAMYES: "1"
+  loop: "{{ ocaml_additional_tools }}"
+  when: item not in opam_installed_packages.stdout_lines
+  register: ocaml_additional_tools_install
+  changed_when: ocaml_additional_tools_install.rc == 0
+  tags:
+    - ocaml
+    - opam
+    - packages
+    - development
+
+- name: Install common OCaml libraries
+  become: true
+  become_user: "{{ ocaml_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    eval $(opam env) && opam install --yes {{ item }}
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "{{ ocaml_user_home }}"
+    OPAMYES: "1"
+  loop: "{{ ocaml_common_packages }}"
+  when: item not in opam_installed_packages.stdout_lines
+  register: ocaml_packages_install
+  changed_when: ocaml_packages_install.rc == 0
+  tags:
+    - ocaml
+    - opam
+    - packages
+    - libraries
+
+- name: Check if Zsh is the user's shell
+  ansible.builtin.command: "getent passwd {{ ocaml_user }}"
+  register: user_shell_info
+  changed_when: false
+  when: ocaml_configure_shell
+  tags:
+    - ocaml
+    - shell
+    - zsh
+
+- name: Check if zsh config has opam initialization
+  ansible.builtin.command: grep -q "opam env" {{ ocaml_user_home }}/.zshrc
+  register: zsh_has_opam
+  changed_when: false
+  failed_when: false
+  when:
+    - ocaml_configure_shell
+    - "'/usr/bin/zsh' in user_shell_info.stdout"
+  tags:
+    - ocaml
+    - shell
+    - zsh
+
+- name: Add opam initialization to .zshrc
+  ansible.builtin.blockinfile:
+    path: "{{ ocaml_user_home }}/.zshrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - OPAM"
+    block: |
+      # opam configuration
+      [[ ! -r {{ opam_root }}/opam-init/init.zsh ]] || source {{ opam_root }}/opam-init/init.zsh > /dev/null 2> /dev/null
+    owner: "{{ ocaml_user }}"
+    group: "{{ ocaml_user }}"
+    mode: '0644'
+    create: false
+  when:
+    - ocaml_configure_shell
+    - "'/usr/bin/zsh' in user_shell_info.stdout"
+    - zsh_has_opam.rc != 0
+  tags:
+    - ocaml
+    - shell
+    - zsh
+
+- name: Check if Fish shell is installed
+  ansible.builtin.command: which fish
+  register: fish_installed
+  changed_when: false
+  failed_when: false
+  when: ocaml_configure_shell
+  tags:
+    - ocaml
+    - shell
+    - fish
+
+- name: Check if fish config has opam initialization
+  ansible.builtin.command: grep -q "opam env" {{ ocaml_user_home }}/.config/fish/config.fish
+  register: fish_has_opam
+  changed_when: false
+  failed_when: false
+  when:
+    - ocaml_configure_shell
+    - fish_installed.rc == 0
+  tags:
+    - ocaml
+    - shell
+    - fish
+
+- name: Add opam initialization to Fish shell
+  ansible.builtin.blockinfile:
+    path: "{{ ocaml_user_home }}/.config/fish/config.fish"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - OPAM"
+    block: |
+      # opam configuration
+      if test -r {{ opam_root }}/opam-init/init.fish
+        source {{ opam_root }}/opam-init/init.fish > /dev/null 2> /dev/null
+      end
+    owner: "{{ ocaml_user }}"
+    group: "{{ ocaml_user }}"
+    mode: '0644'
+    create: true
+  when:
+    - ocaml_configure_shell
+    - fish_installed.rc == 0
+    - fish_has_opam.rc != 0
+  tags:
+    - ocaml
+    - shell
+    - fish
+
+- name: Display OCaml installation info
+  become: true
+  become_user: "{{ ocaml_user }}"
+  ansible.builtin.shell: |
+    set -o pipefail
+    eval $(opam env) && echo "OCaml version: $(ocaml -version)" && echo "opam version: $(opam --version)" && echo "Dune version: $(dune --version)"
+  args:
+    executable: /bin/bash
+  environment:
+    HOME: "{{ ocaml_user_home }}"
+  register: ocaml_version_info
+  changed_when: false
+  tags:
+    - ocaml
+    - info
+
+- name: Show OCaml installation summary
+  ansible.builtin.debug:
+    msg: "{{ ocaml_version_info.stdout_lines }}"
+  tags:
+    - ocaml
+    - info

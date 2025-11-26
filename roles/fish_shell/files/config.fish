@@ -112,3 +112,19 @@ end
 if test -d /home/johan/.nvm/versions/node
     set -gx PATH /home/johan/.nvm/versions/node/(ls /home/johan/.nvm/versions/node | tail -1)/bin $PATH
 end
+# BEGIN ANSIBLE MANAGED BLOCK - NVM
+# NVM configuration for Fish
+set -gx NVM_DIR /home/johan/.nvm
+
+# Load nvm via bass (if available)
+if type -q bass
+  function nvm
+    bass source /home/johan/.nvm/nvm.sh --no-use ';' nvm $argv
+  end
+end
+
+# Add nvm's default node to PATH
+if test -d /home/johan/.nvm/versions/node
+  set -gx PATH /home/johan/.nvm/versions/node/(ls /home/johan/.nvm/versions/node | tail -1)/bin $PATH
+end
+# END ANSIBLE MANAGED BLOCK - NVM

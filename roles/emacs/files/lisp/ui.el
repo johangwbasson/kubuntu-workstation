@@ -14,3 +14,5 @@
 ;; Line numbers
 (global-display-line-numbers-mode t)
 
+
+(provide 'ui)

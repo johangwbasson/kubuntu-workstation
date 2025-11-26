@@ -10,3 +10,4 @@
 (use-package dune
   :hook (tuareg-mode . dune-mode))
 
+(provide 'ocaml)

@@ -12,8 +12,18 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-;; Use use-package via straight
+;; Use use-package via straight.el
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
+
+;; Load essential packages
+(use-package doom-themes)
+(use-package tuareg)
+(use-package merlin)
+(use-package dune)
+(use-package projectile)
+(use-package counsel-projectile)
+(use-package treemacs)
+(use-package treemacs-projectile)
 
 (provide 'packages)

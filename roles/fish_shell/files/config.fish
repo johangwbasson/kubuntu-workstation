@@ -128,3 +128,9 @@ if test -d /home/johan/.nvm/versions/node
   set -gx PATH /home/johan/.nvm/versions/node/(ls /home/johan/.nvm/versions/node | tail -1)/bin $PATH
 end
 # END ANSIBLE MANAGED BLOCK - NVM
+# BEGIN ANSIBLE MANAGED BLOCK - OPAM
+# opam configuration
+if test -r /home/johan/.opam/opam-init/init.fish
+  source /home/johan/.opam/opam-init/init.fish > /dev/null 2> /dev/null
+end
+# END ANSIBLE MANAGED BLOCK - OPAM

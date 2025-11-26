@@ -1,19 +1,21 @@
-;; Example custom keys
-(global-set-key (kbd "C-c t") 'toggle-truncate-lines)
-(global-set-key (kbd "C-c g") 'magit-status)
-
-;; Optional: Remap "meta" to "super" for Linux
-(setq x-super-keysym 'meta)
-
-;; Enable CUA mode for standard cut/copy/paste
+;; Enable CUA mode (standard cut/copy/paste)
 (cua-mode t)
-
-;; Optional: Keep rectangle selection with CUA
 (setq cua-enable-cua-keys t)
 
-;; Make Ctrl+S save the current buffer
+;; Ctrl+S to save buffer
 (global-set-key (kbd "C-s") 'save-buffer)
 
-(global-set-key (kbd "C-f") 'isearch-forward)
+;; Ctrl+F: project-aware file open
+(defun my/find-file ()
+  "Open a file using Projectile if in a project, else regular find-file."
+  (interactive)
+  (if (projectile-project-p)
+      (projectile-find-file)
+    (call-interactively 'find-file)))
+(global-set-key (kbd "C-f") 'my/find-file)
+
+;; Other example keybindings
+(global-set-key (kbd "C-c t") 'toggle-truncate-lines)
+(global-set-key (kbd "C-c g") 'magit-status)
 
 (provide 'keybindings)

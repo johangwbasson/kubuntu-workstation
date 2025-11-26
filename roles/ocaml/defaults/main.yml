@@ -9,8 +9,12 @@ ocaml_user_home: "{{ user_home }}"
 ocaml_version: "5.2.1"  # Latest stable as of 2024
 
 # opam configuration
-opam_version: "2.2"  # Latest stable opam version
+opam_version: "2.1.6"  # Latest stable opam version with binary releases
 opam_root: "{{ ocaml_user_home }}/.opam"
+
+# opam binary details for secure download
+opam_binary_url: "https://github.com/ocaml/opam/releases/download/{{ opam_version }}/opam-{{ opam_version }}-x86_64-linux"
+opam_binary_checksum: "sha256:2f7b70fc874dde6e9d69b92c8293e52e06bed136b340f46e490f5adcf77ae393"  # opam 2.1.6
 
 # Core development tools (installed in single command for efficiency)
 # opam install --yes dune merlin ocaml-lsp-server ocamlformat

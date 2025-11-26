@@ -24,34 +24,32 @@
     - dependencies
 
 - name: Check if opam is already installed
-  ansible.builtin.command: which opam
+  ansible.builtin.stat:
+    path: /usr/local/bin/opam
   register: opam_installed
-  changed_when: false
-  failed_when: false
   tags:
     - ocaml
     - opam
 
-- name: Download opam installer
+- name: Download opam binary from GitHub releases
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh"
-    dest: /tmp/opam-install.sh
+    url: "{{ opam_binary_url }}"
+    dest: /usr/local/bin/opam
     mode: '0755'
-    force: true
-  when: opam_installed.rc != 0
+    owner: root
+    group: root
+    checksum: "{{ opam_binary_checksum }}"
+  when: not opam_installed.stat.exists
   tags:
     - ocaml
     - opam
     - download
-  # Note: opam installer downloaded from official OCaml GitHub repository. Security relies on HTTPS.
 
-- name: Install opam
-  ansible.builtin.command:
-    cmd: sh /tmp/opam-install.sh --version {{ opam_version }}
-  environment:
-    OPAMYES: "1"
-  when: opam_installed.rc != 0
-  changed_when: true
+- name: Verify opam installation
+  ansible.builtin.command: opam --version
+  register: opam_version_check
+  changed_when: false
+  failed_when: opam_version not in opam_version_check.stdout
   tags:
     - ocaml
     - opam

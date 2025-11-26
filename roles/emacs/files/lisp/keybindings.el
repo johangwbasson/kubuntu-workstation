@@ -11,4 +11,9 @@
 ;; Optional: Keep rectangle selection with CUA
 (setq cua-enable-cua-keys t)
 
+;; Make Ctrl+S save the current buffer
+(global-set-key (kbd "C-s") 'save-buffer)
+
+(global-set-key (kbd "C-f") 'isearch-forward)
+
 (provide 'keybindings)
